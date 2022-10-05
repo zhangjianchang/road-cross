@@ -1,0 +1,46 @@
+.header {
+  height: 50px;
+  line-height: 50px;
+  padding-left: 10px;
+  background-color: #ffffff;
+  width: 100%;
+  border-radius: 3px;
+
+  &-logo {
+    display: inline-block;
+    width: 100px;
+  }
+}
+
+.content {
+  margin-top: 10px;
+  display: flex;
+
+  &-menu {
+    width: 100px;
+
+    &-item {
+      height: 76px;
+      text-align: center;
+      line-height: 75px;
+      margin-bottom: 2px;
+      background-color: #4f48ad;
+      color: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    &-item:hover {
+      background-color: #1d185e;
+    }
+
+    &-item-active {
+      background-color: #1d185e;
+      font-weight: bold;
+    }
+  }
+
+  &-main {
+    margin-left: 10px;
+  }
+}
