@@ -55,12 +55,7 @@ export function getQByPathCurv(a: number[], b: number[], curv: any) {
    * b:b点的坐标[10,10]
    * curv:弯曲程度 取值 -1 到 1
    */
-  const x = (a[0] + b[0]) / 2;
-  const y = (a[1] + b[1]) / 2;
-  const quadrant = getQuadrant(x, y);
-  //第一第四象限曲率取负
-  curv = quadrant === 1 || quadrant === 4 ? -curv : curv;
-
+  curv = isWithInVerticalLine(a, b, curv) ? curv : -curv;
   var k2, controX, controY;
   /*
    * 控制点必须在line的中垂线上
@@ -73,10 +68,10 @@ export function getQByPathCurv(a: number[], b: number[], curv: any) {
    */
 
   if (k2 < 2 && k2 > -2) {
-    controX = Math.abs((b[0] + a[0]) / 2 + curv * 10);
+    controX = Math.abs((b[0] + a[0]) / 2 + curv * 20);
     controY = Math.abs(k2 * (controX - (a[0] + b[0]) / 2) + (a[1] + b[1]) / 2);
   } else {
-    controY = Math.abs((b[1] + a[1]) / 2 + curv * 10);
+    controY = Math.abs((b[1] + a[1]) / 2 + curv * 20);
     controX = Math.abs((controY - (a[1] + b[1]) / 2) / k2 + (a[0] + b[0]) / 2);
   }
   //定义控制点的位置
@@ -103,6 +98,30 @@ function getQuadrant(x: number, y: number) {
     quadrant = 4;
   }
   return quadrant;
+}
+
+// 查看点是否在中垂线以内
+function isWithInVerticalLine(a: number[], b: number[], curv: any) {
+  let flag = true;
+  const x = (a[0] + b[0]) / 2;
+  const y = (a[1] + b[1]) / 2;
+  var k2, controX, controY;
+  k2 = -(b[0] - a[0]) / (b[1] - a[1]);
+  if (k2 < 2 && k2 > -2) {
+    controX = Math.abs((b[0] + a[0]) / 2 + curv * 20);
+    controY = Math.abs(k2 * (controX - (a[0] + b[0]) / 2) + (a[1] + b[1]) / 2);
+  } else {
+    controY = Math.abs((b[1] + a[1]) / 2 + curv * 20);
+    controX = Math.abs((controY - (a[1] + b[1]) / 2) / k2 + (a[0] + b[0]) / 2);
+  }
+  const quadrant = getQuadrant(x, y);
+  if ((quadrant === 1 || quadrant === 4) && controX >= x) {
+    flag = false;
+  }
+  if ((quadrant === 2 || quadrant === 3) && controX <= x) {
+    flag = false;
+  }
+  return flag;
 }
 
 // 恢复canvas坐标系
