@@ -80,7 +80,7 @@ export function getQByPathCurv(a: number[], b: number[], curv: any) {
 }
 
 //根据坐标获取象限
-function getQuadrant(x: number, y: number) {
+export function getQuadrant(x: number, y: number) {
   let quadrant = 0;
   if (x >= 350 && y <= 350) {
     quadrant = 1;
