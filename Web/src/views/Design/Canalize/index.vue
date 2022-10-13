@@ -108,7 +108,7 @@
 
 <script lang="ts">
 import { defineComponent, inject, onMounted, reactive, toRefs } from "vue";
-import { roadSigns } from "./index";
+import { getRoadDefaultSign, roadSigns } from "./index";
 import Container from "../../../components/Container/index.vue";
 import { notification } from "ant-design-vue";
 import { DragOutlined } from "@ant-design/icons-vue";
@@ -235,8 +235,8 @@ export default defineComponent({
       //双黄线
       drawRoadLine(g, angle, x, y, 5, "#FFA500");
       //单侧车道分界线
-      drawRoadLine(g, angle, x, y, 33, "#FFFFFF", "20");
-      drawRoadLine(g, angle, x, y, 60, "#FFFFFF", "20");
+      drawRoadLine(g, angle, x, y, 33, "#FFFFFF", "25");
+      drawRoadLine(g, angle, x, y, 60, "#FFFFFF", "25");
       states.cvs?.appendChild(g);
     }
 
@@ -422,34 +422,36 @@ export default defineComponent({
         if (i > 0 && i % 2 !== 0) {
           console.log(states.angleSet, i);
           var prevPt = states.cross_line_pts[i - 1];
-          //取中点
-          var middlePt = [(prevPt[0] + pt[0]) / 2, (prevPt[1] + pt[1]) / 2];
+          //几条道路（默认双向六条）
+          for (let way_idx = 0; way_idx < 6; way_idx++) {
+            //左侧道路、右侧道路离中心距离微调            
+            var k = way_idx >= 3 ? way_idx + 0.01 : way_idx * 0.9;
+            //(x1+k(x2-x1)/n,y1+k(y2-y1)/n)线段n等分公式
+            var wayPt = [prevPt[0] + k * (pt[0] - prevPt[0]) / 6, prevPt[1] + k * (pt[1] - prevPt[1]) / 6];
+            var path = document.createElementNS(states.ns, "path");
+            path.setAttribute("id", `road_sign_${i}`);
+            path.setAttribute("d", getRoadDefaultSign(way_idx));
+            path.setAttribute("fill", "#ffffff");
+            path.setAttribute("width", "100");
+            path.setAttribute("height", "100");
+            path.addEventListener("click", handleChoose, false);
 
-          var path = document.createElementNS(states.ns, "path");
-          path.setAttribute("id", `road_sign_${i}`);
-          path.setAttribute("d", roadSigns[3].path);
-          path.setAttribute("fill", "#ffffff");
-          path.setAttribute("width", "100");
-          path.setAttribute("height", "100");
-          path.addEventListener("click", handleChoose, false);
-
-          var svg = document.createElementNS(states.ns, "svg");
-          svg.appendChild(path);
-          svg.setAttribute("viewBox", "0 0 1024 1024");
-          svg.setAttribute("height", "40");
-          svg.setAttribute("width", "18");
-          svg.setAttribute("class", "road-xx");
-          svg.setAttribute("x", middlePt[0].toString());
-          svg.setAttribute("y", middlePt[1].toString());
-          var g = document.createElementNS(states.ns, "g");
-          g.setAttribute(
-            "transform",
-            `rotate(${270 - states.angleSet[road]} ${middlePt[0]} ${
-              middlePt[1]
-            })`
-          );
-          g.appendChild(svg);
-          states.cvs?.appendChild(g);
+            var svg = document.createElementNS(states.ns, "svg");
+            svg.appendChild(path);
+            svg.setAttribute("viewBox", "0 0 1024 1024");
+            svg.setAttribute("height", "40");
+            svg.setAttribute("width", "18");
+            svg.setAttribute("x", wayPt[0].toString());
+            svg.setAttribute("y", wayPt[1].toString());
+            var g = document.createElementNS(states.ns, "g");
+            g.setAttribute(
+              "transform",
+              `rotate(${270 - states.angleSet[road]} ${wayPt[0]} ${wayPt[1]
+              })`
+            );
+            g.appendChild(svg);
+            states.cvs?.appendChild(g);
+          }
           road++;
         }
       }
