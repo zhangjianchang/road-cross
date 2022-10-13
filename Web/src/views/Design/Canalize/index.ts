@@ -70,12 +70,12 @@ export const roadSigns = [
     path: "",
   },
   {
+    hide: true,
     key: "reverse_straight",
     name: "逆行",
-    path: "M461.536 447.872H376.192L512.896 0l133.12 447.872h-89.248V1024H461.536z",
+    path: "m465.999916,1.936573l2.000937,575.397813l-94.666839,-1.333336l138.666919,446.667481l137.333584,-445.334145l-85.333489,-1.333336l0,-576.00105",
   },
 ];
-
 
 //根据车道获取默认路标
 export function getRoadDefaultSign(wayIndex: number): string {
@@ -99,7 +99,7 @@ export function getRoadDefaultSign(wayIndex: number): string {
     default:
       roadSignKey = "straight";
   }
-  let roadSignPath = roadSigns.find(s => s.key === roadSignKey)?.path;
+  let roadSignPath = roadSigns.find((s) => s.key === roadSignKey)?.path;
   if (roadSignPath) {
     return roadSignPath;
   }

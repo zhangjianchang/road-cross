@@ -95,7 +95,7 @@
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 1024 1024"
           class="road-sign"
-          v-for="road in roadSigns"
+          v-for="road in roadSigns.filter((s) => !s.hide)"
           :key="road.key"
           @click="handleConfirmSign(road.key)"
         >
@@ -127,7 +127,7 @@ export default defineComponent({
       angleSet: [] as number[], //所有道路倾斜角，以此绘制
       cross_pts: [] as any[], //所有路口交叉点
       cross_line_pts: [] as any[], //所有路口交叉点内侧一层
-      road_sign_pts: [] as any[], //所有路口交叉点内侧一层
+      road_zebra_pts: [] as any[], //所有路口交叉点内侧一层
       currentRoad: {} as any, //当前选中道路
       currentSign: {} as any, //当前选中路标
       modalVisible: false, //车道弹窗
@@ -174,6 +174,7 @@ export default defineComponent({
 
     function render() {
       var cross_r = 100;
+      var zebra_r = 85;
       for (var i = 0; i < states.angleSet.length; i++) {
         var angle = states.angleSet[i];
         var radian = (Math.PI / 180) * angle; // 角度转弧度
@@ -182,14 +183,16 @@ export default defineComponent({
         var y2 = -Math.sin(radian) * 300 + 350;
         var x3 = Math.cos(radian) * cross_r + 350; // 交叉口圆半径100
         var y3 = -Math.sin(radian) * cross_r + 350;
+        var x4 = Math.cos(radian) * zebra_r + 350; // 斑马线圆半径50
+        var y4 = -Math.sin(radian) * zebra_r + 350;
+        //画路
         drawRoad(i, angle, x2, y2);
-
         // 获取交叉口圆plus和路边相交的点
         setPts(states.cross_pts, angle, x3, y3);
         // 获取交叉口圆plus和路边相交的点(内侧边缘线)
         setPts(states.cross_line_pts, angle, x3, y3, 90);
         //获取路标一圈的定位
-        setPts(states.road_sign_pts, angle, x3, y3, 110);
+        setPts(states.road_zebra_pts, angle, x4, y4, 85);
       }
       // 交叉口
       drawCross();
@@ -235,8 +238,10 @@ export default defineComponent({
       //双黄线
       drawRoadLine(g, angle, x, y, 5, "#FFA500");
       //单侧车道分界线
-      drawRoadLine(g, angle, x, y, 33, "#FFFFFF", "25");
-      drawRoadLine(g, angle, x, y, 60, "#FFFFFF", "25");
+      let right_d = "150 30 20 30 20 30";
+      let left_d = "20 30";
+      drawRoadLine(g, angle, x, y, 33, "#FFFFFF", right_d, left_d);
+      drawRoadLine(g, angle, x, y, 60, "#FFFFFF", right_d, left_d);
       states.cvs?.appendChild(g);
     }
 
@@ -278,32 +283,33 @@ export default defineComponent({
       y: number,
       road_width: number,
       color = "#FFFFFF", //路线颜色
-      dasharray = "0" //路线虚实，0实线，x间隔x的虚线
+      dasharray_right = "0", //路线虚实，0实线，x间隔x的虚线
+      dasharray_left = "0" //路线虚实，0实线，x间隔x的虚线
     ) {
-      var leftLine = document.createElementNS(states.ns, "line");
-      //左边道路
+      var rightLine = document.createElementNS(states.ns, "line");
+      //右侧道路
       const left1 = getPoint("nl", angle, states.cx, states.cy, road_width);
       const left2 = getPoint("fr", angle, x, y, road_width);
-      leftLine.setAttribute("x1", left1[0].toString());
-      leftLine.setAttribute("y1", left1[1].toString());
-      leftLine.setAttribute("x2", left2[0].toString());
-      leftLine.setAttribute("y2", left2[1].toString());
-      leftLine.setAttribute("stroke", color);
-      leftLine.setAttribute("stroke-width", "2");
-      leftLine.setAttribute("stroke-dasharray", dasharray);
-      g.appendChild(leftLine);
-      //右边道路
-      var rightLine = document.createElementNS(states.ns, "line");
-      const right1 = getPoint("nr", angle, states.cx, states.cy, road_width);
-      const right2 = getPoint("fl", angle, x, y, road_width);
-      rightLine.setAttribute("x1", right1[0].toString());
-      rightLine.setAttribute("y1", right1[1].toString());
-      rightLine.setAttribute("x2", right2[0].toString());
-      rightLine.setAttribute("y2", right2[1].toString());
+      rightLine.setAttribute("x1", left1[0].toString());
+      rightLine.setAttribute("y1", left1[1].toString());
+      rightLine.setAttribute("x2", left2[0].toString());
+      rightLine.setAttribute("y2", left2[1].toString());
       rightLine.setAttribute("stroke", color);
       rightLine.setAttribute("stroke-width", "2");
-      rightLine.setAttribute("stroke-dasharray", dasharray);
+      rightLine.setAttribute("stroke-dasharray", dasharray_right);
       g.appendChild(rightLine);
+      //左侧道路
+      var leftLine = document.createElementNS(states.ns, "line");
+      const right1 = getPoint("nr", angle, states.cx, states.cy, road_width);
+      const right2 = getPoint("fl", angle, x, y, road_width);
+      leftLine.setAttribute("x1", right1[0].toString());
+      leftLine.setAttribute("y1", right1[1].toString());
+      leftLine.setAttribute("x2", right2[0].toString());
+      leftLine.setAttribute("y2", right2[1].toString());
+      leftLine.setAttribute("stroke", color);
+      leftLine.setAttribute("stroke-width", "2");
+      leftLine.setAttribute("stroke-dasharray", dasharray_left);
+      g.appendChild(leftLine);
     }
 
     function drawCross() {
@@ -313,6 +319,8 @@ export default defineComponent({
       drawStopLine();
       //路标
       drawRoadSign();
+      //斑马线
+      drawZebraCross();
     }
 
     //画交叉口
@@ -417,24 +425,27 @@ export default defineComponent({
     //画路标
     function drawRoadSign() {
       let road = 0;
-      for (var i = 0; i < states.road_sign_pts.length; i++) {
+      var way_count = 3; //每条路单行三条道
+      for (var i = 0; i < states.cross_line_pts.length; i++) {
         var pt = states.cross_line_pts[i];
         if (i > 0 && i % 2 !== 0) {
           console.log(states.angleSet, i);
           var prevPt = states.cross_line_pts[i - 1];
           //几条道路（默认双向六条）
           for (let way_idx = 0; way_idx < 6; way_idx++) {
-            //左侧道路、右侧道路离中心距离微调            
-            var k = way_idx >= 3 ? way_idx + 0.01 : way_idx * 0.9;
+            //左侧道路、右侧道路离中心距离微调
+            var k = way_idx >= way_count ? way_idx : way_idx * 0.9;
             //(x1+k(x2-x1)/n,y1+k(y2-y1)/n)线段n等分公式
-            var wayPt = [prevPt[0] + k * (pt[0] - prevPt[0]) / 6, prevPt[1] + k * (pt[1] - prevPt[1]) / 6];
+            var wayPt = [
+              prevPt[0] + (k * (pt[0] - prevPt[0])) / 6,
+              prevPt[1] + (k * (pt[1] - prevPt[1])) / 6,
+            ];
             var path = document.createElementNS(states.ns, "path");
             path.setAttribute("id", `road_sign_${i}`);
             path.setAttribute("d", getRoadDefaultSign(way_idx));
             path.setAttribute("fill", "#ffffff");
             path.setAttribute("width", "100");
             path.setAttribute("height", "100");
-            path.addEventListener("click", handleChoose, false);
 
             var svg = document.createElementNS(states.ns, "svg");
             svg.appendChild(path);
@@ -446,13 +457,35 @@ export default defineComponent({
             var g = document.createElementNS(states.ns, "g");
             g.setAttribute(
               "transform",
-              `rotate(${270 - states.angleSet[road]} ${wayPt[0]} ${wayPt[1]
-              })`
+              `rotate(${270 - states.angleSet[road]} ${wayPt[0]} ${wayPt[1]})`
             );
+            if (way_idx >= way_count) {
+              g.addEventListener("click", handleChoose, false);
+            }
             g.appendChild(svg);
             states.cvs?.appendChild(g);
           }
           road++;
+        }
+      }
+    }
+
+    //斑马线
+    function drawZebraCross() {
+      for (var i = 0; i < states.road_zebra_pts.length; i++) {
+        var pt = states.road_zebra_pts[i];
+        var nextPt = states.road_zebra_pts[i + 1];
+        if (i == 0 || i % 2 === 0) {
+          var stopLine = document.createElementNS(states.ns, "line");
+          stopLine.setAttribute("id", `stop_line_${i}`);
+          stopLine.setAttribute("x1", pt[0].toString());
+          stopLine.setAttribute("y1", pt[1].toString());
+          stopLine.setAttribute("x2", nextPt[0].toString());
+          stopLine.setAttribute("y2", nextPt[1].toString());
+          stopLine.setAttribute("stroke", "#FFFFFF");
+          stopLine.setAttribute("stroke-width", "15");
+          stopLine.setAttribute("stroke-dasharray", "3 5");
+          states.cvs?.appendChild(stopLine);
         }
       }
     }
@@ -465,13 +498,11 @@ export default defineComponent({
 
     //选中路标
     function handleChoose(e: any) {
-      console.log(e.path[0]);
       states.currentSign = e.path[0];
       states.modalVisible = true;
     }
 
     function handleConfirmSign(rowKey: string) {
-      console.log(rowKey);
       states.currentSign.setAttribute(
         "d",
         roadSigns.find((s) => s.key === rowKey)?.path

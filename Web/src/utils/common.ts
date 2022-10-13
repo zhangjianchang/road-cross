@@ -156,3 +156,19 @@ function rotateCoordinate(point: any, type: any) {
       ];
   }
 }
+
+//画点
+// function drawPoint(x: number, y: number, color: string) {
+//   var g = document.createElementNS(states.ns, "g");
+//   g.setAttribute("stroke", color);
+//   g.setAttribute("stroke-width", "3");
+//   g.setAttribute("fill", "black");
+
+//   var circle = document.createElementNS(states.ns, "circle");
+//   circle.setAttribute("cx", x.toString());
+//   circle.setAttribute("cy", y.toString());
+//   circle.setAttribute("r", "3");
+//   g.appendChild(circle);
+
+//   states.cvs?.appendChild(g);
+// }
