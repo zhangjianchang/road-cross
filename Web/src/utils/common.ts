@@ -41,10 +41,15 @@ export function getAngle(cx: number, cy: number, x: number, y: number) {
     y = cx - ox;
   }
   var radian = Math.atan(y / x); //弧度
-  var angle = Math.floor(180 / (Math.PI / radian)); //弧度转角度
+  var angle = parseAngle(180 / (Math.PI / radian)); //弧度转角度
   //每增加一个象限加90度
   angle += (quadrant - 1) * 90;
   return angle;
+}
+
+//角度以5°为一个单位
+function parseAngle(angle:number) { 
+  return parseInt(((angle / 5)).toString()) * 5;
 }
 
 /* 求中垂线 */

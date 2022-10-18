@@ -77,27 +77,30 @@ export const roadSigns = [
   },
 ];
 
-//根据车道获取默认路标
-export function getRoadDefaultSign(wayIndex: number): string {
+//根据车道获取默认路标 k系数，>=1正向路，否则反向路
+export function getRoadDefaultSign(
+  wayIndex: number,
+  is_reverse: boolean,
+  is_last: boolean
+): string {
   let roadSignKey = "";
-  console.log(wayIndex);
-  switch (wayIndex) {
-    case 0:
-    case 1:
-    case 2:
-      roadSignKey = "reverse_straight";
-      break;
-    case 3:
-      roadSignKey = "left";
-      break;
-    case 4:
-      roadSignKey = "straight";
-      break;
-    case 5:
-      roadSignKey = "straight_right";
-      break;
-    default:
-      roadSignKey = "straight";
+  if (is_reverse) {
+    //反向车道
+    roadSignKey = "reverse_straight";
+  } else if (is_last) {
+    //右边最后一条路
+    roadSignKey = "straight_right";
+  } else {
+    console.log(wayIndex)
+    switch (wayIndex) {
+      //右边第一条路
+      case 0:
+        roadSignKey = "left";
+        break;
+      //右边其余路
+      default:
+        roadSignKey = "straight";
+    }
   }
   let roadSignPath = roadSigns.find((s) => s.key === roadSignKey)?.path;
   if (roadSignPath) {

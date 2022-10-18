@@ -44,13 +44,23 @@
 }
 
 .header {
-  height: 28px;
-  line-height: 28px;
+  font-size: 12px;
+  height: 14px;
+  line-height: 18px;
   color: #ff0000;
 }
 
+.content{
+  :deep(.ant-form-item){
+    margin-bottom: -2px !important;
+  }
+  :deep(.ant-select-item){
+    font-size: 12px !important;
+  }
+}
+
 .form-width {
-  width: 70px !important;
+  width: 90px !important;
 }
 
 .line-button {
