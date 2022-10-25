@@ -17,7 +17,7 @@
   margin-left: 10px;
 }
 
-.drag {
+.func {
   display: inline-block;
   margin-top: 34px;
   margin-left: -60px;
@@ -31,4 +31,68 @@
 .redraw-button {
   width: 150px;
   height: 45px;
+}
+
+.form {
+  padding: 20px;
+  //字体大小
+  :deep(.ant-form-item-label > label),
+  :deep(.ant-select),
+  :deep(.ant-input-number-input) {
+    font-size: 12px;
+  }
+}
+
+.header {
+  font-size: 12px;
+  height: 14px;
+  line-height: 18px;
+  color: #ff0000;
+}
+
+.content{
+  :deep(.ant-form-item){
+    margin-bottom: -2px !important;
+  }
+  :deep(.ant-select-item){
+    font-size: 12px !important;
+  }
+}
+
+.form-width {
+  width: 75px !important;
+}
+
+.span-unit{
+  width: 15px;
+  display: inline-block;
+  font-size: 12px;
+  text-align: right;
+}
+
+.line-button {
+  display: inline-block;
+  font-size: 12px;
+}
+
+.modal-container {
+  width: 100%;
+  margin: 0 auto;
+}
+
+.road-sign {
+  width: 50px;
+  height: 100px;
+  background-color: rgb(162, 162, 162);
+  margin-left: 15px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.road-sign:hover {
+  background-color: #4f48ad;
+}
+
+.road-xx {
+  cursor: pointer;
 }

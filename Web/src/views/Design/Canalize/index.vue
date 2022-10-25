@@ -19,7 +19,7 @@
               <a-col :span="12">
                 <a-form-item label="方向">
                   <a-select
-                    v-model:value="modelRef.direction"
+                    v-model:value="formModel.direction"
                     size="small"
                     class="form-width"
                   >
@@ -56,7 +56,7 @@
               <a-col :span="12">
                 <a-form-item label="交叉口大小">
                   <a-input-number
-                    v-model:value="modelRef.size"
+                    v-model:value="formModel.size"
                     :min="0"
                     :max="10"
                     size="small"
@@ -67,7 +67,7 @@
               <a-col :span="12">
                 <a-form-item label="右转曲度">
                   <a-input-number
-                    v-model:value="modelRef.curvature"
+                    v-model:value="formModel.curvature"
                     @change="drawCross"
                     :min="0"
                     :max="1"
@@ -87,7 +87,7 @@
               <a-col :span="12">
                 <a-form-item label="路名">
                   <a-input
-                    v-model:value="modelRef.luming"
+                    v-model:value="formModel.luming"
                     class="form-width"
                     size="small"
                   />
@@ -96,7 +96,7 @@
               <a-col :span="12">
                 <a-form-item label="偏移量">
                   <a-input-number
-                    v-model:value="modelRef.pianyiliang"
+                    v-model:value="formModel.pianyiliang"
                     :min="0"
                     :max="1"
                     :step="0.1"
@@ -108,7 +108,7 @@
               <a-col :span="12">
                 <a-form-item label="人行道">
                   <a-select
-                    v-model:value="modelRef.renxingdao"
+                    v-model:value="formModel.renxingdao"
                     size="small"
                     class="form-width"
                   >
@@ -120,7 +120,7 @@
               <a-col :span="12">
                 <a-form-item label="路段速度">
                   <a-input-number
-                    v-model:value="modelRef.luduansudu"
+                    v-model:value="formModel.luduansudu"
                     @change="drawCross"
                     :min="0"
                     :max="300"
@@ -133,7 +133,7 @@
               <a-col :span="12">
                 <a-form-item label="左转待转">
                   <a-select
-                    v-model:value="modelRef.zuozhuandaizhuan"
+                    v-model:value="formModel.zuozhuandaizhuan"
                     size="small"
                     class="form-width"
                   >
@@ -145,7 +145,7 @@
               <a-col :span="12">
                 <a-form-item label="直行待转">
                   <a-select
-                    v-model:value="modelRef.zhixingdaizhuan"
+                    v-model:value="formModel.zhixingdaizhuan"
                     size="small"
                     class="form-width"
                   >
@@ -157,7 +157,7 @@
               <a-col :span="12">
                 <a-form-item label="穿越到">
                   <a-select
-                    v-model:value="modelRef.chuanyuedao"
+                    v-model:value="formModel.chuanyuedao"
                     size="small"
                     class="form-width"
                   >
@@ -174,7 +174,7 @@
               <a-col :span="12">
                 <a-form-item label="穿越方式">
                   <a-select
-                    v-model:value="modelRef.chuanyuefangshi"
+                    v-model:value="formModel.chuanyuefangshi"
                     size="small"
                     class="form-width"
                   >
@@ -199,7 +199,7 @@
               <a-col :span="12">
                 <a-form-item label="渠化方式">
                   <a-select
-                    v-model:value="modelRef.quhuafangshi"
+                    v-model:value="formModel.quhuafangshi"
                     size="small"
                     class="form-width"
                   >
@@ -222,7 +222,7 @@
               <a-col :span="12">
                 <a-form-item label="右转车道">
                   <a-input-number
-                    v-model:value="modelRef.youzhuanchedao"
+                    v-model:value="formModel.youzhuanchedao"
                     @change="drawCross"
                     :min="0"
                     :max="2"
@@ -236,27 +236,27 @@
           </a-form>
         </div>
         <div class="header">进口属性</div>
-        <div class="content">
+        <div class="content" v-if="formModel.exitAttr.length > 0">
           <a-form :label-col="labelCol" :wrapper-col="wrapperCol">
             <a-row>
               <a-col :span="12">
                 <a-form-item label="进口车道">
                   <a-input-number
-                    v-model:value="modelRef.jinkouchedao"
-                    @change="onChangeIn"
+                    v-model:value="formModel.entranceAttr[formModel.direction - 1].wayCount"
+                    @change="onChangeRoadCount"
                     :min="0"
                     :max="9"
                     :step="1"
                     size="small"
                     class="form-width"
                   />
-                  <span style="font-size:12px">个</span>
+                  <div class="span-unit">个</div>
                 </a-form-item>
               </a-col>
               <a-col :span="12">
                 <a-form-item label="车道宽度">
                   <a-input-number
-                    v-model:value="modelRef.chedaokuandu"
+                    v-model:value="formModel.chedaokuandu"
                     @change="drawCross"
                     :min="0"
                     :max="10"
@@ -264,12 +264,13 @@
                     size="small"
                     class="form-width"
                   />
+                  <div class="span-unit">米</div>
                 </a-form-item>
               </a-col>
               <a-col :span="12">
                 <a-form-item label="展宽数量">
                   <a-input-number
-                    v-model:value="modelRef.zhankuanshuliang"
+                    v-model:value="formModel.zhankuanshuliang"
                     @change="drawCross"
                     :min="-2"
                     :max="4"
@@ -277,12 +278,13 @@
                     size="small"
                     class="form-width"
                   />
+                  <div class="span-unit">个</div>
                 </a-form-item>
               </a-col>
               <a-col :span="12">
                 <a-form-item label="展宽车道宽度">
                   <a-input-number
-                    v-model:value="modelRef.zhankuanchedaokuandu"
+                    v-model:value="formModel.zhankuanchedaokuandu"
                     @change="drawCross"
                     :min="0"
                     :max="10"
@@ -290,12 +292,13 @@
                     size="small"
                     class="form-width"
                   />
+                  <div class="span-unit">米</div>
                 </a-form-item>
               </a-col>
               <a-col :span="12">
                 <a-form-item label="展宽段长">
                   <a-input-number
-                    v-model:value="modelRef.zhankuanduanchang"
+                    v-model:value="formModel.zhankuanduanchang"
                     @change="drawCross"
                     :min="0"
                     :max="100"
@@ -303,12 +306,13 @@
                     size="small"
                     class="form-width"
                   />
+                  <div class="span-unit">米</div>
                 </a-form-item>
               </a-col>
               <a-col :span="12">
                 <a-form-item label="外侧渐变段长">
                   <a-input-number
-                    v-model:value="modelRef.waicejianbianduanchang"
+                    v-model:value="formModel.waicejianbianduanchang"
                     @change="drawCross"
                     :min="0"
                     :max="50"
@@ -316,12 +320,13 @@
                     size="small"
                     class="form-width"
                   />
+                  <div class="span-unit">米</div>
                 </a-form-item>
               </a-col>
               <a-col :span="12">
                 <a-form-item label="内侧偏移">
                   <a-input-number
-                    v-model:value="modelRef.neicepianyi"
+                    v-model:value="formModel.neicepianyi"
                     @change="drawCross"
                     :min="0"
                     :max="10"
@@ -329,12 +334,13 @@
                     size="small"
                     class="form-width"
                   />
+                  <div class="span-unit">米</div>
                 </a-form-item>
               </a-col>
               <a-col :span="12">
                 <a-form-item label="内侧渐变段长">
                   <a-input-number
-                    v-model:value="modelRef.neicejianbianduanchang"
+                    v-model:value="formModel.neicejianbianduanchang"
                     @change="drawCross"
                     :min="0"
                     :max="50"
@@ -342,32 +348,36 @@
                     size="small"
                     class="form-width"
                   />
+                  <div class="span-unit">米</div>
                 </a-form-item>
               </a-col>
             </a-row>
           </a-form>
         </div>
         <div class="header">出口属性</div>
-        <div class="content">
+        <div class="content" v-if="formModel.exitAttr.length > 0">
           <a-form :label-col="labelCol" :wrapper-col="wrapperCol">
             <a-row>
               <a-col :span="12">
                 <a-form-item label="出口车道">
                   <a-input-number
-                    v-model:value="modelRef.chukouchedao"
-                    @change="drawCross"
+                    v-model:value="
+                      formModel.exitAttr[formModel.direction - 1].wayCount
+                    "
+                    @change="onChangeRoadCount"
                     :min="0"
                     :max="10"
                     :step="1"
                     size="small"
                     class="form-width"
                   />
+                  <div class="span-unit">个</div>
                 </a-form-item>
               </a-col>
               <a-col :span="12">
                 <a-form-item label="车道宽度">
                   <a-input-number
-                    v-model:value="modelRef.chedaokuandu2"
+                    v-model:value="formModel.chedaokuandu2"
                     @change="drawCross"
                     :min="0"
                     :max="10"
@@ -375,12 +385,13 @@
                     size="small"
                     class="form-width"
                   />
+                  <div class="span-unit">米</div>
                 </a-form-item>
               </a-col>
               <a-col :span="12">
                 <a-form-item label="出口展宽">
                   <a-input-number
-                    v-model:value="modelRef.chukouzhankuan"
+                    v-model:value="formModel.chukouzhankuan"
                     @change="drawCross"
                     :min="-2"
                     :max="4"
@@ -388,12 +399,13 @@
                     size="small"
                     class="form-width"
                   />
+                  <div class="span-unit">个</div>
                 </a-form-item>
               </a-col>
               <a-col :span="12">
                 <a-form-item label="展宽车道宽度">
                   <a-input-number
-                    v-model:value="modelRef.zhankuanchedaokuandu2"
+                    v-model:value="formModel.zhankuanchedaokuandu2"
                     @change="drawCross"
                     :min="0"
                     :max="10"
@@ -401,12 +413,13 @@
                     size="small"
                     class="form-width"
                   />
+                  <div class="span-unit">米</div>
                 </a-form-item>
               </a-col>
               <a-col :span="12">
                 <a-form-item label="展宽段长">
                   <a-input-number
-                    v-model:value="modelRef.zhankuanduanchang2"
+                    v-model:value="formModel.zhankuanduanchang2"
                     @change="drawCross"
                     :min="0"
                     :max="100"
@@ -414,12 +427,13 @@
                     size="small"
                     class="form-width"
                   />
+                  <div class="span-unit">米</div>
                 </a-form-item>
               </a-col>
               <a-col :span="12">
                 <a-form-item label="渐变段长">
                   <a-input-number
-                    v-model:value="modelRef.jianbianduanchang"
+                    v-model:value="formModel.jianbianduanchang"
                     @change="drawCross"
                     :min="0"
                     :max="50"
@@ -427,6 +441,7 @@
                     size="small"
                     class="form-width"
                   />
+                  <div class="span-unit">米</div>
                 </a-form-item>
               </a-col>
             </a-row>
@@ -439,7 +454,7 @@
               <a-col :span="12">
                 <a-form-item label="分割形式">
                   <a-select
-                    v-model:value="modelRef.fengexingshi"
+                    v-model:value="formModel.fengexingshi"
                     size="small"
                     class="form-width"
                   >
@@ -455,7 +470,7 @@
               <a-col :span="12">
                 <a-form-item label="分割宽度">
                   <a-input-number
-                    v-model:value="modelRef.fengekuandu"
+                    v-model:value="formModel.fengekuandu"
                     @change="drawCross"
                     :min="0"
                     :max="10"
@@ -463,12 +478,13 @@
                     size="small"
                     class="form-width"
                   />
+                  <div class="span-unit">米</div>
                 </a-form-item>
               </a-col>
               <a-col :span="12">
                 <a-form-item label="安全岛">
                   <a-select
-                    v-model:value="modelRef.anquandao"
+                    v-model:value="formModel.anquandao"
                     size="small"
                     class="form-width"
                   >
@@ -480,7 +496,7 @@
               <a-col :span="12">
                 <a-form-item label="提前掉头">
                   <a-select
-                    v-model:value="modelRef.tiqiantiaotou"
+                    v-model:value="formModel.tiqiantiaotou"
                     size="small"
                     class="form-width"
                   >
@@ -500,7 +516,7 @@
               <a-col :span="12">
                 <a-form-item label="进口">
                   <a-select
-                    v-model:value="modelRef.jinkou"
+                    v-model:value="formModel.jinkou"
                     size="small"
                     class="form-width"
                   >
@@ -512,7 +528,7 @@
               <a-col :span="12">
                 <a-form-item label="出口">
                   <a-select
-                    v-model:value="modelRef.chukou"
+                    v-model:value="formModel.chukou"
                     size="small"
                     class="form-width"
                   >
@@ -524,7 +540,7 @@
               <a-col :span="12">
                 <a-form-item label="车道宽度">
                   <a-input-number
-                    v-model:value="modelRef.chedaokuandu3"
+                    v-model:value="formModel.chedaokuandu3"
                     @change="drawCross"
                     :min="0"
                     :max="10"
@@ -532,12 +548,13 @@
                     size="small"
                     class="form-width"
                   />
+                  <div class="span-unit">米</div>
                 </a-form-item>
               </a-col>
               <a-col :span="12">
                 <a-form-item label="车道宽度">
                   <a-input-number
-                    v-model:value="modelRef.chedaokuandu4"
+                    v-model:value="formModel.chedaokuandu4"
                     @change="drawCross"
                     :min="0"
                     :max="10"
@@ -545,12 +562,13 @@
                     size="small"
                     class="form-width"
                   />
+                  <div class="span-unit">米</div>
                 </a-form-item>
               </a-col>
               <a-col :span="12">
                 <a-form-item label="分割形式">
                   <a-select
-                    v-model:value="modelRef.fengexingshi1"
+                    v-model:value="formModel.fengexingshi1"
                     size="small"
                     class="form-width"
                   >
@@ -563,7 +581,7 @@
               <a-col :span="12">
                 <a-form-item label="渐变段长">
                   <a-select
-                    v-model:value="modelRef.fengexingshi2"
+                    v-model:value="formModel.fengexingshi2"
                     size="small"
                     class="form-width"
                   >
@@ -616,6 +634,7 @@ export default defineComponent({
     const roadDir = inject("RoadDir") as any[];
 
     const states = reactive({
+      isInit: true,
       ns: "",
       cvs: null as HTMLElement | null,
       cx: 350, //圆心x
@@ -628,15 +647,19 @@ export default defineComponent({
       currentRoad: {} as any, //当前选中道路
       currentSign: {} as any, //当前选中路标
       modalVisible: false, //车道弹窗
+      defaultCount: 3, //初始化每条进口/出口3个车道
       wayCount: [] as number[], //每条路上的车道数量
     });
 
     //参数设置
-    const modelRef = reactive({
-      direction: "1", //方向
+    const formModel = reactive({
+      direction: 1, //方向
       size: 5, //交叉路口大小
       curvature: 0.5, //右转道路曲率
-    } as any);
+      roadAttr: [] as any[], //道路属性
+      entranceAttr: [] as any[], //进口属性
+      exitAttr: [] as any[], //出口属性
+    });
 
     const initRoads = () => {
       states.ns = "http://www.w3.org/2000/svg";
@@ -650,13 +673,21 @@ export default defineComponent({
         );
         states.angleSet.push(angle);
         //初始化6车道//0.5为中间双黄线
-        states.wayCount[index] = 6.5;
+        if (states.isInit) {
+          formModel.entranceAttr.push({ wayCount: states.defaultCount });
+          formModel.exitAttr.push({ wayCount: states.defaultCount });
+        }
+        states.wayCount[index] =
+          formModel.entranceAttr[index].wayCount +
+          formModel.exitAttr[index].wayCount +
+          0.5;
       });
       states.angleSet.sort(function (a, b) {
         return a - b;
       });
-
       render();
+      //标记已经初始化过了
+      states.isInit = false;
     };
 
     // //画路
@@ -675,6 +706,7 @@ export default defineComponent({
 
     function render() {
       for (var i = 0; i < states.angleSet.length; i++) {
+        //
         var road_r = states.road_r_k * states.wayCount[i];
         var cross_r = states.road_r_k * states.wayCount[i] - 10;
         var zebra_r = states.road_r_k * states.wayCount[i] - 15;
@@ -849,13 +881,13 @@ export default defineComponent({
           //最后一个点需要用曲线连接第一个点
           if (i === states.cross_pts.length - 1) {
             var firstpt = states.cross_pts[0];
-            var Q = getQByPathCurv(firstpt, pt, modelRef.curvature);
+            var Q = getQByPathCurv(firstpt, pt, formModel.curvature);
             d_str += `Q ${Q} ${firstpt[0]}, ${firstpt[1]} `;
           }
         } else {
           //第偶数个点为相邻道路的点，用曲线连接
           var prevPt = states.cross_pts[i - 1];
-          var Q = getQByPathCurv(prevPt, pt, modelRef.curvature);
+          var Q = getQByPathCurv(prevPt, pt, formModel.curvature);
           d_str += `Q ${Q} ${pt[0]}, ${pt[1]} `;
         }
       }
@@ -882,13 +914,13 @@ export default defineComponent({
           if (i === states.cross_line_pts.length - 1) {
             //最后一个点需要用曲线连接第一个点
             var firstpt = states.cross_line_pts[0];
-            var Q = getQByPathCurv(firstpt, pt, modelRef.curvature);
+            var Q = getQByPathCurv(firstpt, pt, formModel.curvature);
             corss_d_str += `Q ${Q} ${firstpt[0]}, ${firstpt[1]} `;
           }
         } else {
           //交叉弧线
           var prevPt = states.cross_line_pts[i - 1];
-          var Q = getQByPathCurv(prevPt, pt, modelRef.curvature);
+          var Q = getQByPathCurv(prevPt, pt, formModel.curvature);
           corss_d_str = `M ${prevPt[0]},${prevPt[1]} Q ${Q} ${pt[0]},${pt[1]} `;
         }
         //交叉路口弧线
@@ -932,11 +964,10 @@ export default defineComponent({
     //画路标
     function drawRoadSign() {
       let road = 0;
-      let all_count = 0; //每条路全部数量六条道
       var way_count = 0; //每条路单行三条道
       for (var i = 0; i < states.cross_line_pts.length; i++) {
-        all_count = states.wayCount[road] - 0.5;
-        way_count = all_count / 2;
+        let all_count = states.wayCount[road] - 0.5; //每条路全部数量六条道
+        way_count = formModel.exitAttr[road].wayCount; //出口车道数量
         var pt = states.cross_line_pts[i];
         if (i > 0 && i % 2 !== 0) {
           var prevPt = states.cross_line_pts[i - 1];
@@ -1008,7 +1039,7 @@ export default defineComponent({
     //选中道路
     function onRoad(e: any) {
       states.currentRoad = e.path[0];
-      modelRef.direction = e.path[0].id;
+      formModel.direction = e.path[0].id;
     }
 
     //选中路标
@@ -1025,19 +1056,24 @@ export default defineComponent({
       states.modalVisible = false;
     }
 
+    function onChangeRoadCount() {
+      initRoads();
+    }
+
     onMounted(() => {
       initRoads();
     });
 
     return {
       ...toRefs(states),
-      modelRef,
+      formModel,
       labelCol: { span: 10 },
       wrapperCol: { span: 12 },
       roadDir,
       roadSigns,
       drawCross,
       handleConfirmSign,
+      onChangeRoadCount,
     };
   },
 });
