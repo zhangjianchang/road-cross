@@ -87,10 +87,10 @@
                 <a-form-item label="右转曲度">
                   <a-input-number
                     v-model:value="formModel.curvature"
-                    @change="drawCross"
+                    @change="onChangeCure"
                     :min="0"
                     :max="1"
-                    :step="0.1"
+                    :step="0.01"
                     size="small"
                     class="form-width"
                   />
@@ -676,7 +676,7 @@ export default defineComponent({
     const formModel = reactive({
       direction: 1, //方向
       size: 5, //交叉路口大小
-      curvature: 5, //右转道路曲率
+      curvature: 0.07, //右转道路曲率
       roadAttr: [] as any[], //道路属性
       entranceAttr: [] as any[], //进口属性
       exitAttr: [] as any[], //出口属性
@@ -825,15 +825,20 @@ export default defineComponent({
           const x2 = Math.cos(radian) * 300 + 350;
           const y2 = -Math.sin(radian) * 300 + 350;
           const point2 = getPoint("fl", angle2, x2, y2, road_width);
-          const Q = getQByPathCurv(point1, point2, formModel.curvature);
+          //求起始点旋转角度
+          const curvature = formModel.curvature * (180 - Math.abs(angle2 - angle));
+          console.log(index, i, 'formModel.curvature * (180 - angle2 + angle)', formModel.curvature, 180, angle2, angle);
+
+          const Q = getQByPathCurv(point1, point2, curvature);
           const d_str = `M ${point1[0]} ${point1[1]} Q ${Q} ${point2[0]} ${point2[1]}`;
-          drawLine(line, d_str, color);
+          drawLine(line, d_str, color,(index+1)*(i+1));
         }
       });
     }
 
     //画路面上的线
-    function drawLine(line: Element, d_str: string, color: string) {
+    function drawLine(line: Element, d_str: string, color: string,index:number) {
+      line.setAttribute("id", 'line'+index);
       line.setAttribute("d", d_str);
       line.setAttribute("stroke", color);
       line.setAttribute("stroke-width", `5`);
@@ -1051,6 +1056,14 @@ export default defineComponent({
       initRoads();
     }
 
+    function onChangeCure() {
+      //先清空交叉路口
+      document.querySelectorAll("path").forEach((e) => {
+        if (e.id.indexOf("line") > -1) e.remove();
+      });
+      render();
+    }
+
     onMounted(() => {
       initRoads();
     });
@@ -1065,6 +1078,7 @@ export default defineComponent({
       drawCross,
       handleConfirmSign,
       onChangeRoadCount,
+      onChangeCure,
     };
   },
 });
