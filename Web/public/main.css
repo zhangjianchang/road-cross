@@ -184,6 +184,22 @@ a {
   border: none;
 }
 
+.ml-2 {
+  margin-left: 0.4rem;
+}
+
+.mr-2 {
+  margin-right: 0.4rem;
+}
+
+.mt-2 {
+  margin-top: 0.4rem;
+}
+
+.mb-2 {
+  margin-bottom: 0.4rem;
+}
+
 .ml-5 {
   margin-left: 1rem;
 }
@@ -198,6 +214,22 @@ a {
 
 .mb-5 {
   margin-bottom: 1rem;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.06);
+  -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.08);
+}
+/* 滚动条滑块 */
+::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.12);
+  -webkit-box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
 }
 
 /*重写ant样式*/

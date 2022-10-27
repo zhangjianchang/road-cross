@@ -15,6 +15,7 @@
   float: right;
   background-color: #ffffff;
   margin-left: 10px;
+  overflow-y: auto;
 }
 
 .func {
@@ -50,11 +51,11 @@
   color: #ff0000;
 }
 
-.content{
-  :deep(.ant-form-item){
+.content {
+  :deep(.ant-form-item) {
     margin-bottom: -2px !important;
   }
-  :deep(.ant-select-item){
+  :deep(.ant-select-item) {
     font-size: 12px !important;
   }
 }
@@ -63,7 +64,7 @@
   width: 75px !important;
 }
 
-.span-unit{
+.span-unit {
   width: 15px;
   display: inline-block;
   font-size: 12px;
@@ -95,4 +96,28 @@
 
 .road-xx {
   cursor: pointer;
+}
+
+:deep(.ant-table-wrapper) .ant-table-content {
+  font-size: 12px !important;
+}
+
+.flow-info {
+  border: 1px solid #d0d0d0;
+  font-size: 12px;
+  display: flex;
+
+  &-title {
+    width: 50px;
+    // height: 50px;
+  }
+
+  &-content {
+    width: 80px;
+    text-align: center;
+    .arrow {
+      height: 40px;
+    }
+    // height: 80px;
+  }
 }
