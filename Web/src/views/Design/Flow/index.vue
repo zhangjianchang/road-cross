@@ -68,9 +68,9 @@
                   <a-input-number
                     v-model:value="formModel.curvature"
                     @change="onChangeCurv"
-                    :min="20"
-                    :max="150"
-                    :step="5"
+                    :min="0"
+                    :max="1"
+                    :step="0.01"
                     size="small"
                     class="form-width"
                   />
@@ -257,9 +257,8 @@ export default defineComponent({
       cy: 350, //圆心y
       road_r_k: 15.4, //每条车道宽度
       angleSet: [] as number[], //所有道路倾斜角，以此绘制
-      cross_pts: [] as any[], //所有路口交叉点
-      cross_line_pts: [] as any[], //所有路口交叉点内侧一层
-      road_zebra_pts: [] as any[], //所有路口交叉点内侧一层
+      start_pts1: [] as any[], //所有路口交叉点
+      start_pts2: [] as any[], //所有路口交叉点内侧一层
       currentRoad: {} as any, //当前选中道路
       currentSign: {} as any, //当前选中路标
       modalVisible: false, //车道弹窗
@@ -271,7 +270,7 @@ export default defineComponent({
     const formModel = reactive({
       direction: 1, //方向
       size: 5, //交叉路口大小
-      curvature: 0.1, //右转道路曲率
+      curvature: 0.07, //右转道路曲率
       roadAttr: [] as any[], //道路属性
       entranceAttr: [] as any[], //进口属性
       exitAttr: [] as any[], //出口属性
@@ -323,7 +322,7 @@ export default defineComponent({
     function render() {
       for (var i = 0; i < states.angleSet.length; i++) {
         //
-        // var road_r = states.road_r_k * states.wayCount[i];
+        var road_r = states.road_r_k * states.wayCount[i];
         // var cross_r = states.road_r_k * states.wayCount[i] - 10;
         // var zebra_r = states.road_r_k * states.wayCount[i] - 15;
         var angle = states.angleSet[i];
@@ -331,21 +330,13 @@ export default defineComponent({
         // 基线起（圆心）止（圆上）点
         var x2 = Math.cos(radian) * 300 + 350; // 大圆半径300
         var y2 = -Math.sin(radian) * 300 + 350;
-        // var x3 = Math.cos(radian) * road_r + 350; // 交叉口圆半径100
-        // var y3 = -Math.sin(radian) * road_r + 350;
-        // var x4 = Math.cos(radian) * zebra_r + 350; // 斑马线圆半径50
-        // var y4 = -Math.sin(radian) * zebra_r + 350;
+        var x3 = Math.cos(radian) * road_r * 2 + 350; // 交叉口圆半径100
+        var y3 = -Math.sin(radian) * road_r * 2 + 350;
         //画路
         drawRoad(i, angle, x2, y2);
-        // 获取交叉口圆plus和路边相交的点
-        // setPts(states.cross_pts, angle, x3, y3, road_r);
-        // 获取交叉口圆plus和路边相交的点(内侧边缘线)
-        // setPts(states.cross_line_pts, angle, x3, y3, cross_r);
-        //获取路标一圈的定位
-        // setPts(states.road_zebra_pts, angle, x4, y4, zebra_r);
+        //画路标
+        // drawRoadSign(angle, i);
       }
-      // 交叉口
-      // onChangeCurv();
     }
 
     //direction：方向，nr 近右,nl 近左, fr 远右, fl 远左 //road_width默认100（小于100即画路边线时用到）
@@ -379,30 +370,75 @@ export default defineComponent({
 
     //画路
     function drawRoad(index: number, angle: number, x: number, y: number) {
-      var road_width = 100;
       //画主路
-      drawMainRoad(angle, x, y, index, road_width);
-      //路边缘线
-      // drawRoadLine(g, angle, x, y, cross_line_width);
-      //双黄线
-      // drawRoadLine(g, angle, x, y, 5, "#FFA500");
-      //单侧车道分界线
-      // let all_count = (states.wayCount[index] - 0.5) / 2;
-      // for (let i = 1; i < all_count; i++) {
-      //   let right_d = "150 30 20 30 20 30";
-      //   let left_d = "20 30";
-      //   drawRoadLine(g, angle, x, y, 30 * i, "#FFFFFF", right_d, left_d);
-      // }
+      drawMainRoad(angle, x, y, index);
+    }
+
+    function drawRoadSign(angle: number, i: number) {
+      var road_r = states.road_r_k * states.wayCount[i];
+      var angle = states.angleSet[i];
+      var radian = (Math.PI / 180) * angle; // 角度转弧度
+      // 基线起（圆心）止（圆上）点
+      var x2 = Math.cos(radian) * 300 + 350; // 大圆半径300
+      var y2 = -Math.sin(radian) * 300 + 350;
+      var x3 = Math.cos(radian) * 200 + 350; //内层
+      var y3 = -Math.sin(radian) * 200 + 350;
+
+      var signCount =
+        states.angleSet.length % 2 === 0
+          ? states.angleSet.length / 2 + 1
+          : states.angleSet.length / 2;
+      //道路左侧
+      for (let roadIdx = 0; roadIdx < signCount; roadIdx++) {
+        //颜色
+        const color = `rgb(${Math.random() * 256},${Math.random() * 256},${
+          Math.random() * 256
+        })`;
+        const line = document.createElementNS(states.ns, "path");
+        const pt_fr1 = getPoint("fr", angle, x2, y2, road_r + roadIdx * 30);
+        const pt_fr2 = getPoint("fr", angle, x3, y3, road_r + roadIdx * 30);
+        const pt_fr3 = getPoint("fr", angle, x2, y2, road_r + (roadIdx+1) * 30);
+        const pt_fr4 = getPoint("fr", angle, x3, y3, road_r + (roadIdx+1) * 30);
+        var d_str = `M ${pt_fr1[0]} ${pt_fr1[1]} L ${pt_fr2[1]} ${pt_fr2[0]} L ${pt_fr3[0]} ${pt_fr3[1]} L ${pt_fr4[1]} ${pt_fr4[0]}`;
+        drawPath(line, d_str, color, "2", false);
+
+        const pt_nr1 = getPoint("fr", angle, x2, y2, road_r - roadIdx * 30);
+        const pt_nr2 = getPoint("fr", angle, x3, y3, road_r - roadIdx * 30);
+        const pt_nr3 = getPoint("fr", angle, x3, y3, road_r - (roadIdx+1) * 30);
+        const pt_nr4 = getPoint("fr", angle, x3, y3, road_r - (roadIdx+1) * 30);
+        var d_str = `M ${pt_nr1[0]} ${pt_nr1[1]} L ${pt_nr2[1]} ${pt_nr2[0]} L ${pt_nr3[0]} ${pt_nr3[1]} L ${pt_nr4[1]} ${pt_nr4[0]}`;
+        drawPath(line, d_str, color, "2", false);
+
+        drawPoint(pt_fr1[0], pt_fr1[1], "#ddd");
+        drawPoint(pt_fr2[0], pt_fr2[1], "#ddd");
+        drawPoint(pt_nr1[0], pt_nr1[1], "#ddd");
+        drawPoint(pt_nr2[0], pt_nr2[1], "#ddd");
+      }
+      //道路右侧
+      const pt_fl1 = getPoint("fl", angle, x2, y2, road_r);
+      const pt_fl2 = getPoint("fl", angle, x3, y3, road_r);
+      drawPoint(pt_fl1[0], pt_fl1[1], "#000");
+      drawPoint(pt_fl2[0], pt_fl2[1], "#000");
+    }
+
+    function drawPoint(x: number, y: number, color: string) {
+      var g = document.createElementNS(states.ns, "g");
+      g.setAttribute("stroke", color);
+      g.setAttribute("stroke-width", "3");
+      g.setAttribute("fill", "black");
+
+      var circle = document.createElementNS(states.ns, "circle");
+      circle.setAttribute("cx", x.toString());
+      circle.setAttribute("cy", y.toString());
+      circle.setAttribute("r", "3");
+      g.appendChild(circle);
+
+      states.cvs?.appendChild(g);
     }
 
     //画主路
-    function drawMainRoad(
-      angle: number,
-      x: number,
-      y: number,
-      index: number,
-      road_width: number
-    ) {
+    function drawMainRoad(angle: number, x: number, y: number, index: number) {
+      const road_width = 100;
       // 起始点
       const point1 = getPoint("fr", angle, x, y, road_width);
       //颜色
@@ -421,36 +457,29 @@ export default defineComponent({
           //求起始点旋转角度
           const curvature =
             formModel.curvature * (180 - Math.abs(angle2 - angle));
-          console.log(
-            index,
-            i,
-            "formModel.curvature * (180 - angle2 + angle)",
-            formModel.curvature,
-            180,
-            angle2,
-            angle
-          );
-
           const Q = getQByPathCurv(point1, point2, curvature);
           const d_str = `M ${point1[0]} ${point1[1]} Q ${Q} ${point2[0]} ${point2[1]}`;
-          drawLine(line, d_str, color, (index + 1) * (i + 1));
+          drawPath(line, d_str, color);
         }
       });
     }
 
     //画路面上的线
-    function drawLine(
+    function drawPath(
       line: Element,
       d_str: string,
       color: string,
-      index: number
+      width = "5",
+      has_arrow = true
     ) {
-      line.setAttribute("id", "line" + index);
+      line.setAttribute("id", "path");
       line.setAttribute("d", d_str);
       line.setAttribute("stroke", color);
-      line.setAttribute("stroke-width", `5`);
+      line.setAttribute("stroke-width", width);
       line.setAttribute("fill", `none`);
-      line.setAttribute("marker-end", `url(#arrow)`);
+      if (has_arrow) {
+        line.setAttribute("marker-end", `url(#arrow)`);
+      }
       states.cvs?.appendChild(line);
     }
 
