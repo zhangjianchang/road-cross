@@ -200,6 +200,10 @@ export default defineComponent({
       }
       let nx = event.offsetX;
       let ny = event.offsetY;
+      //圆外不进行捕捉
+      if (!isPointInCircle([nx, ny], [states.cx, states.cy], 300)) {
+        return;
+      }
       let coordinate = getXYByNxNy(nx, ny);
       setLineXY(
         states.currentLine,
@@ -208,6 +212,7 @@ export default defineComponent({
         coordinate[0],
         coordinate[1]
       );
+      setRoadDir(coordinate);
     }
 
     function onMouseUp(e: any) {
@@ -215,6 +220,10 @@ export default defineComponent({
       const event = e || window.event;
       let nx = event.offsetX;
       let ny = event.offsetY;
+      //圆外不进行捕捉
+      if (!isPointInCircle([nx, ny], [states.cx, states.cy], 300)) {
+        return;
+      }
       let coordinate = getXYByNxNy(nx, ny);
       setLineXY(
         states.currentLine,
@@ -223,13 +232,17 @@ export default defineComponent({
         coordinate[0],
         coordinate[1]
       );
+      setRoadDir(coordinate);
+      states.currentLine = null;
+    }
+
+    function setRoadDir(coordinate: number[]) {
       roadDir.map((c) => {
         if (c.id === states.dragId) {
           c.position = `X:${coordinate[0]}\n\n Y:${coordinate[1]}`;
           c.coordinate = coordinate;
         }
       });
-      states.currentLine = null;
     }
 
     //根据当前点位获取在圆上的点

@@ -1,3 +1,5 @@
+import { parseAngle } from "../../../utils/common";
+
 export const columns = [
   {
     title: "编号",
@@ -47,10 +49,10 @@ export function getCoordinate(
 ) {
   const dx = x - cx;
   const dy = y - cy;
-  const angle = Math.atan2(dy, dx);
-  const x1 = cx + Math.cos(angle) * radius;
-  const y1 = cy + Math.sin(angle) * radius;
-  return [~~x1, ~~y1];
+  const radian = Math.atan2(dy, dx);
+  const x1 = cx + Math.cos(radian) * radius;
+  const y1 = cy + Math.sin(radian) * radius;
+  return [parseAngle(x1), parseAngle(y1)];
 }
 
 export function setLineXY(

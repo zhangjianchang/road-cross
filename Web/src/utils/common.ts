@@ -48,8 +48,8 @@ export function getAngle(cx: number, cy: number, x: number, y: number) {
 }
 
 //角度以5°为一个单位
-function parseAngle(angle:number) { 
-  return parseInt(((angle / 5)).toString()) * 5;
+export function parseAngle(angle: number) {
+  return parseInt((angle / 5).toString()) * 5;
 }
 
 /* 求中垂线 */
@@ -66,7 +66,7 @@ export function getQByPathCurv(a: number[], b: number[], curv: any) {
    * 控制点必须在line的中垂线上
    * 求出k2的中垂线(中垂线公式)
    */
-  k2 = -(b[0] - a[0]) / (b[1] - a[1]);
+  k2 = b[1] - a[1] === 0 ? 0 : -(b[0] - a[0]) / (b[1] - a[1]);
   /*
    * 弯曲程度是根据中垂线斜率决定固定控制点的X坐标或者Y坐标,通过中垂线公式求出另一个坐标
    * 默认A/B中点的坐标+curv*10,可以通过改基数10改变传入的参数范围
@@ -80,8 +80,17 @@ export function getQByPathCurv(a: number[], b: number[], curv: any) {
     controX = Math.abs((controY - (a[1] + b[1]) / 2) / k2 + (a[0] + b[0]) / 2);
   }
   //定义控制点的位置
-  var Q = `${controX},${controY}`;
+  var Q = `${~~controX},${~~controY}`;
   return Q;
+}
+
+/* 求中点 */
+export function getMiddlePoint(a: number[], b: number[]): number[] {
+  var k2, controX, controY;
+  k2 = b[1] - a[1] === 0 ? 0 : -(b[0] - a[0]) / (b[1] - a[1]);
+  controX = Math.abs((b[0] + a[0]) / 2);
+  controY = Math.abs(k2 * (controX - (a[0] + b[0]) / 2) + (a[1] + b[1]) / 2);
+  return [parseInt(controX.toString()), parseInt(controY.toString())];
 }
 
 //根据坐标获取象限
@@ -177,3 +186,26 @@ function rotateCoordinate(point: any, type: any) {
 
 //   states.cvs?.appendChild(g);
 // }
+
+//找点 //direction：方向，nr 近右,nl 近左, fr 远右, fl 远左 //road_width默认100（小于100即画路边线时用到）
+export function getPoint(
+  direction: string,
+  angle: number,
+  x: number,
+  y: number,
+  road_width: number
+) {
+  // 路宽
+  var radian = (Math.PI / 180) * (angle - 90);
+  var coefficient = direction === "nl" || direction === "fr" ? -1 : 1;
+  var point_x = coefficient * road_width * 0.5 * Math.cos(radian) + x;
+  var point_y = -coefficient * road_width * 0.5 * Math.sin(radian) + y;
+  return [parseInt(point_x.toString()), parseInt(point_y.toString())];
+}
+
+//随机颜色
+export function getRandomColor() {
+  return `rgb(${Math.random() * 256},${Math.random() * 256},${
+    Math.random() * 256
+  })`;
+}
