@@ -36,6 +36,9 @@
           stroke-width="2"
         />
         <path :d="road.sign.d" fill="#fff"></path>
+        <text x="250" y="1400" fill="#000" style="font-size: 260px">
+          {{ road.rect.saturation }}
+        </text>
       </g>
       <circle
         cx="350"
@@ -74,7 +77,7 @@ export default defineComponent({
       cvs: null as HTMLElement | null,
       cx: 350, //圆心x
       cy: 350, //圆心y
-      road_width: 140, //路宽
+      road_width: 160, //路宽
       curvature: 2, //路口弧度
       angleSet: [] as number[], //所有道路倾斜角，以此绘制
       cross_pts: [] as any[], //所有路口交叉点
@@ -242,20 +245,6 @@ export default defineComponent({
       line.setAttribute("stroke-width", "2");
       line.setAttribute("fill", `none`);
       states.cvs?.appendChild(line);
-    }
-
-    //test
-    function drawPoint(x: number, y: number, color: string) {
-      var g = document.createElementNS(states.ns, "g");
-      g.setAttribute("stroke", color);
-      g.setAttribute("stroke-width", "3");
-      g.setAttribute("fill", "black");
-      var circle = document.createElementNS(states.ns, "circle");
-      circle.setAttribute("cx", x.toString());
-      circle.setAttribute("cy", y.toString());
-      circle.setAttribute("r", "3");
-      g.appendChild(circle);
-      states.cvs?.appendChild(g);
     }
 
     onMounted(() => {

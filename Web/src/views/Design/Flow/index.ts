@@ -11,7 +11,7 @@ export const lineColumns = [
     slots: { customRender: "road_name" },
   },
   {
-    title: "大车比率",
+    title: "大车比率(%)",
     dataIndex: "truck_ratio",
     width: 40,
     slots: { customRender: "truck_ratio" },

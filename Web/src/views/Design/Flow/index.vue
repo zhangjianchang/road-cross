@@ -64,7 +64,7 @@
                     v-model:value="roadInfo.width1"
                     :min="20"
                     :max="150"
-                    :step="0.01"
+                    :step="1"
                     size="small"
                     class="form-width"
                   />
@@ -195,6 +195,7 @@
                 :step="10"
                 size="small"
                 class="small-form-width"
+                @blur="onChangeFlow"
               />
             </template>
           </a-table>
@@ -330,10 +331,6 @@ export default defineComponent({
       }
       //画路
       drawMainRoad();
-      //写数字
-      drawText();
-      //填充表格
-      initRoadInfo();
     }
 
     //车辆标识
@@ -451,30 +448,10 @@ export default defineComponent({
       states.cvs?.appendChild(line);
     }
 
-    //写数字
-    function drawText() {
-      states.road_lines.forEach((r, i) => {
-        r.center_text.forEach((midPoint: any, j: number) => {
-          const point = getMiddlePoint(midPoint[0], midPoint[1]);
-          const text = document.createElementNS(states.ns, "text");
-          text.setAttribute("id", i + "" + j);
-          text.setAttribute("x", point[0].toString());
-          text.setAttribute("y", point[1].toString());
-          text.setAttribute("fill", "#000");
-          text.setAttribute(
-            "transform",
-            `rotate(${states.angleSet[i]} ${point[0]},${point[1]})`
-          );
-          text.appendChild(document.createTextNode("450")); //文本内容"450"
-          states.cvs?.appendChild(text);
-        });
-      });
-    }
-
     //填充表格
     function initRoadInfo() {
       Object.assign(flowColumns, flowColumnsPart);
-      for (let i = 1; i <= states.road_lines.length; i++) {
+      for (let i = 1; i < states.road_lines.length; i++) {
         let dataIndex = "turn" + (i + 1);
         flowColumns.push({
           title: "转向" + (i + 1),
@@ -499,17 +476,44 @@ export default defineComponent({
         }
         roadInfo.flow_info.push(flow_info);
       }
+      //drawText 写路面上的数字
+      drawText();
     }
 
-    function onChangeCurv() {
-      //先清空交叉路口
-      document.querySelectorAll("path").forEach((e) => {
-        if (e.id.indexOf("path") > -1) e.remove();
+    //写数字
+    function drawText() {
+      states.road_lines.forEach((r, i) => {
+        r.center_text.forEach((midPoint: any, j: number) => {
+          const point = getMiddlePoint(midPoint[0], midPoint[1]);
+          const text = document.createElementNS(states.ns, "text");
+          let content = roadInfo.flow_info[i]["turn" + (j + 2)];
+          let x = (point[0] - (content.length === 3 ? 10 : 15)).toString();
+          let y = (point[1] + 5).toString();
+          text.setAttribute("id", "turn" + i + "" + j);
+          text.setAttribute("x", x);
+          text.setAttribute("y", y);
+          text.setAttribute("fill", "#000");
+          text.setAttribute(
+            "transform",
+            `rotate(${360 - states.angleSet[i]} ${point[0]},${point[1]})`
+          );
+          text.appendChild(document.createTextNode(content)); //文本内容"450"
+          states.cvs?.appendChild(text);
+        });
       });
+    }
+
+    function onChangeFlow() {
+      //先清空交叉路口
+      document.querySelectorAll("text").forEach((e) => {
+        if (e.id.indexOf("turn") > -1) e.remove();
+      });
+      drawText();
     }
 
     onMounted(() => {
       initRoads();
+      initRoadInfo();
     });
 
     return {
@@ -520,7 +524,7 @@ export default defineComponent({
       lineColumns,
       flowColumns,
       flowDataIndex,
-      onChangeCurv,
+      onChangeFlow,
     };
   },
 });
