@@ -28,6 +28,8 @@
         <Canalize v-else-if="currentUrl === MenuListEnum.Canalize" />
         <!-- 流量 -->
         <Flow v-else-if="currentUrl === MenuListEnum.Flow" />
+        <!-- 信号 -->
+        <Signal v-else-if="currentUrl === MenuListEnum.Signal" />
         <!-- 饱和度 -->
         <Saturation v-else-if="currentUrl === MenuListEnum.Saturation" />
       </div>
@@ -44,9 +46,10 @@ import Basic from "./Basic/index.vue";
 import Flow from "./Flow/index.vue";
 import Canalize from "./Canalize/index.vue";
 import Saturation from "./Saturation/index.vue";
+import Signal from "./Signal/index.vue";
 
 export default defineComponent({
-  components: { Container, Basic, Flow, Canalize, Saturation },
+  components: { Container, Basic, Flow, Canalize, Saturation, Signal },
   setup() {
     //全局保存道路定位
     const RoadDir = reactive([] as any[]);

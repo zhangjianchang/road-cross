@@ -63,7 +63,6 @@
 import { defineComponent, inject, onMounted, reactive, toRefs } from "vue";
 import { getBackground, getRoadDefaultSign } from "./index";
 import Container from "../../../components/Container/index.vue";
-import { notification } from "ant-design-vue";
 import { DragOutlined } from "@ant-design/icons-vue";
 import { getAngle, getQByPathCurv } from "../../../utils/common";
 
