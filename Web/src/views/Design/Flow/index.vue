@@ -353,6 +353,7 @@ export default defineComponent({
         roadIdx < states.angleSet.length - midCount - 1;
         roadIdx++
       ) {
+        //道路右侧
         let right_id = i.toString() + (roadIdx + midCount);
         const line = document.createElementNS(states.ns, "path");
         const insideWidth = road_r - roadIdx * 35;
@@ -369,12 +370,13 @@ export default defineComponent({
         //将远端中点也保存，用来写数字
         const middlePoint2 = getMiddlePoint(pt_fr1, pt_fr2);
         center_text.push([middlePoint, middlePoint2]);
+
+        //道路左侧
+        const pt_fl1 = getPoint("fl", angle, x3, y3, road_r);
+        const pt_fl2 = getPoint("fl", angle, x2, y2, road_r);
+        left_line.push(pt_fl1);
+        left_line.push(pt_fl2);
       }
-      //道路右侧
-      const pt_fl1 = getPoint("fl", angle, x3, y3, road_r);
-      const pt_fl2 = getPoint("fl", angle, x2, y2, road_r);
-      left_line.push(pt_fl1);
-      left_line.push(pt_fl2);
       const road_lines = { right_line, left_line, color, center_text };
       states.road_lines.push(road_lines);
     }

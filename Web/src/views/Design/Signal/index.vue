@@ -21,6 +21,8 @@ import { defineComponent, inject, onMounted, reactive, toRefs } from "vue";
 import Container from "../../../components/Container/index.vue";
 import { DragOutlined } from "@ant-design/icons-vue";
 import { getAngle, getQByPathCurv } from "../../../utils/common";
+import { func } from "vue-types";
+import { setLineXY } from "../Basic";
 
 export default defineComponent({
   components: { Container, DragOutlined },
@@ -32,6 +34,7 @@ export default defineComponent({
       cvs: null as HTMLElement | null,
       cx: 350, //圆心x
       cy: 350, //圆心y
+      svg_width: 800, //画布宽度
       road_width: 160, //路宽
       curvature: 2, //路口弧度
       angleSet: [] as number[], //所有道路倾斜角，以此绘制
@@ -58,6 +61,29 @@ export default defineComponent({
     };
 
     function render() {
+      drawScale();
+      drawMain();
+    }
+
+    function drawScale() {
+      let totalScale = 80; //根据总时间计算
+      for (let i = 0; i <= totalScale; i++) {
+        let width = states.svg_width / totalScale;
+        let tick_len = 10; // 小刻度长度=10
+        if (i % 5 == 0) tick_len = 20; // 长刻度=20
+        let x1, y1, x2, y2; // 直线的2个端点
+        x1 = 25 + i * width;
+        y1 = 230;
+        x2 = 25 + i * width;
+        y2 = 230 + tick_len;
+        let line = document.createElementNS(states.ns, "line"); // 创建SVG元素
+        setLineXY(line, x1, y1, x2, y2);
+        states.cvs?.appendChild(line);
+      }
+    }
+
+    //画路径
+    function drawMain() {
       for (var i = 0; i < states.angleSet.length; i++) {
         var angle = states.angleSet[i];
         var radian = (Math.PI / 180) * angle; // 角度转弧度
@@ -66,35 +92,6 @@ export default defineComponent({
         //获取交叉口圆plus和路边相交的点
         setPts(states.cross_pts, angle, x3, y3);
       }
-      // 交叉口
-      drawMain();
-    }
-
-    //direction：方向，nr 近右,nl 近左, fr 远右, fl 远左 //road_width默认100（小于100即画路边线时用到）
-    function getPoint(direction: string, angle: number, x: number, y: number) {
-      var radian = (Math.PI / 180) * (angle - 90);
-      var coefficient = direction === "nl" || direction === "fr" ? -1 : 1;
-      var point_x =
-        coefficient * states.road_width * 0.5 * Math.cos(radian) + x;
-      var point_y =
-        -coefficient * states.road_width * 0.5 * Math.sin(radian) + y;
-      return [~~point_x, ~~point_y];
-    }
-
-    function setPts(pts: any[], angle: number, x: number, y: number) {
-      var point = getPoint("nr", angle, x, y);
-      pts.push(point);
-      point = getPoint("nl", angle, x, y);
-      pts.push(point);
-    }
-
-    function drawMain() {
-      //画路径
-      drawRoadLine();
-    }
-
-    //画路径
-    function drawRoadLine() {
       for (let i = 0; i < 4; i++) {
         let d_str = "";
         let roadIdx = 0;
@@ -136,7 +133,25 @@ export default defineComponent({
       }
     }
 
-    //画路面上的线
+    //direction：方向，nr 近右,nl 近左, fr 远右, fl 远左 //road_width默认100（小于100即画路边线时用到）
+    function getPoint(direction: string, angle: number, x: number, y: number) {
+      var radian = (Math.PI / 180) * (angle - 90);
+      var coefficient = direction === "nl" || direction === "fr" ? -1 : 1;
+      var point_x =
+        coefficient * states.road_width * 0.5 * Math.cos(radian) + x;
+      var point_y =
+        -coefficient * states.road_width * 0.5 * Math.sin(radian) + y;
+      return [~~point_x, ~~point_y];
+    }
+
+    function setPts(pts: any[], angle: number, x: number, y: number) {
+      var point = getPoint("nr", angle, x, y);
+      pts.push(point);
+      point = getPoint("nl", angle, x, y);
+      pts.push(point);
+    }
+
+    //写路径至数组
     function drawPath(d_str: string, i: number) {
       const path = {
         id: "road_path",
