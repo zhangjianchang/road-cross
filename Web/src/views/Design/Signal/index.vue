@@ -2,6 +2,24 @@
   <div class="basic-main">
     <!-- 图示 -->
     <svg id="canvas">
+      <defs>
+        <linearGradient id="rect_green" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" :stop-color="signalColor.green[0]" />
+          <stop offset="50%" :stop-color="signalColor.green[1]" />
+          <stop offset="100%" :stop-color="signalColor.green[0]" />
+        </linearGradient>
+        <linearGradient id="rect_yellow" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" :stop-color="signalColor.yellow[0]" />
+          <stop offset="50%" :stop-color="signalColor.yellow[1]" />
+          <stop offset="100%" :stop-color="signalColor.yellow[0]" />
+        </linearGradient>
+        <linearGradient id="rect_red" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" :stop-color="signalColor.red[0]" />
+          <stop offset="50%" :stop-color="signalColor.red[1]" />
+          <stop offset="100%" :stop-color="signalColor.red[0]" />
+        </linearGradient>
+      </defs>
+
       <g v-for="road in road_pts" :key="road.g" :transform="road.g.transform">
         <rect width="80%" height="680" fill="#FFFF99" />
         <path
@@ -12,7 +30,7 @@
       </g>
     </svg>
     <!-- 参数 -->
-    <div class="menu">信号设计</div>
+    <div class="menu"></div>
   </div>
 </template>
 
@@ -21,8 +39,8 @@ import { defineComponent, inject, onMounted, reactive, toRefs } from "vue";
 import Container from "../../../components/Container/index.vue";
 import { DragOutlined } from "@ant-design/icons-vue";
 import { getAngle, getQByPathCurv } from "../../../utils/common";
-import { func } from "vue-types";
-import { setLineXY } from "../Basic";
+import { signalColor, getStartX, phaseModel } from ".";
+import _ from "lodash";
 
 export default defineComponent({
   components: { Container, DragOutlined },
@@ -42,9 +60,16 @@ export default defineComponent({
       road_pts: [] as any[], //路标
     });
 
+    const signalInfo = {
+      phase: 4, //默认4个相位
+      period: 0, //默认周期共80s
+      phase_list: [] as any[],
+    };
+
     const initRoads = () => {
       states.ns = "http://www.w3.org/2000/svg";
       states.cvs = document.getElementById("canvas");
+      //坐标转为旋转角度
       roadDir.map((r) => {
         let angle = getAngle(
           states.cx,
@@ -57,6 +82,12 @@ export default defineComponent({
       states.angleSet.sort(function (a, b) {
         return a - b;
       });
+      for (let i = 1; i <= signalInfo.phase; i++) {
+        let phaseItem = _.cloneDeep(phaseModel);
+        phaseItem.name = `第${i}相位`;
+        signalInfo.phase_list.push(phaseItem);
+        signalInfo.period += phaseItem.green + phaseItem.yellow + phaseItem.red;
+      }
       render();
     };
 
@@ -66,20 +97,103 @@ export default defineComponent({
     }
 
     function drawScale() {
-      let totalScale = 80; //根据总时间计算
-      for (let i = 0; i <= totalScale; i++) {
-        let width = states.svg_width / totalScale;
-        let tick_len = 10; // 小刻度长度=10
-        if (i % 5 == 0) tick_len = 20; // 长刻度=20
-        let x1, y1, x2, y2; // 直线的2个端点
-        x1 = 25 + i * width;
-        y1 = 230;
-        x2 = 25 + i * width;
-        y2 = 230 + tick_len;
-        let line = document.createElementNS(states.ns, "line"); // 创建SVG元素
-        setLineXY(line, x1, y1, x2, y2);
-        states.cvs?.appendChild(line);
+      //默认四个相位
+      for (let p = 0; p < signalInfo.phase; p++) {
+        let width = states.svg_width / signalInfo.period; //每个刻度的宽度
+        let x1, y1, x2, y2, w, h;
+        for (let i = 0; i <= signalInfo.period; i++) {
+          let tick_len = 10; // 小刻度=10
+          if (i % 5 == 0) tick_len = 20; // 长刻度=20
+          /**上边缘线 */
+          x1 = 25 + i * width;
+          y1 = 230 + p * 100;
+          x2 = 25 + i * width;
+          y2 = 230 + p * 100 + tick_len;
+          createLine(x1, y1, x2, y2);
+          /**上边缘线 */
+          /**下边缘线 */
+          y1 = 290 + p * 100 - tick_len;
+          y2 = 290 + p * 100;
+          createLine(x1, y1, x2, y2);
+          /**下边缘线 */
+        }
+        /**外层上边缘线 */
+        x1 = 25;
+        y1 = 230 + p * 100;
+        x2 = 25 + states.svg_width;
+        y2 = y1;
+        createLine(x1, y1, x2, y2);
+        /**外层上边缘线 */
+        /**外层下边缘线 */
+        x1 = 25;
+        y1 = 290 + p * 100;
+        x2 = 25 + states.svg_width;
+        y2 = y1;
+        createLine(x1, y1, x2, y2);
+        /**外层下边缘线 */
+        /**中心线 */
+        x1 = 25;
+        y1 = 260 + p * 100;
+        x2 = 25 + states.svg_width;
+        y2 = y1;
+        createLine(x1, y1, x2, y2, "3", "#4f48ad");
+        /**中心线 */
+        /**绿色信号 */
+        x1 = 25 + getStartX(signalInfo.phase_list, p, "g") * width;
+        y1 = 245 + p * 100;
+        w = 25 + getStartX(signalInfo.phase_list, p, "y") * width - x1;
+        h = 30;
+        createRect(x1, y1, w, h, "green");
+        /**绿色信号 */
+        /**黄色信号 */
+        x1 = 25 + getStartX(signalInfo.phase_list, p, "y") * width;
+        y1 = 245 + p * 100;
+        w = 25 + getStartX(signalInfo.phase_list, p, "r") * width - x1;
+        createRect(x1, y1, w, h, "yellow");
+        /**黄色信号 */
+        /**红色信号 */
+        x1 = 25 + getStartX(signalInfo.phase_list, p, "r") * width;
+        y1 = 245 + p * 100;
+        w = 25 + getStartX(signalInfo.phase_list, p + 1, "g") * width - x1;
+        createRect(x1, y1, w, h, "red");
+        /**红色信号 */
       }
+    }
+
+    function createLine(
+      x1: number,
+      y1: number,
+      x2: number,
+      y2: number,
+      stroke = "rgb(162,162,162)",
+      stroke_width = "1"
+    ) {
+      let line = document.createElementNS(states.ns, "line");
+      line.setAttribute("id", `line`);
+      line.setAttribute("x1", x1.toString());
+      line.setAttribute("y1", y1.toString());
+      line.setAttribute("x2", x2.toString());
+      line.setAttribute("y2", y2.toString());
+      line.setAttribute("stroke", stroke);
+      line.setAttribute("stroke-width", stroke_width);
+      states.cvs?.appendChild(line);
+    }
+
+    function createRect(
+      x: number,
+      y: number,
+      width: number,
+      height: number,
+      stroke_type: string
+    ) {
+      let rect = document.createElementNS(states.ns, "rect");
+      rect.setAttribute("id", `rect`);
+      rect.setAttribute("x", x.toString());
+      rect.setAttribute("y", y.toString());
+      rect.setAttribute("width", width.toString());
+      rect.setAttribute("height", height.toString());
+      rect.setAttribute("fill", `url(#rect_${stroke_type})`);
+      states.cvs?.appendChild(rect);
     }
 
     //画路径
@@ -92,7 +206,7 @@ export default defineComponent({
         //获取交叉口圆plus和路边相交的点
         setPts(states.cross_pts, angle, x3, y3);
       }
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < signalInfo.phase; i++) {
         let d_str = "";
         let roadIdx = 0;
         for (let i = 0; i < states.cross_pts.length; i++) {
@@ -169,6 +283,7 @@ export default defineComponent({
 
     return {
       ...toRefs(states),
+      signalColor,
     };
   },
 });
