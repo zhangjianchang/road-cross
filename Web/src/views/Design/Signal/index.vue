@@ -30,7 +30,122 @@
       </g>
     </svg>
     <!-- 参数 -->
-    <div class="menu"></div>
+    <div class="menu">
+      <div class="form">
+        <div class="content">
+          <a-form :label-col="labelCol" :wrapper-col="wrapperCol">
+            <a-row>
+              <a-col :span="12">
+                <a-form-item label="相位总数">
+                  <a-select
+                    v-model:value="signalInfo.phase"
+                    size="small"
+                    class="form-width"
+                  >
+                    <a-select-option
+                      v-for="item in [1, 2, 3, 4, 5, 6, 7, 8]"
+                      :key="item"
+                      :value="item"
+                    >
+                      {{ item }}
+                    </a-select-option>
+                  </a-select>
+                </a-form-item>
+              </a-col>
+              <a-col :span="12">
+                <a-form-item label="周期">
+                  <a-input-number
+                    v-model:value="signalInfo.period"
+                    size="small"
+                    class="form-width"
+                    :disabled="true"
+                  />
+                  <div class="span-unit">秒</div>
+                </a-form-item>
+              </a-col>
+              <a-col :span="12">
+                <a-form-item label="图例">
+                  <a-select
+                    v-model:value="signalInfo.is_show_legend"
+                    size="small"
+                    class="form-width"
+                  >
+                    <a-select-option :value="true"> 是 </a-select-option>
+                    <a-select-option :value="false"> 否 </a-select-option>
+                  </a-select>
+                </a-form-item>
+              </a-col>
+            </a-row>
+          </a-form>
+        </div>
+        <div class="content mt-2">
+          <a-table
+            :dataSource="signalInfo.phase_list"
+            :columns="phaseColumns"
+            :scroll="{ x: 500 }"
+            :pagination="false"
+            :bordered="true"
+            size="small"
+          >
+            <!-- 名称 -->
+            <template #name="{ record }">
+              <a-input
+                v-model:value="record.name"
+                size="small"
+                class="form-width"
+              />
+            </template>
+            <!-- 绿灯 -->
+            <template #green="{ record }">
+              <a-input-number
+                v-model:value="record.green"
+                :min="0"
+                :max="100"
+                :step="1"
+                @blur="onItemPeriodBlur"
+                size="small"
+                class="small-form-width"
+              />
+            </template>
+            <!-- 黄灯 -->
+            <template #yellow="{ record }">
+              <a-input-number
+                v-model:value="record.yellow"
+                :min="0"
+                :max="100"
+                :step="1"
+                @blur="onItemPeriodBlur"
+                size="small"
+                class="small-form-width"
+              />
+            </template>
+            <!-- 全红 -->
+            <template #red="{ record }">
+              <a-input-number
+                v-model:value="record.red"
+                :min="0"
+                :max="100"
+                :step="1"
+                @blur="onItemPeriodBlur"
+                size="small"
+                class="small-form-width"
+              />
+            </template>
+            <!-- 搭接相位 -->
+            <template #is_lap="{ record }">
+              <a-select
+                v-model:value="record.is_lap"
+                size="small"
+                class="middle-form-width"
+              >
+                <a-select-option :value="true"> 是 </a-select-option>
+                <a-select-option :value="false"> 否 </a-select-option>
+              </a-select>
+            </template>
+          </a-table>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -39,7 +154,7 @@ import { defineComponent, inject, onMounted, reactive, toRefs } from "vue";
 import Container from "../../../components/Container/index.vue";
 import { DragOutlined } from "@ant-design/icons-vue";
 import { getAngle, getQByPathCurv } from "../../../utils/common";
-import { signalColor, getStartX, phaseModel } from ".";
+import { signalColor, getStartX, phaseModel, phaseColumns } from ".";
 import _ from "lodash";
 
 export default defineComponent({
@@ -54,17 +169,19 @@ export default defineComponent({
       cy: 350, //圆心y
       svg_width: 800, //画布宽度
       road_width: 160, //路宽
+      phase_height: 80, //每个相位的间距
       curvature: 2, //路口弧度
       angleSet: [] as number[], //所有道路倾斜角，以此绘制
       cross_pts: [] as any[], //所有路口交叉点
       road_pts: [] as any[], //路标
     });
 
-    const signalInfo = {
+    const signalInfo = reactive({
       phase: 4, //默认4个相位
       period: 0, //默认周期共80s
+      is_show_legend: false,
       phase_list: [] as any[],
-    };
+    });
 
     const initRoads = () => {
       states.ns = "http://www.w3.org/2000/svg";
@@ -84,6 +201,7 @@ export default defineComponent({
       });
       for (let i = 1; i <= signalInfo.phase; i++) {
         let phaseItem = _.cloneDeep(phaseModel);
+        phaseItem.index = i;
         phaseItem.name = `第${i}相位`;
         signalInfo.phase_list.push(phaseItem);
         signalInfo.period += phaseItem.green + phaseItem.yellow + phaseItem.red;
@@ -97,6 +215,13 @@ export default defineComponent({
     }
 
     function drawScale() {
+      //先清空
+      document.querySelectorAll("line").forEach((e) => {
+        if (e.id.indexOf("line") > -1) e.remove();
+      });
+      document.querySelectorAll("rect").forEach((e) => {
+        if (e.id.indexOf("rect") > -1) e.remove();
+      });
       //默认四个相位
       for (let p = 0; p < signalInfo.phase; p++) {
         let width = states.svg_width / signalInfo.period; //每个刻度的宽度
@@ -106,54 +231,54 @@ export default defineComponent({
           if (i % 5 == 0) tick_len = 20; // 长刻度=20
           /**上边缘线 */
           x1 = 25 + i * width;
-          y1 = 230 + p * 100;
+          y1 = 250 + p * states.phase_height;
           x2 = 25 + i * width;
-          y2 = 230 + p * 100 + tick_len;
+          y2 = 250 + p * states.phase_height + tick_len;
           createLine(x1, y1, x2, y2);
           /**上边缘线 */
           /**下边缘线 */
-          y1 = 290 + p * 100 - tick_len;
-          y2 = 290 + p * 100;
+          y1 = 310 + p * states.phase_height - tick_len;
+          y2 = 310 + p * states.phase_height;
           createLine(x1, y1, x2, y2);
           /**下边缘线 */
         }
         /**外层上边缘线 */
         x1 = 25;
-        y1 = 230 + p * 100;
+        y1 = 250 + p * states.phase_height;
         x2 = 25 + states.svg_width;
         y2 = y1;
         createLine(x1, y1, x2, y2);
         /**外层上边缘线 */
         /**外层下边缘线 */
         x1 = 25;
-        y1 = 290 + p * 100;
+        y1 = 310 + p * states.phase_height;
         x2 = 25 + states.svg_width;
         y2 = y1;
         createLine(x1, y1, x2, y2);
         /**外层下边缘线 */
         /**中心线 */
         x1 = 25;
-        y1 = 260 + p * 100;
+        y1 = 280 + p * states.phase_height;
         x2 = 25 + states.svg_width;
         y2 = y1;
-        createLine(x1, y1, x2, y2, "3", "#4f48ad");
+        createLine(x1, y1, x2, y2, "#4f48ad", "3");
         /**中心线 */
         /**绿色信号 */
         x1 = 25 + getStartX(signalInfo.phase_list, p, "g") * width;
-        y1 = 245 + p * 100;
+        y1 = 265 + p * states.phase_height;
         w = 25 + getStartX(signalInfo.phase_list, p, "y") * width - x1;
         h = 30;
         createRect(x1, y1, w, h, "green");
         /**绿色信号 */
         /**黄色信号 */
         x1 = 25 + getStartX(signalInfo.phase_list, p, "y") * width;
-        y1 = 245 + p * 100;
+        y1 = 265 + p * states.phase_height;
         w = 25 + getStartX(signalInfo.phase_list, p, "r") * width - x1;
         createRect(x1, y1, w, h, "yellow");
         /**黄色信号 */
         /**红色信号 */
         x1 = 25 + getStartX(signalInfo.phase_list, p, "r") * width;
-        y1 = 245 + p * 100;
+        y1 = 265 + p * states.phase_height;
         w = 25 + getStartX(signalInfo.phase_list, p + 1, "g") * width - x1;
         createRect(x1, y1, w, h, "red");
         /**红色信号 */
@@ -277,19 +402,34 @@ export default defineComponent({
       states.road_pts.push({ g, path });
     }
 
+    const onItemPeriodBlur = () => {
+      signalInfo.period = 0;
+      signalInfo.phase_list.map((phaseItem) => {
+        signalInfo.period += phaseItem.green + phaseItem.yellow + phaseItem.red;
+      });
+      drawScale();
+    };
+
+    //初始化加载
     onMounted(() => {
       initRoads();
     });
 
     return {
+      labelCol: { span: 10 },
+      wrapperCol: { span: 12 },
       ...toRefs(states),
+      signalInfo,
       signalColor,
+      phaseColumns,
+      onItemPeriodBlur,
     };
   },
 });
 </script>
 <style scoped lang="less">
 @import url("./index.less");
+@import url("../index.less");
 
 .road-sign {
   cursor: pointer;

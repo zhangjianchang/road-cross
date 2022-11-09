@@ -16,6 +16,13 @@
   margin-top: 10px;
   display: flex;
 
+  :deep(.ant-form-item) {
+    margin-bottom: -2px !important;
+  }
+  :deep(.ant-select-item) {
+    font-size: 12px !important;
+  }
+
   &-menu {
     width: 100px;
 
@@ -43,4 +50,35 @@
   &-main {
     margin-left: 10px;
   }
+}
+
+.form {
+  padding: 20px;
+  //字体大小
+  :deep(.ant-form-item-label > label),
+  :deep(.ant-select),
+  :deep(.ant-input-number-input),
+  :deep(.ant-input-sm),
+  :deep(.ant-table-wrapper) .ant-table-content {
+    font-size: 12px;
+  }
+}
+
+.span-unit {
+  width: 15px;
+  display: inline-block;
+  font-size: 12px;
+  text-align: right;
+}
+
+.form-width {
+  width: 75px !important;
+}
+
+.small-form-width {
+  width: 50px !important;
+}
+
+.middle-form-width {
+  width: 60px !important;
 }

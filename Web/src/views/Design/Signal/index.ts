@@ -1,5 +1,6 @@
 //默认相位
 export const phaseModel = {
+  index: 0,
   name: "",
   green: 17,
   yellow: 3,
@@ -12,6 +13,44 @@ export const signalColor = {
   yellow: ["#CCCC00", "#CCFF99"],
   red: ["#C00000", "#FF0000"],
 };
+//相位表格
+export const phaseColumns = [
+  {
+    title: "相位",
+    dataIndex: "index",
+    width: 40,
+  },
+  {
+    title: "名称",
+    dataIndex: "name",
+    width: 60,
+    slots: { customRender: "name" },
+  },
+  {
+    title: "绿灯",
+    dataIndex: "green",
+    width: 60,
+    slots: { customRender: "green" },
+  },
+  {
+    title: "黄灯",
+    dataIndex: "yellow",
+    width: 60,
+    slots: { customRender: "yellow" },
+  },
+  {
+    title: "全红",
+    dataIndex: "red",
+    width: 60,
+    slots: { customRender: "red" },
+  },
+  {
+    title: "搭接相位",
+    dataIndex: "is_lap",
+    width: 60,
+    slots: { customRender: "is_lap" },
+  },
+];
 //获取起始x位置，signal，r红灯g绿灯y黄灯
 export function getStartX(signalList: any[], index: number, signal: string) {
   var startX = 0;
