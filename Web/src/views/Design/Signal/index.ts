@@ -6,6 +6,8 @@ export const phaseModel = {
   yellow: 3,
   red: 0,
   is_lap: false,
+  in_direction: 1,
+  directions: [] as any[],
 };
 //渐变属性
 export const signalColor = {

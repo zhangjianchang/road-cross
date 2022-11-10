@@ -41,6 +41,7 @@
                     v-model:value="signalInfo.phase"
                     size="small"
                     class="form-width"
+                    @change="onPhaseChange"
                   >
                     <a-select-option
                       v-for="item in [1, 2, 3, 4, 5, 6, 7, 8]"
@@ -144,6 +145,100 @@
             </template>
           </a-table>
         </div>
+        <div class="content mt-2" v-if="signalInfo.phase_list.length > 0">
+          <a-form>
+            <a-row>
+              <a-col :span="24">
+                <a-form-item
+                  label="进口方向"
+                  :label-col="labelCol"
+                  :wrapper-col="wrapperCol"
+                >
+                  <a-select
+                    v-model:value="
+                      signalInfo.phase_list[currentPhase].in_direction
+                    "
+                    size="small"
+                    class="form-width"
+                    @change="onDirectionChange"
+                  >
+                    <a-select-option
+                      v-for="(item, index) in angleSet"
+                      :key="item"
+                      :value="index + 1"
+                    >
+                      方向{{ index + 1 }}
+                    </a-select-option>
+                  </a-select>
+                </a-form-item>
+              </a-col>
+            </a-row>
+          </a-form>
+        </div>
+        <div class="mt-2">
+          <div>机动车</div>
+          <div>
+            <svg
+              v-for="(_, index) in angleSet"
+              :key="index"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 1024 1024"
+              class="road-sign"
+              @click="onDirectionClick(index)"
+            >
+              <path
+                :d="'M370.08 193.376C370.08 53.088 462.048 0 550.72 0c88.672 0 180.896 53.84 180.896 194.144V1024H619.04V194.144c0-65.472-26.944-89.008-68.32-89.008-41.376 0-75.104 22.864-74.8 88.24h64.224L421.648 573.136 303.152 193.376H370.08z'"
+                fill="#a2a2a2"
+                :title="'111'"
+              ></path>
+            </svg>
+          </div>
+          <div>非机动车</div>
+          <svg
+            v-for="(_, index) in angleSet"
+            :key="index"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 1024 1024"
+            class="road-sign"
+            @click="onDirectionClick(index)"
+          >
+            <path
+              :d="'M370.08 193.376C370.08 53.088 462.048 0 550.72 0c88.672 0 180.896 53.84 180.896 194.144V1024H619.04V194.144c0-65.472-26.944-89.008-68.32-89.008-41.376 0-75.104 22.864-74.8 88.24h64.224L421.648 573.136 303.152 193.376H370.08z'"
+              fill="#a2a2a2"
+              :title="'111'"
+            ></path>
+          </svg>
+          <div>行人</div>
+          <svg
+            v-for="(_, index) in angleSet"
+            :key="index"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 1024 1024"
+            class="road-sign"
+            @click="onDirectionClick(index)"
+          >
+            <path
+              :d="'M370.08 193.376C370.08 53.088 462.048 0 550.72 0c88.672 0 180.896 53.84 180.896 194.144V1024H619.04V194.144c0-65.472-26.944-89.008-68.32-89.008-41.376 0-75.104 22.864-74.8 88.24h64.224L421.648 573.136 303.152 193.376H370.08z'"
+              fill="#a2a2a2"
+              :title="'111'"
+            ></path>
+          </svg>
+          <div>待转</div>
+          <svg
+            v-for="(_, index) in angleSet"
+            :key="index"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 1024 1024"
+            class="road-sign"
+            @click="onDirectionClick(index)"
+          >
+            <path
+              :d="'M370.08 193.376C370.08 53.088 462.048 0 550.72 0c88.672 0 180.896 53.84 180.896 194.144V1024H619.04V194.144c0-65.472-26.944-89.008-68.32-89.008-41.376 0-75.104 22.864-74.8 88.24h64.224L421.648 573.136 303.152 193.376H370.08z'"
+              fill="#a2a2a2"
+              :title="'111'"
+            ></path>
+          </svg>
+        </div>
       </div>
     </div>
   </div>
@@ -171,9 +266,10 @@ export default defineComponent({
       road_width: 160, //路宽
       phase_height: 80, //每个相位的间距
       curvature: 2, //路口弧度
-      angleSet: [] as number[], //所有道路倾斜角，以此绘制
       cross_pts: [] as any[], //所有路口交叉点
       road_pts: [] as any[], //路标
+      angleSet: [] as number[], //所有道路倾斜角，以此绘制
+      currentPhase: 0, //当前选中相位
     });
 
     const signalInfo = reactive({
@@ -200,14 +296,18 @@ export default defineComponent({
         return a - b;
       });
       for (let i = 1; i <= signalInfo.phase; i++) {
-        let phaseItem = _.cloneDeep(phaseModel);
-        phaseItem.index = i;
-        phaseItem.name = `第${i}相位`;
-        signalInfo.phase_list.push(phaseItem);
-        signalInfo.period += phaseItem.green + phaseItem.yellow + phaseItem.red;
+        insertPhase(i);
       }
       render();
     };
+
+    function insertPhase(i: number) {
+      let phaseItem = _.cloneDeep(phaseModel);
+      phaseItem.index = i;
+      phaseItem.name = `第${i}相位`;
+      signalInfo.phase_list.push(phaseItem);
+      signalInfo.period += phaseItem.green + phaseItem.yellow + phaseItem.red;
+    }
 
     function render() {
       drawScale();
@@ -402,17 +502,51 @@ export default defineComponent({
       states.road_pts.push({ g, path });
     }
 
+    //相位总数变更
+    const onPhaseChange = () => {
+      const count = signalInfo.phase - signalInfo.phase_list.length;
+      if (count > 0) {
+        //增加
+        let s = signalInfo.phase_list.length + 1;
+        for (let i = s; i <= signalInfo.phase; i++) {
+          insertPhase(i);
+        }
+      } else {
+        //减少
+        signalInfo.phase_list.splice(signalInfo.phase, -count);
+      }
+      calculatePeriod();
+    };
+    //灯时间变更
     const onItemPeriodBlur = () => {
+      calculatePeriod();
+    };
+    //计算总周期
+    const calculatePeriod = () => {
       signalInfo.period = 0;
       signalInfo.phase_list.map((phaseItem) => {
         signalInfo.period += phaseItem.green + phaseItem.yellow + phaseItem.red;
       });
       drawScale();
     };
-
+    //点击切换方向
+    const onDirectionChange = () => {
+      console.log(1);
+    };
+    //点击方向
+    const onDirectionClick = (index: number) => {
+      console.log(index);
+    };
+    //加载各道路之间的方向
+    const initDirections = () => {
+      roadDir.map((r) => {
+        console.log(r.coordinate);
+      });
+    };
     //初始化加载
     onMounted(() => {
       initRoads();
+      initDirections();
     });
 
     return {
@@ -422,7 +556,10 @@ export default defineComponent({
       signalInfo,
       signalColor,
       phaseColumns,
+      onPhaseChange,
       onItemPeriodBlur,
+      onDirectionChange,
+      onDirectionClick,
     };
   },
 });
@@ -433,5 +570,9 @@ export default defineComponent({
 
 .road-sign {
   cursor: pointer;
+  width: 50px;
+  height: 50px;
+  border: 1px solid #ddd;
+  margin-right: 10px;
 }
 </style>
