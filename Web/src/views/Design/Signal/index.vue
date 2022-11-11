@@ -179,17 +179,37 @@
           <div>机动车</div>
           <div>
             <svg
-              v-for="(_, index) in angleSet"
+              v-for="(item, index) in sign_pts"
               :key="index"
               xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 1024 1024"
+              viewBox="0 0 700 700"
               class="road-sign"
               @click="onDirectionClick(index)"
             >
+              <defs>
+                <marker
+                  id="arrow"
+                  markerUnits="strokeWidth"
+                  markerWidth="3"
+                  markerHeight="3"
+                  viewBox="0 0 12 12"
+                  refX="6"
+                  refY="6"
+                  orient="auto"
+                >
+                  <path
+                    xmlns="http://www.w3.org/2000/svg"
+                    d="M2,2 L10,6 L2,10 L2,6 L2,2"
+                    style="fill: #a2a2a2"
+                  />
+                </marker>
+              </defs>
               <path
-                :d="'M370.08 193.376C370.08 53.088 462.048 0 550.72 0c88.672 0 180.896 53.84 180.896 194.144V1024H619.04V194.144c0-65.472-26.944-89.008-68.32-89.008-41.376 0-75.104 22.864-74.8 88.24h64.224L421.648 573.136 303.152 193.376H370.08z'"
-                fill="#a2a2a2"
-                :title="'111'"
+                :d="item.d"
+                fill="none"
+                stroke="#a2a2a2"
+                stroke-width="80"
+                marker-end="url(#arrow)"
               ></path>
             </svg>
           </div>
@@ -267,7 +287,8 @@ export default defineComponent({
       phase_height: 80, //每个相位的间距
       curvature: 2, //路口弧度
       cross_pts: [] as any[], //所有路口交叉点
-      road_pts: [] as any[], //路标
+      road_pts: [] as any[], //道路缩略
+      sign_pts: [] as any[], //路标（掉头右转之类）
       angleSet: [] as number[], //所有道路倾斜角，以此绘制
       currentPhase: 0, //当前选中相位
     });
@@ -468,7 +489,7 @@ export default defineComponent({
             d_str += ` ${pt[0]} ${pt[1]} `;
           }
         }
-        drawPath(d_str, i);
+        setPath(d_str, i);
       }
     }
 
@@ -491,7 +512,7 @@ export default defineComponent({
     }
 
     //写路径至数组
-    function drawPath(d_str: string, i: number) {
+    function setPath(d_str: string, i: number) {
       const path = {
         id: "road_path",
         d: d_str,
@@ -539,9 +560,14 @@ export default defineComponent({
     };
     //加载各道路之间的方向
     const initDirections = () => {
-      roadDir.map((r) => {
-        console.log(r.coordinate);
-      });
+      for (let i = 0; i < roadDir.length; i++) {
+        const road = roadDir[i];
+        const nextRoad = i === roadDir.length - 1 ? roadDir[0] : roadDir[i + 1];
+        console.log(road.coordinate);
+        const d = `M${road.coordinate[0]} ${road.coordinate[1]} L${states.cx} ${states.cy} L${nextRoad.coordinate[0]} ${nextRoad.coordinate[1]}`;
+        const path = { d };
+        states.sign_pts.push(path);
+      }
     };
     //初始化加载
     onMounted(() => {
