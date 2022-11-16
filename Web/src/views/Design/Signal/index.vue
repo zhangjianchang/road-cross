@@ -83,7 +83,8 @@
           <a-table
             :dataSource="signalInfo.phase_list"
             :columns="phaseColumns"
-            :scroll="{ x: 500 }"
+            :scroll="{ x: 430 }"
+            :customRow="onRowClick"
             :pagination="false"
             :bordered="true"
             size="small"
@@ -175,11 +176,53 @@
             </a-row>
           </a-form>
         </div>
-        <div class="mt-2">
+        <div class="mt-2" v-if="signalInfo.phase_list.length > 0">
           <div>机动车</div>
           <div>
             <svg
-              v-for="(item, index) in sign_pts"
+              v-for="(item, index) in sign_pts[
+                signalInfo.phase_list[currentPhase].in_direction - 1
+              ]"
+              :key="index"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 700 700"
+              class="road-sign"
+              @click="onDirectionClick(index)"
+            >
+              <defs>
+                <marker
+                  :id="'arrow' + currentPhase + index"
+                  markerUnits="strokeWidth"
+                  markerWidth="3"
+                  markerHeight="3"
+                  viewBox="0 0 12 12"
+                  refX="6"
+                  refY="6"
+                  orient="auto"
+                >
+                  <path
+                    xmlns="http://www.w3.org/2000/svg"
+                    d="M2,2 L10,6 L2,10 L2,6 L2,2"
+                    style="fill: #a2a2a2"
+                  />
+                </marker>
+              </defs>
+              <path
+                :id="'direction' + currentPhase + index"
+                :d="item.d"
+                fill="none"
+                stroke="#a2a2a2"
+                stroke-width="100"
+                :marker-end="'url(#arrow' + currentPhase + index + ')'"
+              ></path>
+            </svg>
+          </div>
+          <div>非机动车</div>
+          <div>
+            <svg
+              v-for="(item, index) in sign_pts[
+                signalInfo.phase_list[currentPhase].in_direction - 1
+              ]"
               :key="index"
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 700 700"
@@ -208,56 +251,15 @@
                 :d="item.d"
                 fill="none"
                 stroke="#a2a2a2"
-                stroke-width="80"
+                stroke-width="100"
                 marker-end="url(#arrow)"
               ></path>
             </svg>
           </div>
-          <div>非机动车</div>
-          <svg
-            v-for="(_, index) in angleSet"
-            :key="index"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 1024 1024"
-            class="road-sign"
-            @click="onDirectionClick(index)"
-          >
-            <path
-              :d="'M370.08 193.376C370.08 53.088 462.048 0 550.72 0c88.672 0 180.896 53.84 180.896 194.144V1024H619.04V194.144c0-65.472-26.944-89.008-68.32-89.008-41.376 0-75.104 22.864-74.8 88.24h64.224L421.648 573.136 303.152 193.376H370.08z'"
-              fill="#a2a2a2"
-              :title="'111'"
-            ></path>
-          </svg>
           <div>行人</div>
-          <svg
-            v-for="(_, index) in angleSet"
-            :key="index"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 1024 1024"
-            class="road-sign"
-            @click="onDirectionClick(index)"
-          >
-            <path
-              :d="'M370.08 193.376C370.08 53.088 462.048 0 550.72 0c88.672 0 180.896 53.84 180.896 194.144V1024H619.04V194.144c0-65.472-26.944-89.008-68.32-89.008-41.376 0-75.104 22.864-74.8 88.24h64.224L421.648 573.136 303.152 193.376H370.08z'"
-              fill="#a2a2a2"
-              :title="'111'"
-            ></path>
-          </svg>
+          <div>1</div>
           <div>待转</div>
-          <svg
-            v-for="(_, index) in angleSet"
-            :key="index"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 1024 1024"
-            class="road-sign"
-            @click="onDirectionClick(index)"
-          >
-            <path
-              :d="'M370.08 193.376C370.08 53.088 462.048 0 550.72 0c88.672 0 180.896 53.84 180.896 194.144V1024H619.04V194.144c0-65.472-26.944-89.008-68.32-89.008-41.376 0-75.104 22.864-74.8 88.24h64.224L421.648 573.136 303.152 193.376H370.08z'"
-              fill="#a2a2a2"
-              :title="'111'"
-            ></path>
-          </svg>
+          <div>2</div>
         </div>
       </div>
     </div>
@@ -550,23 +552,61 @@ export default defineComponent({
       });
       drawScale();
     };
+
+    //表格行点击事件
+    const onRowClick = (record: any, index: number) => {
+      return {
+        onClick: () => {
+          states.currentPhase = index;
+          // console.log(record, index, 111);
+        },
+      };
+    };
+
     //点击切换方向
     const onDirectionChange = () => {
       console.log(1);
     };
+
     //点击方向
     const onDirectionClick = (index: number) => {
-      console.log(index);
+      setColor(index);
+      drawDirectionLine(index);
     };
+    //设置点击方向的颜色
+    const setColor = (index: number) => {
+      const idx = states.currentPhase + "" + index;
+      const currentDirection = document.querySelector(`#direction${idx}`);
+      const currentArrow = document.querySelector(`#arrow${idx}>path`);
+      const currentColor =
+        currentDirection?.getAttribute("stroke") === "#4f48ad"
+          ? "#a2a2a2"
+          : "#4f48ad";
+      currentDirection?.setAttribute("stroke", currentColor);
+      currentArrow?.setAttribute("style", "fill:" + currentColor);
+    };
+    //点击后画线
+    const drawDirectionLine = (index: number) => {
+      console.log("相位", states.currentPhase);
+      console.log(
+        "方向",
+        signalInfo.phase_list[states.currentPhase].in_direction
+      );
+    };
+
     //加载各道路之间的方向
     const initDirections = () => {
       for (let i = 0; i < roadDir.length; i++) {
-        const road = roadDir[i];
-        const nextRoad = i === roadDir.length - 1 ? roadDir[0] : roadDir[i + 1];
-        console.log(road.coordinate);
-        const d = `M${road.coordinate[0]} ${road.coordinate[1]} L${states.cx} ${states.cy} L${nextRoad.coordinate[0]} ${nextRoad.coordinate[1]}`;
-        const path = { d };
-        states.sign_pts.push(path);
+        const sign_pt = [];
+        for (let j = 0; j < roadDir.length; j++) {
+          const road = roadDir[i];
+          const nextRoad =
+            j === roadDir.length - 1 ? roadDir[0] : roadDir[j + 1];
+          const d = `M${road.coordinate[0]} ${road.coordinate[1]} L${states.cx} ${states.cy} L${nextRoad.coordinate[0]} ${nextRoad.coordinate[1]}`;
+          const path = { d };
+          sign_pt.push(path);
+        }
+        states.sign_pts.push(sign_pt);
       }
     };
     //初始化加载
@@ -582,6 +622,7 @@ export default defineComponent({
       signalInfo,
       signalColor,
       phaseColumns,
+      onRowClick,
       onPhaseChange,
       onItemPeriodBlur,
       onDirectionChange,
