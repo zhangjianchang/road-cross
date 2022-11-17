@@ -87,6 +87,9 @@
             :customRow="onRowClick"
             :pagination="false"
             :bordered="true"
+            :rowClassName="
+              (_, index) => (index === currentPhase ? 'click-row' : null)
+            "
             size="small"
           >
             <!-- 名称 -->
@@ -558,7 +561,6 @@ export default defineComponent({
       return {
         onClick: () => {
           states.currentPhase = index;
-          // console.log(record, index, 111);
         },
       };
     };
@@ -634,12 +636,4 @@ export default defineComponent({
 <style scoped lang="less">
 @import url("./index.less");
 @import url("../index.less");
-
-.road-sign {
-  cursor: pointer;
-  width: 50px;
-  height: 50px;
-  border: 1px solid #ddd;
-  margin-right: 10px;
-}
 </style>
