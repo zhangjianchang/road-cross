@@ -6,8 +6,12 @@ export const phaseModel = {
   yellow: 3,
   red: 0,
   is_lap: false,
-  in_direction: 1,
+  in_direction: 0,
   directions: [] as any[],
+};
+
+export const DirectionItemModel = {
+  is_enable: false, //是否启用，渲染线段
 };
 //渐变属性
 export const signalColor = {
@@ -21,6 +25,7 @@ export const phaseColumns = [
     title: "相位",
     dataIndex: "index",
     width: 40,
+    slots: { customRender: "index" },
   },
   {
     title: "名称",

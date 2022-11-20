@@ -92,6 +92,10 @@
             "
             size="small"
           >
+            <!-- 相位index -->
+            <template #index="{ text }">
+              {{ text + 1 }}
+            </template>
             <!-- 名称 -->
             <template #name="{ record }">
               <a-input
@@ -169,7 +173,7 @@
                     <a-select-option
                       v-for="(item, index) in angleSet"
                       :key="item"
-                      :value="index + 1"
+                      :value="index"
                     >
                       方向{{ index + 1 }}
                     </a-select-option>
@@ -184,7 +188,7 @@
           <div>
             <svg
               v-for="(item, index) in sign_pts[
-                signalInfo.phase_list[currentPhase].in_direction - 1
+                signalInfo.phase_list[currentPhase].in_direction
               ]"
               :key="index"
               xmlns="http://www.w3.org/2000/svg"
@@ -194,7 +198,14 @@
             >
               <defs>
                 <marker
-                  :id="'arrow' + currentPhase + index"
+                  :id="
+                    'arrow' +
+                    currentPhase +
+                    '_' +
+                    signalInfo.phase_list[currentPhase].in_direction +
+                    '_' +
+                    index
+                  "
                   markerUnits="strokeWidth"
                   markerWidth="3"
                   markerHeight="3"
@@ -211,12 +222,27 @@
                 </marker>
               </defs>
               <path
-                :id="'direction' + currentPhase + index"
+                :id="
+                  'direction' +
+                  currentPhase +
+                  '_' +
+                  signalInfo.phase_list[currentPhase].in_direction +
+                  '_' +
+                  index
+                "
                 :d="item.d"
                 fill="none"
                 stroke="#a2a2a2"
                 stroke-width="100"
-                :marker-end="'url(#arrow' + currentPhase + index + ')'"
+                :marker-end="
+                  'url(#arrow' +
+                  currentPhase +
+                  '_' +
+                  signalInfo.phase_list[currentPhase].in_direction +
+                  '_' +
+                  index +
+                  ')'
+                "
               ></path>
             </svg>
           </div>
@@ -224,7 +250,7 @@
           <div>
             <svg
               v-for="(item, index) in sign_pts[
-                signalInfo.phase_list[currentPhase].in_direction - 1
+                signalInfo.phase_list[currentPhase].in_direction
               ]"
               :key="index"
               xmlns="http://www.w3.org/2000/svg"
@@ -274,7 +300,13 @@ import { defineComponent, inject, onMounted, reactive, toRefs } from "vue";
 import Container from "../../../components/Container/index.vue";
 import { DragOutlined } from "@ant-design/icons-vue";
 import { getAngle, getQByPathCurv } from "../../../utils/common";
-import { signalColor, getStartX, phaseModel, phaseColumns } from ".";
+import {
+  signalColor,
+  getStartX,
+  phaseModel,
+  phaseColumns,
+  DirectionItemModel,
+} from ".";
 import _ from "lodash";
 
 export default defineComponent({
@@ -321,7 +353,7 @@ export default defineComponent({
       states.angleSet.sort(function (a, b) {
         return a - b;
       });
-      for (let i = 1; i <= signalInfo.phase; i++) {
+      for (let i = 0; i < signalInfo.phase; i++) {
         insertPhase(i);
       }
       render();
@@ -330,7 +362,15 @@ export default defineComponent({
     function insertPhase(i: number) {
       let phaseItem = _.cloneDeep(phaseModel);
       phaseItem.index = i;
-      phaseItem.name = `第${i}相位`;
+      phaseItem.name = `第${i + 1}相位`;
+      for (let d = 0; d < states.angleSet.length; d++) {
+        let directions = [];
+        for (let d = 0; d < states.angleSet.length; d++) {
+          let directionItem = _.cloneDeep(DirectionItemModel);
+          directions.push(directionItem);
+        }
+        phaseItem.directions.push(directions);
+      }
       signalInfo.phase_list.push(phaseItem);
       signalInfo.period += phaseItem.green + phaseItem.yellow + phaseItem.red;
     }
@@ -567,7 +607,7 @@ export default defineComponent({
 
     //点击切换方向
     const onDirectionChange = () => {
-      console.log(1);
+      console.log(signalInfo.phase_list[states.currentPhase].in_direction);
     };
 
     //点击方向
@@ -577,7 +617,9 @@ export default defineComponent({
     };
     //设置点击方向的颜色
     const setColor = (index: number) => {
-      const idx = states.currentPhase + "" + index;
+      const in_direction =
+        signalInfo.phase_list[states.currentPhase].in_direction; //方向
+      const idx = states.currentPhase + "_" + in_direction + "_" + index; //相位+方向+点击转向
       const currentDirection = document.querySelector(`#direction${idx}`);
       const currentArrow = document.querySelector(`#arrow${idx}>path`);
       const currentColor =
@@ -586,7 +628,14 @@ export default defineComponent({
           : "#4f48ad";
       currentDirection?.setAttribute("stroke", currentColor);
       currentArrow?.setAttribute("style", "fill:" + currentColor);
+
+      //写数据
+      signalInfo.phase_list[states.currentPhase].directions[in_direction][
+        index
+      ].is_enable = currentColor === "#4f48ad";
+      console.log(signalInfo.phase_list);
     };
+
     //点击后画线
     const drawDirectionLine = (index: number) => {
       console.log("相位", states.currentPhase);

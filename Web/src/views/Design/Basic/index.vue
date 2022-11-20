@@ -115,18 +115,18 @@ export default defineComponent({
     function render() {
       states.ns = "http://www.w3.org/2000/svg";
       states.cvs = document.getElementById("canvas");
-      for (let i = 0; i < 360; i++) {
-        let tick_len = 8; // 小刻度长度=8
-        if (i % 5 == 0) tick_len = 16; // 长刻度=16
-        let x1, y1, x2, y2; // 直线的2个端点
-        x1 = Math.sin((Math.PI / 180) * i) * (300 - tick_len) + 350;
-        y1 = Math.cos((Math.PI / 180) * i) * (300 - tick_len) + 350;
-        x2 = Math.sin((Math.PI / 180) * i) * 300 + 350; // 大圆半径400
-        y2 = Math.cos((Math.PI / 180) * i) * 300 + 350;
-        let line = document.createElementNS(states.ns, "line"); // 创建SVG元素
-        setLineXY(line, x1, y1, x2, y2);
-        states.cvs?.appendChild(line);
-      }
+          for (let i = 0; i < 360; i++) {
+            let tick_len = 8; // 小刻度长度=8
+            if (i % 5 == 0) tick_len = 16; // 长刻度=16
+            let x1, y1, x2, y2; // 直线的2个端点
+            x1 = Math.sin((Math.PI / 180) * i) * (300 - tick_len) + 350;
+            y1 = Math.cos((Math.PI / 180) * i) * (300 - tick_len) + 350;
+            x2 = Math.sin((Math.PI / 180) * i) * 300 + 350; // 大圆半径400
+            y2 = Math.cos((Math.PI / 180) * i) * 300 + 350;
+            let line = document.createElementNS(states.ns, "line"); // 创建SVG元素
+            setLineXY(line, x1, y1, x2, y2);
+            states.cvs?.appendChild(line);
+          }
     }
 
     //编辑页进来需要反显线段
