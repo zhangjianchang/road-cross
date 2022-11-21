@@ -93,6 +93,7 @@ import { isPointInCircle, getCoordinate, setLineXY, columns } from "./index";
 import Container from "../../../components/Container/index.vue";
 import { Modal, notification } from "ant-design-vue";
 import { DragOutlined, ExclamationCircleOutlined } from "@ant-design/icons-vue";
+import { getAngle } from "../../../utils/common";
 
 export default defineComponent({
   components: { Container, DragOutlined },
@@ -115,18 +116,18 @@ export default defineComponent({
     function render() {
       states.ns = "http://www.w3.org/2000/svg";
       states.cvs = document.getElementById("canvas");
-          for (let i = 0; i < 360; i++) {
-            let tick_len = 8; // 小刻度长度=8
-            if (i % 5 == 0) tick_len = 16; // 长刻度=16
-            let x1, y1, x2, y2; // 直线的2个端点
-            x1 = Math.sin((Math.PI / 180) * i) * (300 - tick_len) + 350;
-            y1 = Math.cos((Math.PI / 180) * i) * (300 - tick_len) + 350;
-            x2 = Math.sin((Math.PI / 180) * i) * 300 + 350; // 大圆半径400
-            y2 = Math.cos((Math.PI / 180) * i) * 300 + 350;
-            let line = document.createElementNS(states.ns, "line"); // 创建SVG元素
-            setLineXY(line, x1, y1, x2, y2);
-            states.cvs?.appendChild(line);
-          }
+      for (let i = 0; i < 360; i++) {
+        let tick_len = 8; // 小刻度长度=8
+        if (i % 5 == 0) tick_len = 16; // 长刻度=16
+        let x1, y1, x2, y2; // 直线的2个端点
+        x1 = Math.sin((Math.PI / 180) * i) * (300 - tick_len) + 350;
+        y1 = Math.cos((Math.PI / 180) * i) * (300 - tick_len) + 350;
+        x2 = Math.sin((Math.PI / 180) * i) * 300 + 350; // 大圆半径400
+        y2 = Math.cos((Math.PI / 180) * i) * 300 + 350;
+        let line = document.createElementNS(states.ns, "line"); // 创建SVG元素
+        setLineXY(line, x1, y1, x2, y2);
+        states.cvs?.appendChild(line);
+      }
     }
 
     //编辑页进来需要反显线段
@@ -165,12 +166,14 @@ export default defineComponent({
       let index = roadDir.length;
       createLine(coordinate, index);
 
+      //根据坐标获取角度
+      let angle = getAngle(states.cx, states.cy, coordinate[0], coordinate[1]);
       //存数据至全局变量
       roadDir.push({
-        index: index + 1,
         position: `X:${coordinate[0]}\n Y:${coordinate[1]}`,
         id: "line_" + index,
         coordinate,
+        angle,
       });
     }
 
@@ -237,10 +240,12 @@ export default defineComponent({
     }
 
     function setRoadDir(coordinate: number[]) {
+      let angle = getAngle(states.cx, states.cy, coordinate[0], coordinate[1]);
       roadDir.map((c) => {
         if (c.id === states.dragId) {
           c.position = `X:${coordinate[0]}\n\n Y:${coordinate[1]}`;
           c.coordinate = coordinate;
+          c.angle = angle;
         }
       });
     }

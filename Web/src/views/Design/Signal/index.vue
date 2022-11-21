@@ -20,13 +20,32 @@
         </linearGradient>
       </defs>
 
-      <g v-for="road in road_pts" :key="road.g" :transform="road.g.transform">
+      <g
+        v-for="(road, index) in road_pts"
+        :key="road.g"
+        :id="'phase_' + index"
+        :transform="road.g.transform"
+      >
         <rect width="80%" height="680" fill="#FFFF99" />
         <path
           :d="road.path.d"
           :id="road.path.id"
           fill="rgb(162,162,162)"
         ></path>
+        <circle
+          v-for="p in road.point"
+          :key="p"
+          :cx="p.right_point[0]"
+          :cy="p.right_point[1]"
+          r="10"
+        ></circle>
+        <circle
+          v-for="p in road.point"
+          :key="p"
+          :cx="p.left_point[0]"
+          :cy="p.left_point[1]"
+          r="10"
+        ></circle>
       </g>
     </svg>
     <!-- 参数 -->
@@ -88,7 +107,7 @@
             :pagination="false"
             :bordered="true"
             :rowClassName="
-              (_, index) => (index === currentPhase ? 'click-row' : null)
+              (_record: any, index: number) => (index === currentPhase ? 'click-row' : null)
             "
             size="small"
           >
@@ -299,7 +318,7 @@
 import { defineComponent, inject, onMounted, reactive, toRefs } from "vue";
 import Container from "../../../components/Container/index.vue";
 import { DragOutlined } from "@ant-design/icons-vue";
-import { getAngle, getQByPathCurv } from "../../../utils/common";
+import { getQByPathCurv } from "../../../utils/common";
 import {
   signalColor,
   getStartX,
@@ -308,6 +327,7 @@ import {
   DirectionItemModel,
 } from ".";
 import _ from "lodash";
+import { getCurvByAngle } from "../Flow";
 
 export default defineComponent({
   components: { Container, DragOutlined },
@@ -328,6 +348,7 @@ export default defineComponent({
       sign_pts: [] as any[], //路标（掉头右转之类）
       angleSet: [] as number[], //所有道路倾斜角，以此绘制
       currentPhase: 0, //当前选中相位
+      currentDirection: 0, //当前选中方向（相位的子集）
     });
 
     const signalInfo = reactive({
@@ -337,28 +358,29 @@ export default defineComponent({
       phase_list: [] as any[],
     });
 
+    //加载道路
     const initRoads = () => {
       states.ns = "http://www.w3.org/2000/svg";
       states.cvs = document.getElementById("canvas");
-      //坐标转为旋转角度
+      roadDir.sort(function (a, b) {
+        return a.angle - b.angle;
+      });
       roadDir.map((r) => {
-        let angle = getAngle(
-          states.cx,
-          states.cy,
-          r.coordinate[0],
-          r.coordinate[1]
-        );
-        states.angleSet.push(angle);
+        states.angleSet.push(r.angle);
       });
-      states.angleSet.sort(function (a, b) {
-        return a - b;
-      });
-      for (let i = 0; i < signalInfo.phase; i++) {
-        insertPhase(i);
-      }
       render();
     };
 
+    function render() {
+      for (let i = 0; i < signalInfo.phase; i++) {
+        insertPhase(i);
+      }
+      initDirections();
+      drawScale();
+      drawMain();
+    }
+
+    //初始化相位数据
     function insertPhase(i: number) {
       let phaseItem = _.cloneDeep(phaseModel);
       phaseItem.index = i;
@@ -375,11 +397,23 @@ export default defineComponent({
       signalInfo.period += phaseItem.green + phaseItem.yellow + phaseItem.red;
     }
 
-    function render() {
-      drawScale();
-      drawMain();
-    }
+    //加载各道路之间的方向
+    const initDirections = () => {
+      for (let i = 0; i < roadDir.length; i++) {
+        const sign_pt = [];
+        for (let j = 0; j < roadDir.length; j++) {
+          const road = roadDir[i];
+          const nextRoad =
+            j === roadDir.length - 1 ? roadDir[0] : roadDir[j + 1];
+          const d = `M${road.coordinate[0]} ${road.coordinate[1]} L${states.cx} ${states.cy} L${nextRoad.coordinate[0]} ${nextRoad.coordinate[1]}`;
+          const path = { d };
+          sign_pt.push(path);
+        }
+        states.sign_pts.push(sign_pt);
+      }
+    };
 
+    //时长图
     function drawScale() {
       //先清空
       document.querySelectorAll("line").forEach((e) => {
@@ -487,19 +521,20 @@ export default defineComponent({
       states.cvs?.appendChild(rect);
     }
 
-    //画路径
+    //画相位路径
     function drawMain() {
-      for (var i = 0; i < states.angleSet.length; i++) {
-        var angle = states.angleSet[i];
+      for (var a = 0; a < states.angleSet.length; a++) {
+        var angle = states.angleSet[a];
         var radian = (Math.PI / 180) * angle; // 角度转弧度
         var x3 = Math.cos(radian) * states.road_width + 350; // 交叉口圆半径100
         var y3 = -Math.sin(radian) * states.road_width + 350;
         //获取交叉口圆plus和路边相交的点
         setPts(states.cross_pts, angle, x3, y3);
       }
-      for (let i = 0; i < signalInfo.phase; i++) {
+      for (let p = 0; p < signalInfo.phase; p++) {
         let d_str = "";
         let roadIdx = 0;
+        let roadEdgePoints = [];
         for (let i = 0; i < states.cross_pts.length; i++) {
           const pt = states.cross_pts[i];
           if (i === 0) {
@@ -534,18 +569,27 @@ export default defineComponent({
             d_str += ` ${pt[0]} ${pt[1]} `;
           }
         }
-        setPath(d_str, i);
+        //添加路左右两侧点
+        for (let ag = 0; ag < states.angleSet.length; ag++) {
+          const roadEdgePoint = setRoadEdgePoint(ag);
+          roadEdgePoints.push(roadEdgePoint);
+        }
+        setPath(d_str, p, roadEdgePoints);
       }
     }
 
     //direction：方向，nr 近右,nl 近左, fr 远右, fl 远左 //road_width默认100（小于100即画路边线时用到）
-    function getPoint(direction: string, angle: number, x: number, y: number) {
+    function getPoint(
+      direction: string,
+      angle: number,
+      x: number,
+      y: number,
+      road_width = states.road_width
+    ) {
       var radian = (Math.PI / 180) * (angle - 90);
       var coefficient = direction === "nl" || direction === "fr" ? -1 : 1;
-      var point_x =
-        coefficient * states.road_width * 0.5 * Math.cos(radian) + x;
-      var point_y =
-        -coefficient * states.road_width * 0.5 * Math.sin(radian) + y;
+      var point_x = coefficient * road_width * 0.5 * Math.cos(radian) + x;
+      var point_y = -coefficient * road_width * 0.5 * Math.sin(radian) + y;
       return [~~point_x, ~~point_y];
     }
 
@@ -556,8 +600,19 @@ export default defineComponent({
       pts.push(point);
     }
 
+    const setRoadEdgePoint = (i: number) => {
+      var angle = states.angleSet[i];
+      var radian = (Math.PI / 180) * angle;
+      var x = Math.cos(radian) * 250 + 350;
+      var y = -Math.sin(radian) * 250 + 350;
+      const insideWidth = states.road_width - 100;
+      const right_point = getPoint("fr", angle, x, y, insideWidth);
+      const left_point = getPoint("fl", angle, x, y, insideWidth);
+      return { right_point, left_point };
+    };
+
     //写路径至数组
-    function setPath(d_str: string, i: number) {
+    function setPath(d_str: string, i: number, point: any[]) {
       const path = {
         id: "road_path",
         d: d_str,
@@ -565,7 +620,7 @@ export default defineComponent({
       const g = {
         transform: `translate(${204 * i + 20},10) scale(0.29)`,
       };
-      states.road_pts.push({ g, path });
+      states.road_pts.push({ g, path, point });
     }
 
     //相位总数变更
@@ -583,10 +638,12 @@ export default defineComponent({
       }
       calculatePeriod();
     };
+
     //灯时间变更
     const onItemPeriodBlur = () => {
       calculatePeriod();
     };
+
     //计算总周期
     const calculatePeriod = () => {
       signalInfo.period = 0;
@@ -608,15 +665,17 @@ export default defineComponent({
     //点击切换方向
     const onDirectionChange = () => {
       console.log(signalInfo.phase_list[states.currentPhase].in_direction);
+      states.currentDirection =
+        signalInfo.phase_list[states.currentPhase].in_direction;
     };
 
     //点击方向
     const onDirectionClick = (index: number) => {
-      setColor(index);
-      drawDirectionLine(index);
+      setDirection(index);
     };
-    //设置点击方向的颜色
-    const setColor = (index: number) => {
+
+    //设置点击方向的颜色及划线
+    const setDirection = (index: number) => {
       const in_direction =
         signalInfo.phase_list[states.currentPhase].in_direction; //方向
       const idx = states.currentPhase + "_" + in_direction + "_" + index; //相位+方向+点击转向
@@ -633,37 +692,66 @@ export default defineComponent({
       signalInfo.phase_list[states.currentPhase].directions[in_direction][
         index
       ].is_enable = currentColor === "#4f48ad";
-      console.log(signalInfo.phase_list);
+      setDirectionLine(index);
     };
 
     //点击后画线
-    const drawDirectionLine = (index: number) => {
-      console.log("相位", states.currentPhase);
-      console.log(
-        "方向",
-        signalInfo.phase_list[states.currentPhase].in_direction
-      );
+    const setDirectionLine = (index: number) => {
+      const in_direction =
+        signalInfo.phase_list[states.currentPhase].in_direction; //方向
+      signalInfo.phase_list[states.currentPhase].directions[
+        in_direction
+      ].forEach((d: any, index: number) => {
+        if (d.is_enable) {
+          //画路径
+          drawDirectionPath(index);
+        } else {
+          //删除路径
+        }
+      });
     };
 
-    //加载各道路之间的方向
-    const initDirections = () => {
-      for (let i = 0; i < roadDir.length; i++) {
-        const sign_pt = [];
-        for (let j = 0; j < roadDir.length; j++) {
-          const road = roadDir[i];
-          const nextRoad =
-            j === roadDir.length - 1 ? roadDir[0] : roadDir[j + 1];
-          const d = `M${road.coordinate[0]} ${road.coordinate[1]} L${states.cx} ${states.cy} L${nextRoad.coordinate[0]} ${nextRoad.coordinate[1]}`;
-          const path = { d };
-          sign_pt.push(path);
+    const drawDirectionPath = (index: number) => {
+      const index1 = states.currentDirection;
+      const index2 = index + 1 === states.angleSet.length ? 0 : index + 1;
+      const point1 =
+        states.road_pts[states.currentPhase].point[index1].right_point;
+      const point2 =
+        states.road_pts[states.currentPhase].point[index2].left_point;
+      const curvature = getCurvByAngle(
+        states.curvature,
+        states.angleSet[index1],
+        states.angleSet[index2],
+        point1,
+        point2
+      );
+      const Q = getQByPathCurv(point1, point2, curvature);
+      const d_str = `M ${point1[0]} ${point1[1]} Q ${Q} ${point2[0]} ${point2[1]}`;
+      const id =
+        "direction_line_" +
+        states.currentPhase +
+        "_" +
+        signalInfo.phase_list[states.currentPhase].in_direction +
+        "_" +
+        index;
+      const line = document.createElementNS(states.ns, "path");
+      line.setAttribute("id", id);
+      line.setAttribute("d", d_str);
+      line.setAttribute("stroke", "#fff");
+      line.setAttribute("stroke-width", "5");
+      line.setAttribute("fill", `none`);
+      line.setAttribute("marker-end", `url(#direction_line)`);
+      document.querySelectorAll("g").forEach((g) => {
+        if (g.id === "phase_" + states.currentPhase) {
+          console.log("here");
+          g.appendChild(line);
         }
-        states.sign_pts.push(sign_pt);
-      }
+      });
     };
+
     //初始化加载
     onMounted(() => {
       initRoads();
-      initDirections();
     });
 
     return {
