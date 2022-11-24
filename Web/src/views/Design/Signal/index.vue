@@ -667,6 +667,7 @@ export default defineComponent({
       console.log(signalInfo.phase_list[states.currentPhase].in_direction);
       states.currentDirection =
         signalInfo.phase_list[states.currentPhase].in_direction;
+      setDirectionLine();
     };
 
     //点击方向
@@ -678,34 +679,31 @@ export default defineComponent({
     const setDirection = (index: number) => {
       const in_direction =
         signalInfo.phase_list[states.currentPhase].in_direction; //方向
-      const idx = states.currentPhase + "_" + in_direction + "_" + index; //相位+方向+点击转向
-      const currentDirection = document.querySelector(`#direction${idx}`);
-      const currentArrow = document.querySelector(`#arrow${idx}>path`);
-      const currentColor =
-        currentDirection?.getAttribute("stroke") === "#4f48ad"
-          ? "#a2a2a2"
-          : "#4f48ad";
-      currentDirection?.setAttribute("stroke", currentColor);
-      currentArrow?.setAttribute("style", "fill:" + currentColor);
-
       //写数据
       signalInfo.phase_list[states.currentPhase].directions[in_direction][
         index
-      ].is_enable = currentColor === "#4f48ad";
-      setDirectionLine(index);
+      ].is_enable =
+        !signalInfo.phase_list[states.currentPhase].directions[in_direction][
+          index
+        ].is_enable;
+      setDirectionLine();
     };
 
     //点击后画线
-    const setDirectionLine = (index: number) => {
+    const setDirectionLine = () => {
       const in_direction =
         signalInfo.phase_list[states.currentPhase].in_direction; //方向
       signalInfo.phase_list[states.currentPhase].directions[
         in_direction
       ].forEach((d: any, index: number) => {
         if (d.is_enable) {
+          //颜色标记
+          drawDirectionColor(index, true);
           //画路径
           drawDirectionPath(index);
         } else {
+          //颜色取消标记
+          drawDirectionColor(index, false);
           //删除路径
         }
       });
@@ -719,7 +717,7 @@ export default defineComponent({
       const point2 =
         states.road_pts[states.currentPhase].point[index2].left_point;
       const curvature = getCurvByAngle(
-        states.curvature,
+        0.04,
         states.angleSet[index1],
         states.angleSet[index2],
         point1,
@@ -747,6 +745,19 @@ export default defineComponent({
           g.appendChild(line);
         }
       });
+    };
+
+    const drawDirectionColor = (index: number, is_enable: boolean) => {
+      console.log(index, is_enable);
+      const in_direction =
+        signalInfo.phase_list[states.currentPhase].in_direction; //方向
+      console.log(in_direction);
+      const idx = states.currentPhase + "_" + in_direction + "_" + index; //相位+方向+点击转向
+      const currentDirection = document.querySelector(`#direction${idx}`);
+      const currentArrow = document.querySelector(`#arrow${idx}>path`);
+      const currentColor = is_enable ? "#4f48ad" : "#a2a2a2";
+      currentDirection?.setAttribute("stroke", currentColor);
+      currentArrow?.setAttribute("style", "fill:" + currentColor);
     };
 
     //初始化加载
