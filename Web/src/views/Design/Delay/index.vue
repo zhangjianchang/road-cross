@@ -36,7 +36,7 @@
           stroke-width="2"
         />
         <path :d="road.sign.d" fill="#fff"></path>
-        <text x="250" y="1400" fill="#000" style="font-size: 260px">
+        <text x="180" y="1400" fill="#000" style="font-size: 260px">
           {{ road.rect.saturation }}
         </text>
       </g>
@@ -49,27 +49,19 @@
         stroke-width="1"
         id="total_saturation"
       />
-      <text x="335" y="355" fill="#fff" stroke-width="2">
+      <text x="328" y="355" fill="#fff" stroke-width="2">
         {{ total_saturation }}
       </text>
     </svg>
 
     <!-- 参数 -->
-    <div class="menu">对比分析</div>
+    <div class="menu">延误分析</div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, inject, onMounted, reactive, toRefs } from "vue";
-import {
-  getBackground,
-  getCelr,
-  getRoadDefaultSign,
-  tr_Cl,
-  tr_Cs,
-  tr_Csr,
-  tr_VC,
-} from "./index";
+import { d_d, d_d1, d_d2, getBackground, getRoadDefaultSign } from "./index";
 import Container from "../../../components/Container/index.vue";
 import { DragOutlined } from "@ant-design/icons-vue";
 import { getAngle, getQByPathCurv } from "../../../utils/common";
@@ -196,7 +188,6 @@ export default defineComponent({
 
     //画路标
     function drawRoadSign() {
-      road_info.saturation_info = [];
       //路标
       let roadIndex = 0;
       for (var i = 0; i < states.cross_pts.length; i++) {
@@ -204,7 +195,6 @@ export default defineComponent({
         var pt = states.cross_pts[i];
         var prevPt = states.cross_pts[i - 1];
         if (i > 0 && i % 2 !== 0) {
-          road_info.saturation_info.push([]);
           for (let way_idx = 1; way_idx < all_count - 1; way_idx++) {
             var is_last = all_count === way_idx + 2;
             var signIndex = way_idx - 1;
@@ -225,9 +215,9 @@ export default defineComponent({
             };
             //路标
             const sign = {
-              d: getRoadDefaultSign(signIndex, is_last),
+              d: getRoadDefaultSign(signIndex, false, is_last),
             };
-            let saturation = getRatio(roadIndex, signIndex).toFixed(2);
+            let saturation = getDelay(roadIndex, signIndex).toFixed(1);
             let background = getBackground(saturation);
             //圆角矩形背景
             const rect = {
@@ -257,60 +247,16 @@ export default defineComponent({
       states.cvs?.appendChild(line);
     }
 
-    //roadIndex路，wayIndex
-    function getRatio(roadIndex: number, wayIndex: number) {
-      //以三条车道为例
-      const T = road_info.signal_info.period;
-      const t = road_info.signal_info.phase_list[roadIndex].green;
-      const cart = road_info.flow_info.line_info[roadIndex].truck_ratio / 100;
-      const Bl = getBl(roadIndex);
-      var v = getCurrentWayFlow(roadIndex, wayIndex);
-      const c_trCs = tr_Cs(T, t, cart); //直行通行能力
-      const c_trCsr = tr_Csr(c_trCs); //直右通行能力
-      const celr = getCelr(c_trCs + c_trCsr, Bl);
-      const c_trCl = tr_Cl(celr, Bl); //专左通行能力
-      var trVC = 0; //饱和度
-      if (wayIndex === 0) {
-        //专左
-        trVC = tr_VC(v, c_trCl);
-        road_info.saturation_info[roadIndex].push({ vc: trVC, c: c_trCl });
-      } else if (wayIndex === 1) {
-        //直行
-        trVC = tr_VC(v, c_trCs);
-        road_info.saturation_info[roadIndex].push({ vc: trVC, c: c_trCs });
-      } else if (wayIndex === 2) {
-        //直右
-        trVC = tr_VC(v, c_trCsr);
-        road_info.saturation_info[roadIndex].push({ vc: trVC, c: c_trCsr });
-      }
-      return trVC;
-    }
-
-    //左转车道占本面进口车道的比例
-    const getBl = (roadIndex: number) => {
-      const flow_detail = road_info.flow_info.flow_detail[roadIndex];
-      var total = getCurrentRoadTotalFlow(roadIndex);
-      //todo 暂定，后续需改为方向
-      var left = flow_detail["turn2"];
-      var Bl = left / total;
-      return Bl;
-    };
-
-    //当前道路所有车道总流量
-    const getCurrentRoadTotalFlow = (roadIndex: number) => {
-      const flow_detail = road_info.flow_info.flow_detail[roadIndex];
-      var total = 0;
-      for (let i = 0; i < states.angleSet.length; i++) {
-        total += flow_detail["turn" + (i + 1)];
-      }
-      return total;
-    };
-
-    //当前道路某条车道
-    const getCurrentWayFlow = (roadIndex: number, wayIdx: number) => {
-      const current =
-        road_info.flow_info.flow_detail[roadIndex]["turn" + (wayIdx + 2)];
-      return current;
+    const getDelay = (roadIndex: number, wayIndex: number) => {
+      const C = road_info.signal_info.period; //周期时长
+      const green = road_info.signal_info.phase_list[roadIndex].green;
+      const λ = green / C; //绿信比
+      const x = road_info.saturation_info[roadIndex][wayIndex].vc; //饱和度
+      const CAP = road_info.saturation_info[roadIndex][wayIndex].c; //通行能力
+      var d1 = d_d1(C, x, λ);
+      var d2 = d_d2(x, CAP);
+      var d = d_d(d1, d2);
+      return d;
     };
 
     onMounted(() => {
@@ -335,5 +281,3 @@ export default defineComponent({
   cursor: pointer;
 }
 </style>
-
-function getCelr() { throw new Error("Function not implemented."); }

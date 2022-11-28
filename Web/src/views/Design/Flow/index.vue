@@ -33,7 +33,7 @@
               <a-col :span="12">
                 <a-form-item label="颜色">
                   <a-select
-                    v-model:value="roadInfo.color"
+                    v-model:value="road_info.flow_info.color"
                     size="small"
                     class="form-width"
                   >
@@ -50,7 +50,7 @@
               <a-col :span="12">
                 <a-form-item label="粗细">
                   <a-input-number
-                    v-model:value="roadInfo.font_weight"
+                    v-model:value="road_info.flow_info.font_weight"
                     :min="0"
                     :max="50"
                     size="small"
@@ -61,7 +61,7 @@
               <a-col :span="12">
                 <a-form-item label="长度1">
                   <a-input-number
-                    v-model:value="roadInfo.width1"
+                    v-model:value="road_info.flow_info.width1"
                     :min="20"
                     :max="150"
                     :step="1"
@@ -73,7 +73,7 @@
               <a-col :span="12">
                 <a-form-item label="字号1">
                   <a-input-number
-                    v-model:value="roadInfo.font_size1"
+                    v-model:value="road_info.flow_info.font_size1"
                     :min="0"
                     :max="30"
                     :step="1"
@@ -85,7 +85,7 @@
               <a-col :span="12">
                 <a-form-item label="长度2">
                   <a-input-number
-                    v-model:value="roadInfo.width2"
+                    v-model:value="road_info.flow_info.width2"
                     :min="20"
                     :max="150"
                     :step="5"
@@ -97,7 +97,7 @@
               <a-col :span="12">
                 <a-form-item label="字号2">
                   <a-input-number
-                    v-model:value="roadInfo.font_size2"
+                    v-model:value="road_info.flow_info.font_size2"
                     :min="0"
                     :max="30"
                     :step="1"
@@ -109,7 +109,7 @@
               <a-col :span="12">
                 <a-form-item label="间距">
                   <a-input-number
-                    v-model:value="roadInfo.space"
+                    v-model:value="road_info.flow_info.space"
                     :min="20"
                     :max="150"
                     :step="5"
@@ -121,7 +121,7 @@
               <a-col :span="12">
                 <a-form-item label="字号3">
                   <a-input-number
-                    v-model:value="roadInfo.font_size3"
+                    v-model:value="road_info.flow_info.font_size3"
                     :min="0"
                     :max="30"
                     :step="1"
@@ -136,7 +136,7 @@
         <div class="header mt-2">车道属性</div>
         <div class="content mt-2">
           <a-table
-            :dataSource="roadInfo.line_info"
+            :dataSource="road_info.flow_info.line_info"
             :columns="lineColumns"
             :pagination="false"
             :bordered="true"
@@ -177,7 +177,7 @@
         <div class="header mt-5">进口道转向流量</div>
         <div class="content mt-2">
           <a-table
-            :dataSource="roadInfo.flow_info"
+            :dataSource="road_info.flow_info.flow_detail"
             :columns="flowColumns"
             :pagination="false"
             :showHeader="false"
@@ -208,32 +208,14 @@
             layout="horizontal"
           >
             <a-row>
-              <a-col :span="8">
-                <a-form-item label="车道1">
+              <a-col
+                :span="8"
+                v-for="(rec, index) in road_info.flow_info.saturation"
+                :key="rec"
+              >
+                <a-form-item :label="'车道' + (index + 1)">
                   <a-input-number
-                    v-model:value="roadInfo.saturation.road1"
-                    :min="0"
-                    :step="50"
-                    size="small"
-                    class="form-width"
-                  />
-                </a-form-item>
-              </a-col>
-              <a-col :span="8">
-                <a-form-item label="车道2">
-                  <a-input-number
-                    v-model:value="roadInfo.saturation.road2"
-                    :min="0"
-                    :step="50"
-                    size="small"
-                    class="form-width"
-                  />
-                </a-form-item>
-              </a-col>
-              <a-col :span="8">
-                <a-form-item label="车道3">
-                  <a-input-number
-                    v-model:value="roadInfo.saturation.road3"
+                    v-model:value="road_info.flow_info.saturation[index]"
                     :min="0"
                     :step="50"
                     size="small"
@@ -268,6 +250,7 @@ import {
   flowDataIndex,
 } from ".";
 import _ from "lodash";
+import { RoadInfo } from "..";
 
 export default defineComponent({
   components: { Container },
@@ -286,9 +269,10 @@ export default defineComponent({
       start_pts2: [] as any[], //所有路口交叉点内侧一层
       road_lines: [] as any[],
     });
-
+    //全局道路信息
+    const road_info = inject("road_info") as RoadInfo;
     //参数设置
-    const roadInfo = reactive({
+    road_info.flow_info = reactive({
       color: 1, //颜色
       font_weight: 5, //粗细
       width1: 50, //长度1
@@ -298,12 +282,8 @@ export default defineComponent({
       space: 40, //间距
       font_size3: 17, //字号3
       line_info: [] as any[], //车道属性
-      flow_info: [] as any[], //进口道转向流量
-      saturation: {
-        road1: 1650, //车道1
-        road2: 1650, //车道2
-        road3: 1650, //车道3
-      },
+      flow_detail: [] as any[], //进口道转向流量
+      saturation: [1650, 1650, 1650],
     });
 
     const initRoads = () => {
@@ -466,15 +446,15 @@ export default defineComponent({
         let line_info = _.cloneDeep(lineInfoModel);
         line_info.direction = "方向" + i;
         line_info.road_name = "方向" + i;
-        roadInfo.line_info.push(line_info);
+        road_info.flow_info.line_info.push(line_info);
 
         let flow_info = {} as any;
         flow_info.road_name = "方向" + i;
-        for (let j = 1; j <= states.road_lines.length; j++) {
+        for (let j = 1; j < states.road_lines.length; j++) {
           flow_info["turn1"] = 0;
           flow_info["turn" + (j + 1)] = 450;
         }
-        roadInfo.flow_info.push(flow_info);
+        road_info.flow_info.flow_detail.push(flow_info);
       }
       //drawText 写路面上的数字
       drawText();
@@ -486,7 +466,7 @@ export default defineComponent({
         r.center_text.forEach((midPoint: any, j: number) => {
           const point = getMiddlePoint(midPoint[0], midPoint[1]);
           const text = document.createElementNS(states.ns, "text");
-          let content = roadInfo.flow_info[i]["turn" + (j + 2)];
+          let content = road_info.flow_info.flow_detail[i]["turn" + (j + 2)];
           let x = (point[0] - (content.length === 3 ? 10 : 15)).toString();
           let y = (point[1] + 5).toString();
           text.setAttribute("id", "turn" + i + "" + j);
@@ -518,7 +498,7 @@ export default defineComponent({
 
     return {
       ...toRefs(states),
-      roadInfo,
+      road_info,
       labelCol: { span: 10 },
       wrapperCol: { span: 12 },
       lineColumns,

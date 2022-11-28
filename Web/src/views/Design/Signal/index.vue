@@ -19,7 +19,7 @@
           <stop offset="100%" :stop-color="signalColor.red[0]" />
         </linearGradient>
       </defs>
-
+      <!-- 相位 -->
       <g
         v-for="(road, index) in road_pts"
         :key="road.g"
@@ -32,7 +32,26 @@
           :id="road.path.id"
           fill="rgb(162,162,162)"
         ></path>
-        <circle
+        <!-- 相位内部方向箭头 -->
+        <defs>
+          <marker
+            id="direction_line"
+            markerUnits="strokeWidth"
+            markerWidth="6"
+            markerHeight="6"
+            viewBox="0 0 12 12"
+            refX="6"
+            refY="6"
+            orient="auto"
+          >
+            <path
+              xmlns="http://www.w3.org/2000/svg"
+              d="M2,2 L10,6 L2,10 L2,6 L2,2"
+              style="fill: #fff"
+            />
+          </marker>
+        </defs>
+        <!-- <circle
           v-for="p in road.point"
           :key="p"
           :cx="p.right_point[0]"
@@ -45,7 +64,7 @@
           :cx="p.left_point[0]"
           :cy="p.left_point[1]"
           r="10"
-        ></circle>
+        ></circle> -->
       </g>
     </svg>
     <!-- 参数 -->
@@ -57,7 +76,7 @@
               <a-col :span="12">
                 <a-form-item label="相位总数">
                   <a-select
-                    v-model:value="signalInfo.phase"
+                    v-model:value="signal_info.phase"
                     size="small"
                     class="form-width"
                     @change="onPhaseChange"
@@ -75,7 +94,7 @@
               <a-col :span="12">
                 <a-form-item label="周期">
                   <a-input-number
-                    v-model:value="signalInfo.period"
+                    v-model:value="signal_info.period"
                     size="small"
                     class="form-width"
                     :disabled="true"
@@ -86,7 +105,7 @@
               <a-col :span="12">
                 <a-form-item label="图例">
                   <a-select
-                    v-model:value="signalInfo.is_show_legend"
+                    v-model:value="signal_info.is_show_legend"
                     size="small"
                     class="form-width"
                   >
@@ -100,14 +119,14 @@
         </div>
         <div class="content mt-2">
           <a-table
-            :dataSource="signalInfo.phase_list"
+            :dataSource="signal_info.phase_list"
             :columns="phaseColumns"
             :scroll="{ x: 430 }"
             :customRow="onRowClick"
             :pagination="false"
             :bordered="true"
             :rowClassName="
-              (_record: any, index: number) => (index === currentPhase ? 'click-row' : null)
+              (_: any, index: number) => (index === currentPhase ? 'click-row' : null)
             "
             size="small"
           >
@@ -172,7 +191,7 @@
             </template>
           </a-table>
         </div>
-        <div class="content mt-2" v-if="signalInfo.phase_list.length > 0">
+        <div class="content mt-2" v-if="signal_info.phase_list.length > 0">
           <a-form>
             <a-row>
               <a-col :span="24">
@@ -183,7 +202,7 @@
                 >
                   <a-select
                     v-model:value="
-                      signalInfo.phase_list[currentPhase].in_direction
+                      signal_info.phase_list[currentPhase].in_direction
                     "
                     size="small"
                     class="form-width"
@@ -202,12 +221,12 @@
             </a-row>
           </a-form>
         </div>
-        <div class="mt-2" v-if="signalInfo.phase_list.length > 0">
+        <div class="mt-2" v-if="signal_info.phase_list.length > 0">
           <div>机动车</div>
           <div>
             <svg
               v-for="(item, index) in sign_pts[
-                signalInfo.phase_list[currentPhase].in_direction
+                signal_info.phase_list[currentPhase].in_direction
               ]"
               :key="index"
               xmlns="http://www.w3.org/2000/svg"
@@ -221,7 +240,7 @@
                     'arrow' +
                     currentPhase +
                     '_' +
-                    signalInfo.phase_list[currentPhase].in_direction +
+                    signal_info.phase_list[currentPhase].in_direction +
                     '_' +
                     index
                   "
@@ -245,7 +264,7 @@
                   'direction' +
                   currentPhase +
                   '_' +
-                  signalInfo.phase_list[currentPhase].in_direction +
+                  signal_info.phase_list[currentPhase].in_direction +
                   '_' +
                   index
                 "
@@ -257,7 +276,7 @@
                   'url(#arrow' +
                   currentPhase +
                   '_' +
-                  signalInfo.phase_list[currentPhase].in_direction +
+                  signal_info.phase_list[currentPhase].in_direction +
                   '_' +
                   index +
                   ')'
@@ -269,7 +288,7 @@
           <div>
             <svg
               v-for="(item, index) in sign_pts[
-                signalInfo.phase_list[currentPhase].in_direction
+                signal_info.phase_list[currentPhase].in_direction
               ]"
               :key="index"
               xmlns="http://www.w3.org/2000/svg"
@@ -328,6 +347,7 @@ import {
 } from ".";
 import _ from "lodash";
 import { getCurvByAngle } from "../Flow";
+import { RoadInfo } from "..";
 
 export default defineComponent({
   components: { Container, DragOutlined },
@@ -350,13 +370,8 @@ export default defineComponent({
       currentPhase: 0, //当前选中相位
       currentDirection: 0, //当前选中方向（相位的子集）
     });
-
-    const signalInfo = reactive({
-      phase: 4, //默认4个相位
-      period: 0, //默认周期共80s
-      is_show_legend: false,
-      phase_list: [] as any[],
-    });
+    //全局道路信息
+    const road_info = inject("road_info") as RoadInfo;
 
     //加载道路
     const initRoads = () => {
@@ -368,16 +383,19 @@ export default defineComponent({
       roadDir.map((r) => {
         states.angleSet.push(r.angle);
       });
-      render();
     };
 
     function render() {
-      for (let i = 0; i < signalInfo.phase; i++) {
-        insertPhase(i);
-      }
       initDirections();
       drawScale();
       drawMain();
+    }
+
+    function initPhase() {
+      road_info.signal_info.phase_list.length = 0;
+      for (let i = 0; i < road_info.signal_info.phase; i++) {
+        insertPhase(i);
+      }
     }
 
     //初始化相位数据
@@ -385,16 +403,17 @@ export default defineComponent({
       let phaseItem = _.cloneDeep(phaseModel);
       phaseItem.index = i;
       phaseItem.name = `第${i + 1}相位`;
-      for (let d = 0; d < states.angleSet.length; d++) {
+      for (let d = 0; d < roadDir.length; d++) {
         let directions = [];
-        for (let d = 0; d < states.angleSet.length; d++) {
+        for (let d = 0; d < roadDir.length; d++) {
           let directionItem = _.cloneDeep(DirectionItemModel);
           directions.push(directionItem);
         }
         phaseItem.directions.push(directions);
       }
-      signalInfo.phase_list.push(phaseItem);
-      signalInfo.period += phaseItem.green + phaseItem.yellow + phaseItem.red;
+      road_info.signal_info.phase_list.push(phaseItem);
+      road_info.signal_info.period +=
+        phaseItem.green + phaseItem.yellow + phaseItem.red;
     }
 
     //加载各道路之间的方向
@@ -423,10 +442,10 @@ export default defineComponent({
         if (e.id.indexOf("rect") > -1) e.remove();
       });
       //默认四个相位
-      for (let p = 0; p < signalInfo.phase; p++) {
-        let width = states.svg_width / signalInfo.period; //每个刻度的宽度
+      for (let p = 0; p < road_info.signal_info.phase; p++) {
+        let width = states.svg_width / road_info.signal_info.period; //每个刻度的宽度
         let x1, y1, x2, y2, w, h;
-        for (let i = 0; i <= signalInfo.period; i++) {
+        for (let i = 0; i <= road_info.signal_info.period; i++) {
           let tick_len = 10; // 小刻度=10
           if (i % 5 == 0) tick_len = 20; // 长刻度=20
           /**上边缘线 */
@@ -464,22 +483,27 @@ export default defineComponent({
         createLine(x1, y1, x2, y2, "#4f48ad", "3");
         /**中心线 */
         /**绿色信号 */
-        x1 = 25 + getStartX(signalInfo.phase_list, p, "g") * width;
+        x1 = 25 + getStartX(road_info.signal_info.phase_list, p, "g") * width;
         y1 = 265 + p * states.phase_height;
-        w = 25 + getStartX(signalInfo.phase_list, p, "y") * width - x1;
+        w =
+          25 + getStartX(road_info.signal_info.phase_list, p, "y") * width - x1;
         h = 30;
         createRect(x1, y1, w, h, "green");
         /**绿色信号 */
         /**黄色信号 */
-        x1 = 25 + getStartX(signalInfo.phase_list, p, "y") * width;
+        x1 = 25 + getStartX(road_info.signal_info.phase_list, p, "y") * width;
         y1 = 265 + p * states.phase_height;
-        w = 25 + getStartX(signalInfo.phase_list, p, "r") * width - x1;
+        w =
+          25 + getStartX(road_info.signal_info.phase_list, p, "r") * width - x1;
         createRect(x1, y1, w, h, "yellow");
         /**黄色信号 */
         /**红色信号 */
-        x1 = 25 + getStartX(signalInfo.phase_list, p, "r") * width;
+        x1 = 25 + getStartX(road_info.signal_info.phase_list, p, "r") * width;
         y1 = 265 + p * states.phase_height;
-        w = 25 + getStartX(signalInfo.phase_list, p + 1, "g") * width - x1;
+        w =
+          25 +
+          getStartX(road_info.signal_info.phase_list, p + 1, "g") * width -
+          x1;
         createRect(x1, y1, w, h, "red");
         /**红色信号 */
       }
@@ -531,7 +555,7 @@ export default defineComponent({
         //获取交叉口圆plus和路边相交的点
         setPts(states.cross_pts, angle, x3, y3);
       }
-      for (let p = 0; p < signalInfo.phase; p++) {
+      for (let p = 0; p < road_info.signal_info.phase; p++) {
         let d_str = "";
         let roadIdx = 0;
         let roadEdgePoints = [];
@@ -625,16 +649,20 @@ export default defineComponent({
 
     //相位总数变更
     const onPhaseChange = () => {
-      const count = signalInfo.phase - signalInfo.phase_list.length;
+      const count =
+        road_info.signal_info.phase - road_info.signal_info.phase_list.length;
       if (count > 0) {
         //增加
-        let s = signalInfo.phase_list.length + 1;
-        for (let i = s; i <= signalInfo.phase; i++) {
+        let s = road_info.signal_info.phase_list.length + 1;
+        for (let i = s; i <= road_info.signal_info.phase; i++) {
           insertPhase(i);
         }
       } else {
         //减少
-        signalInfo.phase_list.splice(signalInfo.phase, -count);
+        road_info.signal_info.phase_list.splice(
+          road_info.signal_info.phase,
+          -count
+        );
       }
       calculatePeriod();
     };
@@ -646,9 +674,10 @@ export default defineComponent({
 
     //计算总周期
     const calculatePeriod = () => {
-      signalInfo.period = 0;
-      signalInfo.phase_list.map((phaseItem) => {
-        signalInfo.period += phaseItem.green + phaseItem.yellow + phaseItem.red;
+      road_info.signal_info.period = 0;
+      road_info.signal_info.phase_list.map((phaseItem: any) => {
+        road_info.signal_info.period +=
+          phaseItem.green + phaseItem.yellow + phaseItem.red;
       });
       drawScale();
     };
@@ -658,16 +687,20 @@ export default defineComponent({
       return {
         onClick: () => {
           states.currentPhase = index;
+          onDirectionChange(
+            road_info.signal_info.phase_list[states.currentPhase].in_direction
+          );
         },
       };
     };
 
     //点击切换方向
-    const onDirectionChange = () => {
-      console.log(signalInfo.phase_list[states.currentPhase].in_direction);
-      states.currentDirection =
-        signalInfo.phase_list[states.currentPhase].in_direction;
-      setDirectionLine();
+    const onDirectionChange = (value: any) => {
+      states.currentDirection = value;
+      //延时加载，等待dom加载完毕再渲染
+      setTimeout(() => {
+        setDirectionLine();
+      }, 10);
     };
 
     //点击方向
@@ -678,22 +711,27 @@ export default defineComponent({
     //设置点击方向的颜色及划线
     const setDirection = (index: number) => {
       const in_direction =
-        signalInfo.phase_list[states.currentPhase].in_direction; //方向
+        road_info.signal_info.phase_list[states.currentPhase].in_direction; //方向
       //写数据
-      signalInfo.phase_list[states.currentPhase].directions[in_direction][
-        index
-      ].is_enable =
-        !signalInfo.phase_list[states.currentPhase].directions[in_direction][
-          index
-        ].is_enable;
+      road_info.signal_info.phase_list[states.currentPhase].directions[
+        in_direction
+      ][index].is_enable =
+        !road_info.signal_info.phase_list[states.currentPhase].directions[
+          in_direction
+        ][index].is_enable;
       setDirectionLine();
     };
 
     //点击后画线
     const setDirectionLine = () => {
       const in_direction =
-        signalInfo.phase_list[states.currentPhase].in_direction; //方向
-      signalInfo.phase_list[states.currentPhase].directions[
+        road_info.signal_info.phase_list[states.currentPhase].in_direction; //方向
+      console.log(
+        road_info.signal_info.phase_list[states.currentPhase].directions[
+          in_direction
+        ]
+      );
+      road_info.signal_info.phase_list[states.currentPhase].directions[
         in_direction
       ].forEach((d: any, index: number) => {
         if (d.is_enable) {
@@ -717,7 +755,7 @@ export default defineComponent({
       const point2 =
         states.road_pts[states.currentPhase].point[index2].left_point;
       const curvature = getCurvByAngle(
-        0.04,
+        0.06,
         states.angleSet[index1],
         states.angleSet[index2],
         point1,
@@ -725,13 +763,12 @@ export default defineComponent({
       );
       const Q = getQByPathCurv(point1, point2, curvature);
       const d_str = `M ${point1[0]} ${point1[1]} Q ${Q} ${point2[0]} ${point2[1]}`;
-      const id =
-        "direction_line_" +
-        states.currentPhase +
-        "_" +
-        signalInfo.phase_list[states.currentPhase].in_direction +
-        "_" +
-        index;
+      const id = "direction_line";
+      // states.currentPhase +
+      // "_" +
+      // road_info.signal_info.phase_list[states.currentPhase].in_direction +
+      // "_" +
+      // index;
       const line = document.createElementNS(states.ns, "path");
       line.setAttribute("id", id);
       line.setAttribute("d", d_str);
@@ -741,17 +778,14 @@ export default defineComponent({
       line.setAttribute("marker-end", `url(#direction_line)`);
       document.querySelectorAll("g").forEach((g) => {
         if (g.id === "phase_" + states.currentPhase) {
-          console.log("here");
           g.appendChild(line);
         }
       });
     };
 
     const drawDirectionColor = (index: number, is_enable: boolean) => {
-      console.log(index, is_enable);
       const in_direction =
-        signalInfo.phase_list[states.currentPhase].in_direction; //方向
-      console.log(in_direction);
+        road_info.signal_info.phase_list[states.currentPhase].in_direction; //方向
       const idx = states.currentPhase + "_" + in_direction + "_" + index; //相位+方向+点击转向
       const currentDirection = document.querySelector(`#direction${idx}`);
       const currentArrow = document.querySelector(`#arrow${idx}>path`);
@@ -761,15 +795,40 @@ export default defineComponent({
     };
 
     //初始化加载
+    if (!road_info.signal_info) {
+      road_info.signal_info = {
+        phase: 4, //默认4个相位
+        period: 0, //默认周期共80s
+        is_show_legend: false,
+        phase_list: [] as any[],
+      };
+      //加载相位数据
+      initPhase();
+    } else {
+      //延时加载，等待dom加载完毕再渲染
+      setTimeout(() => {
+        road_info.signal_info.phase_list.forEach((p: any, index: number) => {
+          states.currentPhase = index;
+          p.directions.forEach((_, index: number) => {
+            onDirectionChange(index);
+          });
+        });
+      }, 10);
+    }
+
+    //初始化加载
     onMounted(() => {
+      //渲染路
       initRoads();
+      //渲染
+      render();
     });
 
     return {
       labelCol: { span: 10 },
       wrapperCol: { span: 12 },
       ...toRefs(states),
-      signalInfo,
+      ...toRefs(road_info),
       signalColor,
       phaseColumns,
       onRowClick,

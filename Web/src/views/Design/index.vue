@@ -32,6 +32,8 @@
         <Signal v-else-if="currentUrl === MenuListEnum.Signal" />
         <!-- 饱和度 -->
         <Saturation v-else-if="currentUrl === MenuListEnum.Saturation" />
+        <!-- 延误分析 -->
+        <Delay v-else-if="currentUrl === MenuListEnum.Delay" />
       </div>
     </div>
   </Container>
@@ -39,7 +41,7 @@
 
 <script lang="ts">
 import { defineComponent, provide, reactive, toRefs } from "vue";
-import { MenuListEnum, menuList } from "./index";
+import { MenuListEnum, menuList, RoadInfo } from "./index";
 import { notification } from "ant-design-vue";
 import Container from "../../components/Container/index.vue";
 import Basic from "./Basic/index.vue";
@@ -47,13 +49,17 @@ import Flow from "./Flow/index.vue";
 import Canalize from "./Canalize/index.vue";
 import Saturation from "./Saturation/index.vue";
 import Signal from "./Signal/index.vue";
+import Delay from "./Delay/index.vue";
 
 export default defineComponent({
-  components: { Container, Basic, Flow, Canalize, Saturation, Signal },
+  components: { Container, Basic, Flow, Canalize, Saturation, Signal, Delay },
   setup() {
     //全局保存道路定位
     const RoadDir = reactive([] as any[]);
+    //道路信息
+    const road_info = reactive({} as RoadInfo);
     provide("RoadDir", RoadDir);
+    provide("road_info", road_info);
 
     const states = reactive({
       currentUrl: "Basic",
