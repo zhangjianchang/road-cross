@@ -74,6 +74,7 @@ import Container from "../../../components/Container/index.vue";
 import { DragOutlined } from "@ant-design/icons-vue";
 import { getAngle, getQByPathCurv } from "../../../utils/common";
 import { RoadInfo } from "..";
+import { Stats } from "fs";
 
 export default defineComponent({
   components: { Container, DragOutlined },
@@ -261,7 +262,7 @@ export default defineComponent({
     function getRatio(roadIndex: number, wayIndex: number) {
       //以三条车道为例
       const T = road_info.signal_info.period;
-      const t = road_info.signal_info.phase_list[roadIndex].green;
+      const t = get_t(roadIndex);
       const cart = road_info.flow_info.line_info[roadIndex].truck_ratio / 100;
       const Bl = getBl(roadIndex);
       var v = getCurrentWayFlow(roadIndex, wayIndex);
@@ -286,6 +287,20 @@ export default defineComponent({
       return trVC;
     }
 
+    //当前方向对应的绿灯时间
+    const get_t = (roadIndex: number) => {
+      let t = 0;
+      for (let i = 0; i < road_info.signal_info.phase; i++) {
+        const phase_item = road_info.signal_info.phase_list[i];
+        //todo 暂定直行车道为当前索引对应车道
+        const current =
+          roadIndex === states.angleSet.length - 1 ? 0 : roadIndex + 1;
+        t += phase_item.directions[roadIndex][current].green;
+      }
+      console.log(t);
+      return t;
+    };
+
     //左转车道占本面进口车道的比例
     const getBl = (roadIndex: number) => {
       const flow_detail = road_info.flow_info.flow_detail[roadIndex];
@@ -306,7 +321,7 @@ export default defineComponent({
       return total;
     };
 
-    //当前道路某条车道
+    //当前道路某条车道的车流量
     const getCurrentWayFlow = (roadIndex: number, wayIdx: number) => {
       const current =
         road_info.flow_info.flow_detail[roadIndex]["turn" + (wayIdx + 2)];

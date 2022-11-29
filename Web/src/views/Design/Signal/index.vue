@@ -284,7 +284,7 @@
               ></path>
             </svg>
           </div>
-          <div>非机动车</div>
+          <!-- <div>非机动车</div>
           <div>
             <svg
               v-for="(item, index) in sign_pts[
@@ -326,7 +326,7 @@
           <div>行人</div>
           <div>1</div>
           <div>待转</div>
-          <div>2</div>
+          <div>2</div> -->
         </div>
       </div>
     </div>
@@ -710,15 +710,21 @@ export default defineComponent({
 
     //设置点击方向的颜色及划线
     const setDirection = (index: number) => {
-      const in_direction =
-        road_info.signal_info.phase_list[states.currentPhase].in_direction; //方向
+      //当前相位
+      const phase_item = road_info.signal_info.phase_list[states.currentPhase];
+      const in_direction = phase_item.in_direction; //方向
+      const direction = phase_item.directions[in_direction][index]; //方向数据
       //写数据
-      road_info.signal_info.phase_list[states.currentPhase].directions[
-        in_direction
-      ][index].is_enable =
-        !road_info.signal_info.phase_list[states.currentPhase].directions[
-          in_direction
-        ][index].is_enable;
+      direction.is_enable = !direction.is_enable;
+      if (direction.is_enable) {
+        direction.green = phase_item.green;
+        direction.yellow = phase_item.yellow;
+        direction.red = phase_item.red;
+      } else {
+        direction.green = 0;
+        direction.yellow = 0;
+        direction.red = 0;
+      }
       setDirectionLine();
     };
 
@@ -726,11 +732,6 @@ export default defineComponent({
     const setDirectionLine = () => {
       const in_direction =
         road_info.signal_info.phase_list[states.currentPhase].in_direction; //方向
-      console.log(
-        road_info.signal_info.phase_list[states.currentPhase].directions[
-          in_direction
-        ]
-      );
       road_info.signal_info.phase_list[states.currentPhase].directions[
         in_direction
       ].forEach((d: any, index: number) => {
@@ -797,7 +798,7 @@ export default defineComponent({
     //初始化加载
     if (!road_info.signal_info) {
       road_info.signal_info = {
-        phase: 4, //默认4个相位
+        phase: 2, //默认4个相位
         period: 0, //默认周期共80s
         is_show_legend: false,
         phase_list: [] as any[],
@@ -809,8 +810,8 @@ export default defineComponent({
       setTimeout(() => {
         road_info.signal_info.phase_list.forEach((p: any, index: number) => {
           states.currentPhase = index;
-          p.directions.forEach((_, index: number) => {
-            onDirectionChange(index);
+          p.directions.forEach((rec: any, index: number) => {
+            // onDirectionChange(index);
           });
         });
       }, 10);

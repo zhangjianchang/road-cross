@@ -186,9 +186,43 @@
           >
             <template
               v-for="col in flowDataIndex"
-              #[col]="{ record }"
+              #[col]="{ record, index }"
               :key="col"
             >
+              <div>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 700 700"
+                  class="road-sign"
+                >
+                  <defs>
+                    <marker
+                      :id="'arrow'"
+                      markerUnits="strokeWidth"
+                      markerWidth="3"
+                      markerHeight="3"
+                      viewBox="0 0 12 12"
+                      refX="6"
+                      refY="6"
+                      orient="auto"
+                    >
+                      <path
+                        xmlns="http://www.w3.org/2000/svg"
+                        d="M2,2 L10,6 L2,10 L2,6 L2,2"
+                        style="fill: #4f48ad"
+                      />
+                    </marker>
+                  </defs>
+                  <path
+                    :id="'direction'"
+                    :d="sign_pts[index][Number(col.replace('turn', '')) - 1].d"
+                    fill="none"
+                    stroke="#4f48ad"
+                    stroke-width="100"
+                    :marker-end="'url(#arrow)'"
+                  ></path>
+                </svg>
+              </div>
               <a-input-number
                 v-model:value="record[col]"
                 :min="0"
@@ -268,6 +302,7 @@ export default defineComponent({
       start_pts1: [] as any[], //所有路口交叉点外侧一层
       start_pts2: [] as any[], //所有路口交叉点内侧一层
       road_lines: [] as any[],
+      sign_pts: [] as any[],
     });
     //全局道路信息
     const road_info = inject("road_info") as RoadInfo;
@@ -451,6 +486,7 @@ export default defineComponent({
         let flow_info = {} as any;
         flow_info.road_name = "方向" + i;
         for (let j = 1; j < states.road_lines.length; j++) {
+          flow_info.index = j - 1;
           flow_info["turn1"] = 0;
           flow_info["turn" + (j + 1)] = 450;
         }
@@ -491,9 +527,26 @@ export default defineComponent({
       drawText();
     }
 
+    //加载各道路之间的方向
+    const initDirections = () => {
+      for (let i = 0; i < roadDir.length; i++) {
+        const sign_pt = [];
+        for (let j = 0; j < roadDir.length; j++) {
+          const road = roadDir[i];
+          const nextRoad =
+            j === roadDir.length - 1 ? roadDir[0] : roadDir[j + 1];
+          const d = `M${road.coordinate[0]} ${road.coordinate[1]} L${states.cx} ${states.cy} L${nextRoad.coordinate[0]} ${nextRoad.coordinate[1]}`;
+          const path = { d };
+          sign_pt.push(path);
+        }
+        states.sign_pts.push(sign_pt);
+      }
+    };
+
     onMounted(() => {
       initRoads();
       initRoadInfo();
+      initDirections();
     });
 
     return {
