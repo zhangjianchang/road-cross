@@ -30,10 +30,16 @@
         <Flow v-else-if="currentUrl === MenuListEnum.Flow" />
         <!-- 信号 -->
         <Signal v-else-if="currentUrl === MenuListEnum.Signal" />
+        <!-- 断面 -->
+        <Section v-else-if="currentUrl === MenuListEnum.Section" />
         <!-- 饱和度 -->
         <Saturation v-else-if="currentUrl === MenuListEnum.Saturation" />
+        <!-- 排队分析 -->
+        <QueueAnalysis v-else-if="currentUrl === MenuListEnum.QueueAnalysis" />
         <!-- 延误分析 -->
-        <Delay v-else-if="currentUrl === MenuListEnum.Delay" />
+        <DelayAnalysis v-else-if="currentUrl === MenuListEnum.DelayAnalysis" />
+        <!-- 服务水平 -->
+        <ServiceLevel v-else-if="currentUrl === MenuListEnum.ServiceLevel" />
       </div>
     </div>
   </Container>
@@ -44,15 +50,29 @@ import { defineComponent, provide, reactive, toRefs } from "vue";
 import { MenuListEnum, menuList, RoadInfo } from "./index";
 import { notification } from "ant-design-vue";
 import Container from "../../components/Container/index.vue";
-import Basic from "./Basic/index.vue";
-import Flow from "./Flow/index.vue";
-import Canalize from "./Canalize/index.vue";
-import Saturation from "./Saturation/index.vue";
-import Signal from "./Signal/index.vue";
-import Delay from "./Delay/index.vue";
+import Basic from "./Basic/index.vue"; //基础
+import Canalize from "./Canalize/index.vue"; //渠化
+import Flow from "./Flow/index.vue"; //流量
+import Signal from "./Signal/index.vue"; //信号
+import Section from "./Section/index.vue"; //断面
+import Saturation from "./Saturation/index.vue"; //饱和度
+import QueueAnalysis from "./QueueAnalysis/index.vue"; //排队分析
+import DelayAnalysis from "./DelayAnalysis/index.vue"; //延误分析
+import ServiceLevel from "./ServiceLevel/index.vue"; //服务水平
 
 export default defineComponent({
-  components: { Container, Basic, Flow, Canalize, Saturation, Signal, Delay },
+  components: {
+    Container,
+    Basic,
+    Flow,
+    Canalize,
+    Section,
+    Saturation,
+    Signal,
+    QueueAnalysis,
+    DelayAnalysis,
+    ServiceLevel,
+  },
   setup() {
     //全局保存道路定位
     const RoadDir = reactive([] as any[]);

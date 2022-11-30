@@ -249,7 +249,7 @@ export default defineComponent({
 
     const getDelay = (roadIndex: number, wayIndex: number) => {
       const C = road_info.signal_info.period; //周期时长
-      const green = road_info.signal_info.phase_list[roadIndex].green;
+      const green = get_green(roadIndex);
       const λ = green / C; //绿信比
       const x = road_info.saturation_info[roadIndex][wayIndex].vc; //饱和度
       const CAP = road_info.saturation_info[roadIndex][wayIndex].c; //通行能力
@@ -257,6 +257,20 @@ export default defineComponent({
       var d2 = d_d2(x, CAP);
       var d = d_d(d1, d2);
       return d;
+    };
+
+    //当前方向对应的绿灯时间
+    const get_green = (roadIndex: number) => {
+      let t = 0;
+      for (let i = 0; i < road_info.signal_info.phase; i++) {
+        const phase_item = road_info.signal_info.phase_list[i];
+        //todo 暂定直行车道为当前索引对应车道
+        const current =
+          roadIndex === states.angleSet.length - 1 ? 0 : roadIndex + 1;
+        t += phase_item.directions[roadIndex][current].green;
+      }
+      console.log(t);
+      return t;
     };
 
     onMounted(() => {

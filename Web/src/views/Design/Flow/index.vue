@@ -306,6 +306,7 @@ export default defineComponent({
     });
     //全局道路信息
     const road_info = inject("road_info") as RoadInfo;
+    // if (!road_info.flow_info) {
     //参数设置
     road_info.flow_info = reactive({
       color: 1, //颜色
@@ -320,6 +321,7 @@ export default defineComponent({
       flow_detail: [] as any[], //进口道转向流量
       saturation: [1650, 1650, 1650],
     });
+    // }
 
     const initRoads = () => {
       states.ns = "http://www.w3.org/2000/svg";
@@ -485,14 +487,12 @@ export default defineComponent({
 
         let flow_info = {} as any;
         flow_info.road_name = "方向" + i;
-        for (let j = 1; j < states.road_lines.length; j++) {
-          flow_info.index = j - 1;
+        for (let j = 1; j <= states.road_lines.length; j++) {
           flow_info["turn1"] = 0;
           flow_info["turn" + (j + 1)] = 450;
         }
         road_info.flow_info.flow_detail.push(flow_info);
       }
-      //drawText 写路面上的数字
       drawText();
     }
 
@@ -533,20 +533,24 @@ export default defineComponent({
         const sign_pt = [];
         for (let j = 0; j < roadDir.length; j++) {
           const road = roadDir[i];
-          const nextRoad =
-            j === roadDir.length - 1 ? roadDir[0] : roadDir[j + 1];
+          const next_i = j === roadDir.length - 1 ? 0 : j + 1;
+          const nextRoad = roadDir[next_i];
           const d = `M${road.coordinate[0]} ${road.coordinate[1]} L${states.cx} ${states.cy} L${nextRoad.coordinate[0]} ${nextRoad.coordinate[1]}`;
-          const path = { d };
+          const path = { d, order: i === next_i ? 0 : 1 };
           sign_pt.push(path);
         }
+        sign_pt.sort(function (a, b) {
+          return a.order - b.order;
+        });
         states.sign_pts.push(sign_pt);
       }
+      console.log(states.sign_pts);
     };
 
     onMounted(() => {
       initRoads();
-      initRoadInfo();
       initDirections();
+      initRoadInfo();
     });
 
     return {
