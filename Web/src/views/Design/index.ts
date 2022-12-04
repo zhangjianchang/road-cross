@@ -1,3 +1,5 @@
+import { reactive } from "vue";
+
 export enum MenuListEnum {
   Basic = "Basic", //基础信息
   Canalize = "Canalize", //渠化
@@ -23,8 +25,54 @@ export const menuList = [
 ];
 
 export interface RoadInfo {
+  basic_info: {} | any;
+  road_attr: [] | any;
   canalize_info: {} | any;
   flow_info: {} | any;
   saturation_info: [] | any;
   signal_info: {} | any;
 }
+
+export const road_info = reactive({
+  //基础信息
+  basic_info: {
+    name: "", //道路名称
+    count: 0,
+  },
+  //交叉路口信息
+  road_attr: [] as any[],
+  //渠化信息
+  canalize_info: {
+    direction: "road_1", //当前方向
+    direction_index: 0, //当前方向索引
+    size: 5, //交叉路口大小
+    curvature: 0.5, //右转道路曲率
+    roadAttr: [] as any[], //道路属性
+    entranceAttr: [] as any[], //进口属性
+    exitAttr: [] as any[], //出口属性
+  } as any,
+  //流量信息
+  flow_info: reactive({
+    color: 1, //颜色
+    font_weight: 5, //粗细
+    width1: 50, //长度1
+    font_size1: 14, //字号1
+    width2: 50, //长度2
+    font_size2: 14, //字号2
+    space: 40, //间距
+    font_size3: 17, //字号3
+    line_info: [] as any[], //车道属性
+    flow_detail: [] as any[], //进口道转向流量
+    saturation: [1650, 1650, 1650],
+    flowColumns: [] as any[],
+  }),
+  //信号信息
+  signal_info: {
+    phase: 2, //默认2个相位
+    period: 0, //默认周期共80s
+    is_show_legend: false,
+    phase_list: [] as any[],
+  },
+  //饱和度
+  saturation_info: [] as any[],
+});

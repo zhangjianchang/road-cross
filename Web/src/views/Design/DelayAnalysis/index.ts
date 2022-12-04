@@ -111,24 +111,16 @@ export function getRoadDefaultSign(
 //根据程度取颜色
 export function getBackground(number: number | string) {
   number = Number(number);
-  if (number <= 0.1) {
+  if (number <= 10) {
     return "rgb(0,255,0)";
-  } else if (number <= 0.2) {
+  } else if (number <= 20) {
     return "rgb(100,255,0)";
-  } else if (number <= 0.3) {
+  } else if (number <= 35) {
     return "rgb(150,255,0)";
-  } else if (number <= 0.4) {
-    return "rgb(200,255,0)";
-  } else if (number <= 0.5) {
-    return "rgb(255,255,0)";
-  } else if (number <= 0.6) {
+  } else if (number <= 55) {
     return "rgb(255,200,0)";
-  } else if (number <= 0.7) {
-    return "rgb(255,150,0)";
-  } else if (number <= 0.8) {
+  } else if (number <= 80) {
     return "rgb(255,100,0)";
-  } else if (number <= 0.9) {
-    return "rgb(255,50,0)";
   } else {
     return "rgb(255,0,0)";
   }

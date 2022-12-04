@@ -30,11 +30,9 @@ export default defineComponent({
   setup() {
     const userInfo = ref(undefined) as any;
     var strUser = localStorage.getItem("userInfo");
-    console.log(strUser);
 
     if (strUser) {
       userInfo.value = JSON.parse(strUser);
-      console.log(userInfo);
     }
     return {
       userInfo,

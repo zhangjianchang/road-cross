@@ -2,16 +2,18 @@
   <div class="basic-main">
     <div class="func">
       功能区
-      <div class="gradient"></div>
-      <div class="gradient-text">
-        <div>1</div>
-        <div class="dec">饱和度</div>
-        <div>0</div>
+      <div class="gradient">
+        <div class="gradient-A rect">A</div>
+        <div class="gradient-B rect">B</div>
+        <div class="gradient-C rect">C</div>
+        <div class="gradient-D rect">D</div>
+        <div class="gradient-E rect">E</div>
+        <div class="gradient-F rect">F</div>
       </div>
     </div>
     <!-- 图示 -->
     <svg id="canvas">
-      <text v-for="(_, index) in angleSet" :key="index" x="330">
+      <text v-for="(_, index) in road_attr" :key="index" x="330">
         <textPath :xlink:href="'#road_' + (index + 1)">
           方向{{ index + 1 }}
         </textPath>
@@ -64,16 +66,12 @@ import { defineComponent, inject, onMounted, reactive, toRefs } from "vue";
 import { d_d, d_d1, d_d2, getBackground, getRoadDefaultSign } from "./index";
 import Container from "../../../components/Container/index.vue";
 import { DragOutlined } from "@ant-design/icons-vue";
-import { getAngle, getQByPathCurv } from "../../../utils/common";
-import { RoadInfo } from "..";
+import { getQByPathCurv } from "../../../utils/common";
+import { road_info } from "..";
 
 export default defineComponent({
   components: { Container, DragOutlined },
   setup() {
-    const roadDir = inject("RoadDir") as any[];
-    //全局道路信息
-    const road_info = inject("road_info") as RoadInfo;
-
     const states = reactive({
       ns: "",
       cvs: null as HTMLElement | null,
@@ -81,7 +79,6 @@ export default defineComponent({
       cy: 350, //圆心y
       road_width: 160, //路宽
       curvature: 2, //路口弧度
-      angleSet: [] as number[], //所有道路倾斜角，以此绘制
       cross_pts: [] as any[], //所有路口交叉点
       road_sign_pts: [] as any[], //路标
       total_color: "#fff", //中心总颜色
@@ -91,24 +88,12 @@ export default defineComponent({
     const initRoads = () => {
       states.ns = "http://www.w3.org/2000/svg";
       states.cvs = document.getElementById("canvas");
-      roadDir.map((r) => {
-        let angle = getAngle(
-          states.cx,
-          states.cy,
-          r.coordinate[0],
-          r.coordinate[1]
-        );
-        states.angleSet.push(angle);
-      });
-      states.angleSet.sort(function (a, b) {
-        return a - b;
-      });
       render();
     };
 
     function render() {
-      for (var i = 0; i < states.angleSet.length; i++) {
-        var angle = states.angleSet[i];
+      for (var i = 0; i < road_info.road_attr.length; i++) {
+        var angle = road_info.road_attr[i].angle;
         var radian = (Math.PI / 180) * angle; // 角度转弧度
         var x3 = Math.cos(radian) * states.road_width + 350; // 交叉口圆半径100
         var y3 = -Math.sin(radian) * states.road_width + 350;
@@ -155,7 +140,7 @@ export default defineComponent({
           d_str += `M ${pt[0]} ${pt[1]} `;
         } else if (i % 2 !== 0) {
           /* 路边缘点 */
-          let angle = states.angleSet[roadIdx];
+          let angle = road_info.road_attr[roadIdx].angle;
           const radian = (Math.PI / 180) * angle; // 角度转弧度
           const x = Math.cos(radian) * 300 + 350; // 大圆半径300
           const y = -Math.sin(radian) * 300 + 350;
@@ -208,9 +193,11 @@ export default defineComponent({
 
             //外层
             const g = {
-              transform: `rotate(${270 - states.angleSet[roadIndex]} ${
-                wayPt[0]
-              },${wayPt[1]}) translate(${wayPt[0]},${wayPt[1]}) scale(0.04)`,
+              transform: `rotate(${
+                270 - road_info.road_attr[roadIndex].angle
+              } ${wayPt[0]},${wayPt[1]}) translate(${wayPt[0]},${
+                wayPt[1]
+              }) scale(0.04)`,
               id: `g${i}${way_idx}`,
             };
             //路标
@@ -266,10 +253,9 @@ export default defineComponent({
         const phase_item = road_info.signal_info.phase_list[i];
         //todo 暂定直行车道为当前索引对应车道
         const current =
-          roadIndex === states.angleSet.length - 1 ? 0 : roadIndex + 1;
+          roadIndex === road_info.road_attr.length - 1 ? 0 : roadIndex + 1;
         t += phase_item.directions[roadIndex][current].green;
       }
-      console.log(t);
       return t;
     };
 
@@ -279,12 +265,14 @@ export default defineComponent({
 
     return {
       ...toRefs(states),
+      ...toRefs(road_info),
     };
   },
 });
 </script>
 <style scoped lang="less">
 @import url("./index.less");
+@import url("../index.less");
 
 .road-sign {
   width: 32px;

@@ -46,8 +46,8 @@
     </div>
   </div>
 </template>
-  
-  <script lang="ts">
+
+<script lang="ts">
 import { defineComponent, reactive } from "vue";
 import { userLogin } from "../../request/api";
 import { PageEnum } from "../../router/data";
@@ -62,7 +62,7 @@ export default defineComponent({
 
     const handleLogin = () => {
       userLogin(formState).then((res: any) => {
-        console.log(1111);
+        console.log(res);
       });
     };
 
@@ -78,7 +78,7 @@ export default defineComponent({
   },
 });
 </script>
-  
+
 <style scoped lang="less">
 @import url("./index.less");
 </style>

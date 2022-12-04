@@ -3,7 +3,7 @@
     <div class="func">功能区</div>
     <!-- 图示 -->
     <svg id="canvas">
-      <text v-for="(_, index) in roadDir" :key="index" x="300">
+      <text v-for="(_, index) in road_attr" :key="index" x="300">
         <textPath :xlink:href="'#road_' + (index + 1)" y="50">
           方向{{ index + 1 }}
         </textPath>
@@ -19,12 +19,13 @@
               <a-col :span="12">
                 <a-form-item label="方向">
                   <a-select
-                    v-model:value="road_info.canalize_info.direction"
+                    v-model:value="canalize_info.direction"
                     size="small"
                     class="form-width"
+                    @change="onDirectionChange"
                   >
                     <a-select-option
-                      v-for="(_, index) in roadDir"
+                      v-for="(_, index) in road_attr"
                       :key="(index + 1).toString()"
                       :value="'road_' + (index + 1)"
                     >
@@ -56,7 +57,7 @@
               <a-col :span="12">
                 <a-form-item label="交叉口大小">
                   <a-input-number
-                    v-model:value="road_info.canalize_info.size"
+                    v-model:value="canalize_info.size"
                     :min="0"
                     :max="10"
                     size="small"
@@ -67,7 +68,7 @@
               <a-col :span="12">
                 <a-form-item label="右转曲度">
                   <a-input-number
-                    v-model:value="road_info.canalize_info.curvature"
+                    v-model:value="canalize_info.curvature"
                     @change="drawCross"
                     :min="0"
                     :max="1"
@@ -87,7 +88,7 @@
               <a-col :span="12">
                 <a-form-item label="路名">
                   <a-input
-                    v-model:value="road_info.canalize_info.luming"
+                    v-model:value="canalize_info.luming"
                     class="form-width"
                     size="small"
                   />
@@ -96,7 +97,7 @@
               <a-col :span="12">
                 <a-form-item label="偏移量">
                   <a-input-number
-                    v-model:value="road_info.canalize_info.pianyiliang"
+                    v-model:value="canalize_info.pianyiliang"
                     :min="0"
                     :max="1"
                     :step="0.1"
@@ -108,7 +109,7 @@
               <a-col :span="12">
                 <a-form-item label="人行道">
                   <a-select
-                    v-model:value="road_info.canalize_info.renxingdao"
+                    v-model:value="canalize_info.renxingdao"
                     size="small"
                     class="form-width"
                   >
@@ -120,7 +121,7 @@
               <a-col :span="12">
                 <a-form-item label="路段速度">
                   <a-input-number
-                    v-model:value="road_info.canalize_info.luduansudu"
+                    v-model:value="canalize_info.luduansudu"
                     @change="drawCross"
                     :min="0"
                     :max="300"
@@ -133,7 +134,7 @@
               <a-col :span="12">
                 <a-form-item label="左转待转">
                   <a-select
-                    v-model:value="road_info.canalize_info.zuozhuandaizhuan"
+                    v-model:value="canalize_info.zuozhuandaizhuan"
                     size="small"
                     class="form-width"
                   >
@@ -145,7 +146,7 @@
               <a-col :span="12">
                 <a-form-item label="直行待转">
                   <a-select
-                    v-model:value="road_info.canalize_info.zhixingdaizhuan"
+                    v-model:value="canalize_info.zhixingdaizhuan"
                     size="small"
                     class="form-width"
                   >
@@ -157,12 +158,12 @@
               <a-col :span="12">
                 <a-form-item label="穿越到">
                   <a-select
-                    v-model:value="road_info.canalize_info.chuanyuedao"
+                    v-model:value="canalize_info.chuanyuedao"
                     size="small"
                     class="form-width"
                   >
                     <a-select-option
-                      v-for="(_, index) in roadDir"
+                      v-for="(_, index) in road_attr"
                       :key="(index + 1).toString()"
                       :value="'road_' + (index + 1)"
                     >
@@ -174,7 +175,7 @@
               <a-col :span="12">
                 <a-form-item label="穿越方式">
                   <a-select
-                    v-model:value="road_info.canalize_info.chuanyuefangshi"
+                    v-model:value="canalize_info.chuanyuefangshi"
                     size="small"
                     class="form-width"
                   >
@@ -199,7 +200,7 @@
               <a-col :span="12">
                 <a-form-item label="渠化方式">
                   <a-select
-                    v-model:value="road_info.canalize_info.quhuafangshi"
+                    v-model:value="canalize_info.quhuafangshi"
                     size="small"
                     class="form-width"
                   >
@@ -222,7 +223,7 @@
               <a-col :span="12">
                 <a-form-item label="右转车道">
                   <a-input-number
-                    v-model:value="road_info.canalize_info.youzhuanchedao"
+                    v-model:value="canalize_info.youzhuanchedao"
                     @change="drawCross"
                     :min="0"
                     :max="2"
@@ -236,14 +237,15 @@
           </a-form>
         </div>
         <div class="header">进口属性</div>
-        <div class="content" v-if="road_info.canalize_info.exitAttr.length > 0">
+        <div class="content" v-if="canalize_info.exitAttr.length > 0">
           <a-form :label-col="labelCol" :wrapper-col="wrapperCol">
             <a-row>
               <a-col :span="12">
                 <a-form-item label="进口车道">
                   <a-input-number
                     v-model:value="
-                      road_info.canalize_info.entranceAttr[road_info.canalize_info.direction - 1].wayCount
+                      canalize_info.entranceAttr[canalize_info.direction_index]
+                        .wayCount
                     "
                     @change="onChangeRoadCount"
                     :min="0"
@@ -258,7 +260,7 @@
               <a-col :span="12">
                 <a-form-item label="车道宽度">
                   <a-input-number
-                    v-model:value="road_info.canalize_info.chedaokuandu"
+                    v-model:value="canalize_info.chedaokuandu"
                     @change="drawCross"
                     :min="0"
                     :max="10"
@@ -272,7 +274,7 @@
               <a-col :span="12">
                 <a-form-item label="展宽数量">
                   <a-input-number
-                    v-model:value="road_info.canalize_info.zhankuanshuliang"
+                    v-model:value="canalize_info.zhankuanshuliang"
                     @change="drawCross"
                     :min="-2"
                     :max="4"
@@ -286,7 +288,7 @@
               <a-col :span="12">
                 <a-form-item label="展宽车道宽度">
                   <a-input-number
-                    v-model:value="road_info.canalize_info.zhankuanchedaokuandu"
+                    v-model:value="canalize_info.zhankuanchedaokuandu"
                     @change="drawCross"
                     :min="0"
                     :max="10"
@@ -300,7 +302,7 @@
               <a-col :span="12">
                 <a-form-item label="展宽段长">
                   <a-input-number
-                    v-model:value="road_info.canalize_info.zhankuanduanchang"
+                    v-model:value="canalize_info.zhankuanduanchang"
                     @change="drawCross"
                     :min="0"
                     :max="100"
@@ -314,7 +316,7 @@
               <a-col :span="12">
                 <a-form-item label="外侧渐变段长">
                   <a-input-number
-                    v-model:value="road_info.canalize_info.waicejianbianduanchang"
+                    v-model:value="canalize_info.waicejianbianduanchang"
                     @change="drawCross"
                     :min="0"
                     :max="50"
@@ -328,7 +330,7 @@
               <a-col :span="12">
                 <a-form-item label="内侧偏移">
                   <a-input-number
-                    v-model:value="road_info.canalize_info.neicepianyi"
+                    v-model:value="canalize_info.neicepianyi"
                     @change="drawCross"
                     :min="0"
                     :max="10"
@@ -342,7 +344,7 @@
               <a-col :span="12">
                 <a-form-item label="内侧渐变段长">
                   <a-input-number
-                    v-model:value="road_info.canalize_info.neicejianbianduanchang"
+                    v-model:value="canalize_info.neicejianbianduanchang"
                     @change="drawCross"
                     :min="0"
                     :max="50"
@@ -357,14 +359,15 @@
           </a-form>
         </div>
         <div class="header">出口属性</div>
-        <div class="content" v-if="road_info.canalize_info.exitAttr.length > 0">
+        <div class="content" v-if="canalize_info.exitAttr.length > 0">
           <a-form :label-col="labelCol" :wrapper-col="wrapperCol">
             <a-row>
               <a-col :span="12">
                 <a-form-item label="出口车道">
                   <a-input-number
                     v-model:value="
-                      road_info.canalize_info.exitAttr[road_info.canalize_info.direction - 1].wayCount
+                      canalize_info.exitAttr[canalize_info.direction_index]
+                        .wayCount
                     "
                     @change="onChangeRoadCount"
                     :min="0"
@@ -379,7 +382,7 @@
               <a-col :span="12">
                 <a-form-item label="车道宽度">
                   <a-input-number
-                    v-model:value="road_info.canalize_info.chedaokuandu2"
+                    v-model:value="canalize_info.chedaokuandu2"
                     @change="drawCross"
                     :min="0"
                     :max="10"
@@ -393,7 +396,7 @@
               <a-col :span="12">
                 <a-form-item label="出口展宽">
                   <a-input-number
-                    v-model:value="road_info.canalize_info.chukouzhankuan"
+                    v-model:value="canalize_info.chukouzhankuan"
                     @change="drawCross"
                     :min="-2"
                     :max="4"
@@ -407,7 +410,7 @@
               <a-col :span="12">
                 <a-form-item label="展宽车道宽度">
                   <a-input-number
-                    v-model:value="road_info.canalize_info.zhankuanchedaokuandu2"
+                    v-model:value="canalize_info.zhankuanchedaokuandu2"
                     @change="drawCross"
                     :min="0"
                     :max="10"
@@ -421,7 +424,7 @@
               <a-col :span="12">
                 <a-form-item label="展宽段长">
                   <a-input-number
-                    v-model:value="road_info.canalize_info.zhankuanduanchang2"
+                    v-model:value="canalize_info.zhankuanduanchang2"
                     @change="drawCross"
                     :min="0"
                     :max="100"
@@ -435,7 +438,7 @@
               <a-col :span="12">
                 <a-form-item label="渐变段长">
                   <a-input-number
-                    v-model:value="road_info.canalize_info.jianbianduanchang"
+                    v-model:value="canalize_info.jianbianduanchang"
                     @change="drawCross"
                     :min="0"
                     :max="50"
@@ -456,7 +459,7 @@
               <a-col :span="12">
                 <a-form-item label="分割形式">
                   <a-select
-                    v-model:value="road_info.canalize_info.fengexingshi"
+                    v-model:value="canalize_info.fengexingshi"
                     size="small"
                     class="form-width"
                   >
@@ -472,7 +475,7 @@
               <a-col :span="12">
                 <a-form-item label="分割宽度">
                   <a-input-number
-                    v-model:value="road_info.canalize_info.fengekuandu"
+                    v-model:value="canalize_info.fengekuandu"
                     @change="drawCross"
                     :min="0"
                     :max="10"
@@ -486,7 +489,7 @@
               <a-col :span="12">
                 <a-form-item label="安全岛">
                   <a-select
-                    v-model:value="road_info.canalize_info.anquandao"
+                    v-model:value="canalize_info.anquandao"
                     size="small"
                     class="form-width"
                   >
@@ -498,7 +501,7 @@
               <a-col :span="12">
                 <a-form-item label="提前掉头">
                   <a-select
-                    v-model:value="road_info.canalize_info.tiqiantiaotou"
+                    v-model:value="canalize_info.tiqiantiaotou"
                     size="small"
                     class="form-width"
                   >
@@ -518,7 +521,7 @@
               <a-col :span="12">
                 <a-form-item label="进口">
                   <a-select
-                    v-model:value="road_info.canalize_info.jinkou"
+                    v-model:value="canalize_info.jinkou"
                     size="small"
                     class="form-width"
                   >
@@ -530,7 +533,7 @@
               <a-col :span="12">
                 <a-form-item label="出口">
                   <a-select
-                    v-model:value="road_info.canalize_info.chukou"
+                    v-model:value="canalize_info.chukou"
                     size="small"
                     class="form-width"
                   >
@@ -542,7 +545,7 @@
               <a-col :span="12">
                 <a-form-item label="车道宽度">
                   <a-input-number
-                    v-model:value="road_info.canalize_info.chedaokuandu3"
+                    v-model:value="canalize_info.chedaokuandu3"
                     @change="drawCross"
                     :min="0"
                     :max="10"
@@ -556,7 +559,7 @@
               <a-col :span="12">
                 <a-form-item label="车道宽度">
                   <a-input-number
-                    v-model:value="road_info.canalize_info.chedaokuandu4"
+                    v-model:value="canalize_info.chedaokuandu4"
                     @change="drawCross"
                     :min="0"
                     :max="10"
@@ -570,7 +573,7 @@
               <a-col :span="12">
                 <a-form-item label="分割形式">
                   <a-select
-                    v-model:value="road_info.canalize_info.fengexingshi1"
+                    v-model:value="canalize_info.fengexingshi1"
                     size="small"
                     class="form-width"
                   >
@@ -583,7 +586,7 @@
               <a-col :span="12">
                 <a-form-item label="渐变段长">
                   <a-select
-                    v-model:value="road_info.canalize_info.fengexingshi2"
+                    v-model:value="canalize_info.fengexingshi2"
                     size="small"
                     class="form-width"
                   >
@@ -624,24 +627,22 @@
 
 <script lang="ts">
 import { defineComponent, inject, onMounted, reactive, toRefs } from "vue";
-import { getRoadDefaultSign, roadSigns } from "./index";
+import { getDirectionIndex, getRoadDefaultSign, roadSigns } from "./index";
 import Container from "../../../components/Container/index.vue";
 import { notification } from "ant-design-vue";
 import { DragOutlined } from "@ant-design/icons-vue";
-import { getAngle, getQByPathCurv } from "../../../utils/common";
-import { RoadInfo } from "..";
+import { getQByPathCurv } from "../../../utils/common";
+import { road_info } from "..";
 
 export default defineComponent({
   components: { Container, DragOutlined },
   setup() {
     const states = reactive({
-      isInit: true,
       ns: "",
       cvs: null as HTMLElement | null,
       cx: 350, //圆心x
       cy: 350, //圆心y
       road_r_k: 15.4, //每条车道宽度
-      angleSet: [] as number[], //所有道路倾斜角，以此绘制
       cross_pts: [] as any[], //所有路口交叉点
       cross_line_pts: [] as any[], //所有路口交叉点内侧一层
       road_zebra_pts: [] as any[], //所有路口交叉点内侧一层
@@ -652,45 +653,25 @@ export default defineComponent({
       wayCount: [] as number[], //每条路上的车道数量
     });
 
-    const roadDir = inject("RoadDir") as any[];
-    const road_info = inject("road_info") as RoadInfo;
-    //参数设置
-    road_info.canalize_info = {
-      direction: 1, //方向
-      size: 5, //交叉路口大小
-      curvature: 0.5, //右转道路曲率
-      roadAttr: [] as any[], //道路属性
-      entranceAttr: [] as any[], //进口属性
-      exitAttr: [] as any[], //出口属性
-    };
-
     const initRoads = () => {
       states.ns = "http://www.w3.org/2000/svg";
       states.cvs = document.getElementById("canvas");
-      roadDir.map((r, index) => {
-        let angle = getAngle(
-          states.cx,
-          states.cy,
-          r.coordinate[0],
-          r.coordinate[1]
-        );
-        states.angleSet.push(angle);
+      road_info.canalize_info.entranceAttr.length = 0;
+      road_info.canalize_info.exitAttr.length = 0;
+      for (let index = 0; index < road_info.road_attr.length; index++) {
         //初始化6车道//0.5为中间双黄线
-        if (states.isInit) {
-          road_info.canalize_info.entranceAttr.push({ wayCount: states.defaultCount });
-          road_info.canalize_info.exitAttr.push({ wayCount: states.defaultCount });
-        }
+        road_info.canalize_info.entranceAttr.push({
+          wayCount: states.defaultCount,
+        });
+        road_info.canalize_info.exitAttr.push({
+          wayCount: states.defaultCount,
+        });
         states.wayCount[index] =
           road_info.canalize_info.entranceAttr[index].wayCount +
           road_info.canalize_info.exitAttr[index].wayCount +
           0.5;
-      });
-      states.angleSet.sort(function (a, b) {
-        return a - b;
-      });
+      }
       render();
-      //标记已经初始化过了
-      states.isInit = false;
     };
 
     // //画路
@@ -708,12 +689,12 @@ export default defineComponent({
     // }
 
     function render() {
-      for (var i = 0; i < states.angleSet.length; i++) {
+      for (var i = 0; i < road_info.road_attr.length; i++) {
         //
         var road_r = states.road_r_k * states.wayCount[i];
         var cross_r = states.road_r_k * states.wayCount[i] - 10;
         var zebra_r = states.road_r_k * states.wayCount[i] - 15;
-        var angle = states.angleSet[i];
+        var angle = road_info.road_attr[i].angle;
         var radian = (Math.PI / 180) * angle; // 角度转弧度
         // 基线起（圆心）止（圆上）点
         var x2 = Math.cos(radian) * 300 + 350; // 大圆半径300
@@ -884,7 +865,11 @@ export default defineComponent({
           //最后一个点需要用曲线连接第一个点
           if (i === states.cross_pts.length - 1) {
             var firstpt = states.cross_pts[0];
-            var Q = getQByPathCurv(firstpt, pt, road_info.canalize_info.curvature);
+            var Q = getQByPathCurv(
+              firstpt,
+              pt,
+              road_info.canalize_info.curvature
+            );
             d_str += `Q ${Q} ${firstpt[0]}, ${firstpt[1]} `;
           }
         } else {
@@ -917,7 +902,11 @@ export default defineComponent({
           if (i === states.cross_line_pts.length - 1) {
             //最后一个点需要用曲线连接第一个点
             var firstpt = states.cross_line_pts[0];
-            var Q = getQByPathCurv(firstpt, pt, road_info.canalize_info.curvature);
+            var Q = getQByPathCurv(
+              firstpt,
+              pt,
+              road_info.canalize_info.curvature
+            );
             corss_d_str += `Q ${Q} ${firstpt[0]}, ${firstpt[1]} `;
           }
         } else {
@@ -1006,8 +995,11 @@ export default defineComponent({
             var g = document.createElementNS(states.ns, "g");
             g.setAttribute(
               "transform",
-              `rotate(${270 - states.angleSet[road]} ${wayPt[0]} ${wayPt[1]})`
+              `rotate(${270 - road_info.road_attr[road].angle} ${wayPt[0]} ${
+                wayPt[1]
+              })`
             );
+            g.setAttribute("style", "cursor:pointer");
             if (way_idx >= way_count) {
               g.addEventListener("click", handleChoose, false);
             }
@@ -1043,6 +1035,14 @@ export default defineComponent({
     function onRoad(e: any) {
       states.currentRoad = e.path[0];
       road_info.canalize_info.direction = e.path[0].id;
+      onDirectionChange();
+    }
+
+    //更改方向
+    function onDirectionChange() {
+      road_info.canalize_info.direction_index = getDirectionIndex(
+        road_info.canalize_info.direction
+      );
     }
 
     //选中路标
@@ -1069,14 +1069,14 @@ export default defineComponent({
 
     return {
       ...toRefs(states),
-      road_info,
+      ...toRefs(road_info),
       labelCol: { span: 10 },
       wrapperCol: { span: 12 },
-      roadDir,
       roadSigns,
       drawCross,
       handleConfirmSign,
       onChangeRoadCount,
+      onDirectionChange,
     };
   },
 });

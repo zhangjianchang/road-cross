@@ -30,12 +30,6 @@ export const flowColumnsPart = [
     dataIndex: "road_name",
     width: 30,
   },
-  {
-    title: "转向1",
-    dataIndex: "turn1",
-    width: 30,
-    slots: { customRender: "turn1" },
-  },
 ];
 
 export const lineInfoModel = {

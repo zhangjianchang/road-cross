@@ -115,9 +115,9 @@ export function getBackground(number: string | undefined) {
   if (number === "A") {
     return "rgb(0,255,0)";
   } else if (number === "B") {
-    return "rgb(200,255,0)";
+    return "rgb(100,255,0)";
   } else if (number === "C") {
-    return "rgb(255,255,0)";
+    return "rgb(150,255,0)";
   } else if (number === "D") {
     return "rgb(255,200,0)";
   } else if (number === "E") {
@@ -147,7 +147,6 @@ export function d_d2(x: number, CAP: number) {
 }
 
 export function getLevelByd(d: number) {
-  console.log("睡哦平", d);
   if (d <= 10) {
     return "A";
   } else if (d > 10 && d <= 20) {

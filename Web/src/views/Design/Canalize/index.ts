@@ -91,7 +91,6 @@ export function getRoadDefaultSign(
     //右边最后一条路
     roadSignKey = "straight_right";
   } else {
-    console.log(wayIndex)
     switch (wayIndex) {
       //右边第一条路
       case 0:
@@ -107,4 +106,8 @@ export function getRoadDefaultSign(
     return roadSignPath;
   }
   return "";
+}
+
+export function getDirectionIndex(direction: string) {
+  return Number(direction.replace("road_", "")) - 1;
 }

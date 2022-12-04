@@ -3,7 +3,7 @@
     <div class="header">
       <div class="header-logo">LOGO</div>
       <a-input
-        v-model:value="name"
+        v-model:value="basic_info.name"
         placeholder="请输入交叉口名"
         style="width: 400px"
       />
@@ -46,8 +46,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, provide, reactive, toRefs } from "vue";
-import { MenuListEnum, menuList, RoadInfo } from "./index";
+import { defineComponent, reactive, toRefs } from "vue";
+import { MenuListEnum, menuList, road_info } from "./index";
 import { notification } from "ant-design-vue";
 import Container from "../../components/Container/index.vue";
 import Basic from "./Basic/index.vue"; //基础
@@ -74,20 +74,13 @@ export default defineComponent({
     ServiceLevel,
   },
   setup() {
-    //全局保存道路定位
-    const RoadDir = reactive([] as any[]);
     //道路信息
-    const road_info = reactive({} as RoadInfo);
-    provide("RoadDir", RoadDir);
-    provide("road_info", road_info);
-
     const states = reactive({
       currentUrl: "Basic",
-      name: "", //交叉口名
     });
 
     const handleChangeMenu = (item: any) => {
-      if (RoadDir.length < 2) {
+      if (road_info.road_attr.length < 2) {
         notification["warning"]({
           message: "错误提醒",
           description: "相交道路不能少于两条",
@@ -104,6 +97,7 @@ export default defineComponent({
 
     return {
       ...toRefs(states),
+      ...toRefs(road_info),
       MenuListEnum,
       menuList,
       handleChangeMenu,

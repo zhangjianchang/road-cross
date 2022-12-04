@@ -3,18 +3,18 @@
     <div class="drag">
       <a-tooltip>
         <template #title>
-          {{ isDrag ? "取消拖拽模式" : "切换拖拽模式" }}
+          {{ deleting ? "取消删除模式" : "切换删除模式，点击线段即可删除" }}
         </template>
-        <drag-outlined
-          :style="{ fontSize: '24px', color: isDrag ? '#4f48ad' : '' }"
-          @click="isDrag = !isDrag"
+        <close-outlined
+          :style="{ fontSize: '24px', color: deleting ? '#4f48ad' : '' }"
+          @click="deleting = !deleting"
         />
       </a-tooltip>
     </div>
     <!-- 图示 -->
     <svg
       id="canvas"
-      :style="{ cursor: isDrag ? 'move' : '' }"
+      :style="{ cursor: dragging ? 'move' : '' }"
       @click="(event) => onClick(event)"
       @mousemove="(e) => onMouseMove(e)"
       @mouseup="(e) => onMouseUp(e)"
@@ -22,7 +22,9 @@
       <!-- 箭头 -->
       <defs>
         <marker
-          id="arrow"
+          v-for="(item, index) in road_attr"
+          :key="index"
+          :id="item.arrowId"
           markerUnits="strokeWidth"
           markerWidth="4"
           markerHeight="4"
@@ -61,17 +63,19 @@
     <div class="menu">
       <a-table
         :columns="columns"
-        :data-source="roadDir"
+        :data-source="road_attr"
         :pagination="false"
         :scroll="{ x: '100%' }"
         bordered
-      />
+      >
+        <template #index="{ index }"> 方向{{ index + 1 }} </template>
+      </a-table>
       <div class="button">
         <a-button
           type="primary"
           class="redraw-button"
           @click="onRedraw"
-          :disabled="roadDir.length === 0"
+          :disabled="road_attr.length === 0"
         >
           重新绘制
         </a-button>
@@ -81,32 +85,27 @@
 </template>
 
 <script lang="ts">
-import {
-  createVNode,
-  defineComponent,
-  inject,
-  onMounted,
-  reactive,
-  toRefs,
-} from "vue";
+import { createVNode, defineComponent, onMounted, reactive, toRefs } from "vue";
 import { isPointInCircle, getCoordinate, setLineXY, columns } from "./index";
 import Container from "../../../components/Container/index.vue";
 import { Modal, notification } from "ant-design-vue";
-import { DragOutlined, ExclamationCircleOutlined } from "@ant-design/icons-vue";
+import {
+  CloseOutlined,
+  ExclamationCircleOutlined,
+} from "@ant-design/icons-vue";
 import { getAngle } from "../../../utils/common";
+import { road_info } from "..";
 
 export default defineComponent({
-  components: { Container, DragOutlined },
+  components: { Container, CloseOutlined },
   setup() {
-    const roadDir = inject("RoadDir") as any[];
-
     const states = reactive({
       ns: "",
       cvs: null as HTMLElement | null,
       cx: 350, //圆心x
       cy: 350, //圆心y
       radius: 260, //线长度
-      isDrag: false, //当前模式属于拖拽还是建点
+      deleting: false, //当前模式属于拖拽还是建点
       //拖动相关
       currentLine: null as any,
       dragging: false,
@@ -118,7 +117,7 @@ export default defineComponent({
       states.cvs = document.getElementById("canvas");
       for (let i = 0; i < 360; i++) {
         let tick_len = 8; // 小刻度长度=8
-        if (i % 5 == 0) tick_len = 16; // 长刻度=16
+        if (i % 5 === 0) tick_len = 16; // 长刻度=16
         let x1, y1, x2, y2; // 直线的2个端点
         x1 = Math.sin((Math.PI / 180) * i) * (300 - tick_len) + 350;
         y1 = Math.cos((Math.PI / 180) * i) * (300 - tick_len) + 350;
@@ -127,21 +126,39 @@ export default defineComponent({
         let line = document.createElementNS(states.ns, "line"); // 创建SVG元素
         setLineXY(line, x1, y1, x2, y2);
         states.cvs?.appendChild(line);
+        let x3 = Math.sin((Math.PI / 180) * i) * 270 + 350; // 大圆半径400
+        let y3 = Math.cos((Math.PI / 180) * i) * 270 + 350;
+        if (i % 15 === 0) {
+          //数字刻度
+          const text = document.createElementNS(states.ns, "text");
+          const content = i - 90 < 0 ? i + 270 : i - 90;
+          const angle = getAngle(states.cx, states.cy, x3, y3);
+          const translateX = content <= 10 ? -4 : content <= 100 ? -8 : -10;
+          text.setAttribute("x", x3.toString());
+          text.setAttribute("y", y3.toString());
+          text.setAttribute("fill", "#000");
+          text.setAttribute("style", "font-size:12px");
+          text.setAttribute(
+            "transform",
+            `rotate(${90 - angle} ${x3},${y3}) translate(${translateX},0)`
+          );
+          text.appendChild(document.createTextNode(content.toString())); //文本内容"450"
+          states.cvs?.appendChild(text);
+        }
       }
     }
 
     //编辑页进来需要反显线段
     function initIines() {
-      if (roadDir.length > 0) {
-        roadDir.map((road, index) => {
+      if (road_info.road_attr.length > 0) {
+        road_info.road_attr.map((road, index) => {
           createLine(road.coordinate, index);
         });
       }
     }
 
     function onClick(evt: any) {
-      //拖动模式返回
-      if (states.isDrag) {
+      if (states.dragging || states.deleting) {
         return;
       }
       let x = evt.offsetX;
@@ -151,7 +168,7 @@ export default defineComponent({
         return;
       }
       // 绘制路口，路口数量2-5
-      if (roadDir.length >= 5) {
+      if (road_info.road_attr.length >= 5) {
         notification["warning"]({
           message: "错误提醒",
           description: "系统最多只支持五条相交道路",
@@ -163,18 +180,20 @@ export default defineComponent({
       //根据点击点获取在圆上的坐标
       let coordinate = getCoordinate(states.cx, states.cy, states.radius, x, y);
       //画线
-      let index = roadDir.length;
+      let index = road_info.road_attr.length;
       createLine(coordinate, index);
 
       //根据坐标获取角度
       let angle = getAngle(states.cx, states.cy, coordinate[0], coordinate[1]);
       //存数据至全局变量
-      roadDir.push({
+      road_info.road_attr.push({
         position: `X:${coordinate[0]}\n Y:${coordinate[1]}`,
-        id: "line_" + index,
+        id: `line_${index}`,
         coordinate,
         angle,
+        arrowId: `arrow${index}`,
       });
+      setRoadDir(coordinate);
     }
 
     function createLine(coordinate: number[], index: number) {
@@ -183,7 +202,8 @@ export default defineComponent({
       setLineXY(line, states.cx, states.cy, coordinate[0], coordinate[1]);
       line.setAttribute("id", id);
       line.setAttribute("stroke-width", "15px");
-      line.setAttribute("marker-end", "url(#arrow)");
+      line.setAttribute("marker-end", `url(#arrow${index})`);
+      line.setAttribute("tag", `arrow${index}`);
       //事件
       line.addEventListener("mousedown", onMouseDown, false);
       states.cvs?.appendChild(line);
@@ -192,13 +212,27 @@ export default defineComponent({
     function onMouseDown(e: any) {
       states.currentLine = e.path[0];
       const event = window.event || e;
-      states.dragging = true;
       states.dragId = event.path[0].id;
+      //删除模式
+      if (states.deleting) {
+        e.path[0].remove();
+        console.log(111, states.dragId);
+        road_info.road_attr = road_info.road_attr.filter(
+          (r) => r.id !== states.dragId
+        );
+        return;
+      }
+      states.dragging = true;
+      //加深颜色
+      states.currentLine.setAttribute("stroke", "rgb(48 44 102)");
+      const arrowId = getArrowId();
+      const currentArrow = document.querySelector(`#${arrowId}>path`);
+      currentArrow?.setAttribute("style", "fill: rgb(48 44 102)");
     }
 
     function onMouseMove(e: any) {
       const event = e || window.event;
-      if (!states.dragging || !states.isDrag) {
+      if (!states.dragging) {
         return;
       }
       let nx = event.offsetX;
@@ -208,18 +242,19 @@ export default defineComponent({
         return;
       }
       let coordinate = getXYByNxNy(nx, ny);
+      const stroke = states.dragging ? "rgb(48 44 102)" : "#4f48ad";
       setLineXY(
         states.currentLine,
         states.cx,
         states.cy,
         coordinate[0],
-        coordinate[1]
+        coordinate[1],
+        stroke
       );
       setRoadDir(coordinate);
     }
 
     function onMouseUp(e: any) {
-      states.dragging = false;
       const event = e || window.event;
       let nx = event.offsetX;
       let ny = event.offsetY;
@@ -227,26 +262,38 @@ export default defineComponent({
       if (!isPointInCircle([nx, ny], [states.cx, states.cy], 300)) {
         return;
       }
-      let coordinate = getXYByNxNy(nx, ny);
-      setLineXY(
-        states.currentLine,
-        states.cx,
-        states.cy,
-        coordinate[0],
-        coordinate[1]
-      );
-      setRoadDir(coordinate);
-      states.currentLine = null;
+      setTimeout(() => {
+        //颜色释放
+        if (states.dragging) {
+          const arrowId = getArrowId();
+          const currentArrow = document.querySelector(`#${arrowId}>path`);
+          currentArrow?.setAttribute("style", "fill: rgb(79, 72, 173)");
+        }
+        let coordinate = getXYByNxNy(nx, ny);
+        setLineXY(
+          states.currentLine,
+          states.cx,
+          states.cy,
+          coordinate[0],
+          coordinate[1]
+        );
+        setRoadDir(coordinate);
+        states.currentLine = null;
+        states.dragging = false;
+      }, 10);
     }
 
     function setRoadDir(coordinate: number[]) {
       let angle = getAngle(states.cx, states.cy, coordinate[0], coordinate[1]);
-      roadDir.map((c) => {
+      road_info.road_attr.map((c) => {
         if (c.id === states.dragId) {
           c.position = `X:${coordinate[0]}\n\n Y:${coordinate[1]}`;
           c.coordinate = coordinate;
           c.angle = angle;
         }
+      });
+      road_info.road_attr.sort(function (a, b) {
+        return a.angle - b.angle;
       });
     }
 
@@ -255,15 +302,16 @@ export default defineComponent({
       return getCoordinate(states.cx, states.cy, states.radius, nx, ny);
     }
 
-    //重新绘制
+    //确认绘制
     function confirm() {
       // render();
-      roadDir.length = 0;
+      road_info.road_attr.length = 0;
       document.querySelectorAll("line").forEach((e) => {
         if (e.id) e.remove();
       });
     }
 
+    //重新绘制
     const onRedraw = () => {
       Modal.confirm({
         title: "确定重新绘制",
@@ -277,6 +325,11 @@ export default defineComponent({
       });
     };
 
+    //获取当前路口对应箭头
+    function getArrowId() {
+      return states.currentLine.getAttribute("tag");
+    }
+
     onMounted(() => {
       render();
       initIines();
@@ -284,7 +337,7 @@ export default defineComponent({
 
     return {
       ...toRefs(states),
-      roadDir,
+      ...toRefs(road_info),
       columns,
       onRedraw,
       onClick,
