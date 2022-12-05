@@ -28,12 +28,15 @@
         @click="onGClick(index)"
         style="cursor: pointer"
       >
+        <!-- 外层矩形轮廓 -->
         <rect width="80%" height="680" fill="#FFFF99" />
-        <path
-          :d="road.path.d"
-          :id="road.path.id"
-          fill="rgb(162,162,162)"
-        ></path>
+        <!-- 道路路径 -->
+        <path :d="road.path.d" :id="road.path.id" fill="rgb(162,162,162)" />
+        <!-- 相位数据 -->
+        <text x="150" y="770" class="phase-text">
+          {{ signal_info.phase_list[index].name }}:
+          {{ signal_info.phase_list[index].green }}秒
+        </text>
         <!-- 相位内部方向箭头 -->
         <defs>
           <marker
@@ -128,6 +131,7 @@
                 v-model:value="record.name"
                 size="small"
                 class="form-width"
+                @blur="onItemPeriodBlur"
               />
             </template>
             <!-- 绿灯 -->
@@ -339,7 +343,7 @@ export default defineComponent({
       cvs: null as HTMLElement | null,
       cx: 350, //圆心x
       cy: 350, //圆心y
-      svg_width: 800, //画布宽度
+      svg_width: 740, //画布宽度
       road_width: 160, //路宽
       phase_height: 80, //每个相位的间距
       curvature: 2, //路口弧度
@@ -429,6 +433,14 @@ export default defineComponent({
       document.querySelectorAll("rect").forEach((e) => {
         if (e.id.indexOf("rect") > -1) e.remove();
       });
+      document.querySelectorAll("text").forEach((e) => {
+        if (e.id.indexOf("text") > -1) e.remove();
+      });
+      let start_x = 85; //x起始位置
+      let top = 220; //上边缘线
+      let signal = 235; //灯
+      let center = 250; //中心线
+      let bottom = 280; //下边缘线
       //默认四个相位
       for (let p = 0; p < road_info.signal_info.phase; p++) {
         let width = states.svg_width / road_info.signal_info.period; //每个刻度的宽度
@@ -437,63 +449,83 @@ export default defineComponent({
           let tick_len = 10; // 小刻度=10
           if (i % 5 == 0) tick_len = 20; // 长刻度=20
           /**上边缘线 */
-          x1 = 25 + i * width;
-          y1 = 200 + p * states.phase_height;
-          x2 = 25 + i * width;
-          y2 = 200 + p * states.phase_height + tick_len;
+          x1 = start_x + i * width;
+          y1 = top + p * states.phase_height;
+          x2 = start_x + i * width;
+          y2 = top + p * states.phase_height + tick_len;
           createLine(x1, y1, x2, y2);
           /**上边缘线 */
           /**下边缘线 */
-          y1 = 260 + p * states.phase_height - tick_len;
-          y2 = 260 + p * states.phase_height;
+          y1 = bottom + p * states.phase_height - tick_len;
+          y2 = bottom + p * states.phase_height;
           createLine(x1, y1, x2, y2);
           /**下边缘线 */
         }
         /**外层上边缘线 */
-        x1 = 25;
-        y1 = 200 + p * states.phase_height;
-        x2 = 25 + states.svg_width;
+        x1 = start_x;
+        y1 = top + p * states.phase_height;
+        x2 = start_x + states.svg_width;
         y2 = y1;
         createLine(x1, y1, x2, y2);
         /**外层上边缘线 */
         /**外层下边缘线 */
-        x1 = 25;
-        y1 = 260 + p * states.phase_height;
-        x2 = 25 + states.svg_width;
+        x1 = start_x;
+        y1 = bottom + p * states.phase_height;
+        x2 = start_x + states.svg_width;
         y2 = y1;
         createLine(x1, y1, x2, y2);
         /**外层下边缘线 */
         /**中心线 */
-        x1 = 25;
-        y1 = 230 + p * states.phase_height;
-        x2 = 25 + states.svg_width;
+        x1 = start_x;
+        y1 = center + p * states.phase_height;
+        x2 = start_x + states.svg_width;
         y2 = y1;
         createLine(x1, y1, x2, y2, "#4f48ad", "3");
         /**中心线 */
         /**绿色信号 */
-        x1 = 25 + getStartX(road_info.signal_info.phase_list, p, "g") * width;
-        y1 = 215 + p * states.phase_height;
+        x1 =
+          start_x + getStartX(road_info.signal_info.phase_list, p, "g") * width;
+        y1 = signal + p * states.phase_height;
         w =
-          25 + getStartX(road_info.signal_info.phase_list, p, "y") * width - x1;
+          start_x +
+          getStartX(road_info.signal_info.phase_list, p, "y") * width -
+          x1;
         h = 30;
         createRect(x1, y1, w, h, "green");
         /**绿色信号 */
         /**黄色信号 */
-        x1 = 25 + getStartX(road_info.signal_info.phase_list, p, "y") * width;
-        y1 = 215 + p * states.phase_height;
+        x1 =
+          start_x + getStartX(road_info.signal_info.phase_list, p, "y") * width;
+        y1 = signal + p * states.phase_height;
         w =
-          25 + getStartX(road_info.signal_info.phase_list, p, "r") * width - x1;
+          start_x +
+          getStartX(road_info.signal_info.phase_list, p, "r") * width -
+          x1;
         createRect(x1, y1, w, h, "yellow");
         /**黄色信号 */
         /**红色信号 */
-        x1 = 25 + getStartX(road_info.signal_info.phase_list, p, "r") * width;
-        y1 = 215 + p * states.phase_height;
+        x1 =
+          start_x + getStartX(road_info.signal_info.phase_list, p, "r") * width;
+        y1 = signal + p * states.phase_height;
         w =
-          25 +
+          start_x +
           getStartX(road_info.signal_info.phase_list, p + 1, "g") * width -
           x1;
         createRect(x1, y1, w, h, "red");
         /**红色信号 */
+        /**文字 */
+        //相位
+        x1 = start_x - 60;
+        y1 = signal + 10 + p * states.phase_height;
+        createText(x1, y1, p, road_info.signal_info.phase_list[p].name);
+        //绿信比
+        y1 = signal + 30 + p * states.phase_height;
+        let λ = (
+          road_info.signal_info.phase_list[p].green /
+          road_info.signal_info.period
+        ).toFixed(2);
+        createText(x1, y1, p, `λ：${λ}`);
+        /**文字 */
       }
     }
 
@@ -531,6 +563,16 @@ export default defineComponent({
       rect.setAttribute("height", height.toString());
       rect.setAttribute("fill", `url(#rect_${stroke_type})`);
       states.cvs?.appendChild(rect);
+    }
+
+    function createText(x: number, y: number, i: number, content: string) {
+      let text = document.createElementNS(states.ns, "text");
+      text.setAttribute("id", `text_${i}`);
+      text.setAttribute("x", x.toString());
+      text.setAttribute("y", y.toString());
+      text.setAttribute("style", `font-size:12px`);
+      text.appendChild(document.createTextNode(content));
+      states.cvs?.appendChild(text);
     }
 
     //画相位路径
