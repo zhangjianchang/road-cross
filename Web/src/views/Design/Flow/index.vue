@@ -323,47 +323,57 @@ export default defineComponent({
       var radian = (Math.PI / 180) * angle; // 角度转弧度
       var x2 = Math.cos(radian) * 250 + 350; // 外层200
       var y2 = -Math.sin(radian) * 250 + 350;
-      var x3 = Math.cos(radian) * 200 + 350; // 内层150
-      var y3 = -Math.sin(radian) * 200 + 350;
+      var x3 = Math.cos(radian) * 150 + 350; // 内层150
+      var y3 = -Math.sin(radian) * 150 + 350;
       var color = getRandomColor(); //颜色
       var right_line = []; //左边点
       var left_line = []; //右边点
-      var center_text = []; //中心点
-      const midCount = parseInt((road_info.road_attr.length / 2).toString());
       //道路左侧
       const pt_fl1 = getPoint("fl", angle, x3, y3, road_r);
       const pt_fl2 = getPoint("fl", angle, x2, y2, road_r);
       left_line.push(pt_fl1);
       left_line.push(pt_fl2);
-      for (
-        let roadIdx = -midCount;
-        roadIdx < road_info.road_attr.length - midCount - 1;
-        roadIdx++
-      ) {
-        //道路右侧
-        let right_id = i.toString() + (roadIdx + midCount);
-        const line = document.createElementNS(states.ns, "path");
-        const insideWidth = road_r - roadIdx * 35;
-        const outSideWidth = road_r - (roadIdx + 1) * 35;
-        const pt_fr1 = getPoint("fr", angle, x2, y2, insideWidth);
-        const pt_fr2 = getPoint("fr", angle, x2, y2, outSideWidth);
-        const pt_fr3 = getPoint("fr", angle, x3, y3, outSideWidth);
-        const pt_fr4 = getPoint("fr", angle, x3, y3, insideWidth);
-        var d_str = `M ${pt_fr1[0]} ${pt_fr1[1]} L ${pt_fr2[0]} ${pt_fr2[1]} L ${pt_fr3[0]} ${pt_fr3[1]} L ${pt_fr4[0]} ${pt_fr4[1]} Z`;
-        drawPath(line, "road_text" + right_id, d_str, color, "1");
-        //将线段中点保存至数组
-        const middlePoint = getMiddlePoint(pt_fr3, pt_fr4);
-        right_line.push(middlePoint);
-        //将远端中点也保存，用来写数字
-        const middlePoint2 = getMiddlePoint(pt_fr1, pt_fr2);
-        center_text.push([middlePoint, middlePoint2]);
-      }
-      const road_lines = { right_line, left_line, color, center_text };
-      states.road_lines.push(road_lines);
+      //道路右侧
+      const pt_fr1 = getPoint("fr", angle, x3, y3, road_r);
+      const pt_fr2 = getPoint("fr", angle, x2, y2, road_r);
+      right_line.push(pt_fr1);
+      right_line.push(pt_fr2);
+      const road_line = { right_line, left_line, color };
+      states.road_lines.push(road_line);
     }
 
-    //画主路路径
     function drawMainRoad() {
+      for (let i = 0; i < road_info.road_attr.length; i++) {
+        const road1 = states.road_lines[i]; //第一条路
+        //右侧道路
+        for (let j = i; j < road_info.road_attr.length + i; j++) {
+          let road2_index = j;
+          if (j > road_info.road_attr.length - 1) {
+            road2_index = j - road_info.road_attr.length;
+          }
+          const road2 = states.road_lines[road2_index]; //连接第二条路          const curvature = getCurvByAngle(
+          const angle1 = road_info.road_attr[i].angle;
+          const angle2 = road_info.road_attr[road2_index].angle;
+          const point11 = road1.right_line[0];
+          const point12 = road1.right_line[1];
+          const point21 = road2.left_line[0];
+          const point22 = road2.left_line[1];
+          const curvature = getCurvByAngle(
+            states.curvature,
+            angle1,
+            angle2,
+            point11,
+            point21
+          );
+          const Q = getQByPathCurv(point11, point21, curvature);
+          const d_str = `M${point12[0]} ${point12[1]} L ${point11[0]} ${point11[1]} Q ${Q} ${point21[0]} ${point21[1]} L ${point22[0]} ${point22[1]}`;
+          const line = document.createElementNS(states.ns, "path");
+          drawPath(line, "right_road", d_str, road1.color);
+        }
+      }
+    }
+    //画主路路径
+    function drawMainRoadCopy() {
       let hasDraw = [];
       for (let i = 0; i < road_info.road_attr.length; i++) {
         const road1 = states.road_lines[i]; //第一条路
@@ -533,9 +543,22 @@ export default defineComponent({
       });
     };
 
+    function drawPoint(x: number, y: number, color: string) {
+      var g = document.createElementNS(states.ns, "g");
+      g.setAttribute("stroke", color);
+      g.setAttribute("stroke-width", "3");
+      g.setAttribute("fill", "black");
+      var circle = document.createElementNS(states.ns, "circle");
+      circle.setAttribute("cx", x.toString());
+      circle.setAttribute("cy", y.toString());
+      circle.setAttribute("r", "3");
+      g.appendChild(circle);
+      states.cvs?.appendChild(g);
+    }
+
     onMounted(() => {
       initRoads();
-      initRoadInfo();
+      // initRoadInfo();
     });
 
     return {

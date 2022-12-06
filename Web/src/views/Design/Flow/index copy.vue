@@ -328,20 +328,38 @@ export default defineComponent({
       var color = getRandomColor(); //颜色
       var right_line = []; //左边点
       var left_line = []; //右边点
+      var center_text = []; //中心点
+      const midCount = parseInt((road_info.road_attr.length / 2).toString());
       //道路左侧
       const pt_fl1 = getPoint("fl", angle, x3, y3, road_r);
       const pt_fl2 = getPoint("fl", angle, x2, y2, road_r);
       left_line.push(pt_fl1);
       left_line.push(pt_fl2);
-      drawPoint(pt_fl1[0], pt_fl1[1], color);
-      drawPoint(pt_fl2[0], pt_fl2[1], color);
-      //道路右侧
-      const pt_fr1 = getPoint("fr", angle, x3, y3, road_r);
-      const pt_fr2 = getPoint("fr", angle, x2, y2, road_r);
-      right_line.push(pt_fr1);
-      right_line.push(pt_fr2);
-      drawPoint(pt_fr1[0], pt_fr1[1], color);
-      drawPoint(pt_fr2[0], pt_fr2[1], color);
+      for (
+        let roadIdx = -midCount;
+        roadIdx < road_info.road_attr.length - midCount - 1;
+        roadIdx++
+      ) {
+        //道路右侧
+        let right_id = i.toString() + (roadIdx + midCount);
+        const line = document.createElementNS(states.ns, "path");
+        const insideWidth = road_r - roadIdx * 35;
+        const outSideWidth = road_r - (roadIdx + 1) * 35;
+        const pt_fr1 = getPoint("fr", angle, x2, y2, insideWidth);
+        const pt_fr2 = getPoint("fr", angle, x2, y2, outSideWidth);
+        const pt_fr3 = getPoint("fr", angle, x3, y3, outSideWidth);
+        const pt_fr4 = getPoint("fr", angle, x3, y3, insideWidth);
+        var d_str = `M ${pt_fr1[0]} ${pt_fr1[1]} L ${pt_fr2[0]} ${pt_fr2[1]} L ${pt_fr3[0]} ${pt_fr3[1]} L ${pt_fr4[0]} ${pt_fr4[1]} Z`;
+        drawPath(line, "road_text" + right_id, d_str, color, "1");
+        //将线段中点保存至数组
+        const middlePoint = getMiddlePoint(pt_fr3, pt_fr4);
+        right_line.push(middlePoint);
+        //将远端中点也保存，用来写数字
+        const middlePoint2 = getMiddlePoint(pt_fr1, pt_fr2);
+        center_text.push([middlePoint, middlePoint2]);
+      }
+      const road_lines = { right_line, left_line, color, center_text };
+      states.road_lines.push(road_lines);
     }
 
     //画主路路径
@@ -514,19 +532,6 @@ export default defineComponent({
         }
       });
     };
-
-    function drawPoint(x: number, y: number, color: string) {
-      var g = document.createElementNS(states.ns, "g");
-      g.setAttribute("stroke", color);
-      g.setAttribute("stroke-width", "3");
-      g.setAttribute("fill", "black");
-      var circle = document.createElementNS(states.ns, "circle");
-      circle.setAttribute("cx", x.toString());
-      circle.setAttribute("cy", y.toString());
-      circle.setAttribute("r", "3");
-      g.appendChild(circle);
-      states.cvs?.appendChild(g);
-    }
 
     onMounted(() => {
       initRoads();
