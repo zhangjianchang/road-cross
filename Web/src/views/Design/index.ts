@@ -53,14 +53,12 @@ export const road_info = reactive({
   } as any,
   //流量信息
   flow_info: reactive({
-    color: 1, //颜色
+    colorScheme: 0, //颜色
     font_weight: 5, //粗细
-    width1: 50, //长度1
+    width: 100, //长度
+    space: 24, //间距
     font_size1: 14, //字号1
-    width2: 50, //长度2
     font_size2: 14, //字号2
-    space: 40, //间距
-    font_size3: 17, //字号3
     line_info: [] as any[], //车道属性
     flow_detail: [] as any[], //进口道转向流量
     saturation: [1650, 1650, 1650],

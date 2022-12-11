@@ -33,7 +33,7 @@
               <a-col :span="12">
                 <a-form-item label="颜色">
                   <a-select
-                    v-model:value="flow_info.color"
+                    v-model:value="flow_info.colorScheme"
                     size="small"
                     class="form-width"
                   >
@@ -59,9 +59,9 @@
                 </a-form-item>
               </a-col>
               <a-col :span="12">
-                <a-form-item label="长度1">
+                <a-form-item label="长度">
                   <a-input-number
-                    v-model:value="flow_info.width1"
+                    v-model:value="flow_info.width"
                     :min="20"
                     :max="150"
                     :step="1"
@@ -83,30 +83,6 @@
                 </a-form-item>
               </a-col>
               <a-col :span="12">
-                <a-form-item label="长度2">
-                  <a-input-number
-                    v-model:value="flow_info.width2"
-                    :min="20"
-                    :max="150"
-                    :step="5"
-                    size="small"
-                    class="form-width"
-                  />
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="字号2">
-                  <a-input-number
-                    v-model:value="flow_info.font_size2"
-                    :min="0"
-                    :max="30"
-                    :step="1"
-                    size="small"
-                    class="form-width"
-                  />
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
                 <a-form-item label="间距">
                   <a-input-number
                     v-model:value="flow_info.space"
@@ -119,9 +95,9 @@
                 </a-form-item>
               </a-col>
               <a-col :span="12">
-                <a-form-item label="字号3">
+                <a-form-item label="字号2">
                   <a-input-number
-                    v-model:value="flow_info.font_size3"
+                    v-model:value="flow_info.font_size2"
                     :min="0"
                     :max="30"
                     :step="1"

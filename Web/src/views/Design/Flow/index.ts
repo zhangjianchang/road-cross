@@ -39,7 +39,7 @@ export const lineInfoModel = {
   peak_period: 0.95, //高峰小时系数
 };
 
-export const flowDataIndex = ["turn1"];
+export const flowDataIndex = [] as string[];
 
 //求曲率
 export const getCurvByAngle = (
@@ -68,3 +68,30 @@ function getPointsDistance(point1: number[], point2: number[]) {
   const distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
   return distance;
 }
+
+export function getK(roadCount: number): number {
+  if (roadCount === 3) {
+    return 0.9;
+  } else if (roadCount === 4) {
+    return 1.5;
+  } else if (roadCount === 5) {
+    return 1.8;
+  }
+  return 1.5;
+}
+
+export function getLineWidth(roadCount: number) {
+  if (roadCount === 3) {
+    return (6.5 * (roadCount - 1)).toString();
+  } else if (roadCount === 4) {
+    return (6 * (roadCount - 1)).toString();
+  } else if (roadCount === 5) {
+    return (5 * (roadCount - 1)).toString();
+  }
+}
+
+export const colorSchemes = [
+  ["#FF0000", "#FF8C00", "#008000", "#9932CC", "#1E90FF"],
+  ["#FF7F50", "#6495ED", "#3CB371", "#DC143C", "#00FFFF"],
+  ["#2F4F4F", "#00CED1", "#9400D3", "#FF1493", "#191970"],
+];

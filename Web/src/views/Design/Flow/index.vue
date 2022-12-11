@@ -3,13 +3,32 @@
     <div class="func">功能区</div>
     <!-- 图示 -->
     <svg id="canvas">
+      <defs>
+        <marker
+          :id="'arrow'"
+          markerUnits="strokeWidth"
+          markerWidth="3"
+          markerHeight="3"
+          viewBox="0 0 12 12"
+          refX="6"
+          refY="6"
+          orient="auto"
+        >
+          <path
+            id="direction_arrow"
+            xmlns="http://www.w3.org/2000/svg"
+            d="M2,2 L10,6 L2,10 L2,6 L2,2"
+            style="fill: #4f48ad"
+          />
+        </marker>
+      </defs>
       <!-- 箭头 -->
       <defs v-for="(item, index) in road_lines" :key="item">
         <marker
           :id="'arrow' + index"
           markerUnits="strokeWidth"
-          :markerWidth="5"
-          :markerHeight="5"
+          :markerWidth="3"
+          :markerHeight="3"
           viewBox="0 0 12 12"
           refX="6"
           refY="6"
@@ -22,6 +41,15 @@
           />
         </marker>
       </defs>
+      <!-- 文字路径 -->
+      <!-- <defs>
+        <path
+          v-for="text in road_texts"
+          :key="text.id"
+          :id="text.id"
+          :d="text.path"
+        ></path>
+      </defs> -->
     </svg>
     <!-- 参数 -->
     <div class="menu">
@@ -33,14 +61,15 @@
               <a-col :span="12">
                 <a-form-item label="颜色">
                   <a-select
-                    v-model:value="flow_info.color"
+                    v-model:value="flow_info.colorScheme"
                     size="small"
                     class="form-width"
+                    @change="onChangeFlow"
                   >
                     <a-select-option
-                      v-for="(_, index) in road_attr"
-                      :key="(index + 1).toString()"
-                      :value="'road_' + (index + 1)"
+                      v-for="index in [0, 1, 2]"
+                      :key="index"
+                      :value="index"
                     >
                       方案{{ index + 1 }}
                     </a-select-option>
@@ -55,54 +84,20 @@
                     :max="50"
                     size="small"
                     class="form-width"
+                    @blur="onChangeFlow"
                   />
                 </a-form-item>
               </a-col>
               <a-col :span="12">
-                <a-form-item label="长度1">
+                <a-form-item label="长度">
                   <a-input-number
-                    v-model:value="flow_info.width1"
-                    :min="20"
-                    :max="150"
+                    v-model:value="flow_info.width"
+                    :min="50"
+                    :max="120"
                     :step="1"
                     size="small"
                     class="form-width"
-                  />
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="字号1">
-                  <a-input-number
-                    v-model:value="flow_info.font_size1"
-                    :min="0"
-                    :max="30"
-                    :step="1"
-                    size="small"
-                    class="form-width"
-                  />
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="长度2">
-                  <a-input-number
-                    v-model:value="flow_info.width2"
-                    :min="20"
-                    :max="150"
-                    :step="5"
-                    size="small"
-                    class="form-width"
-                  />
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="字号2">
-                  <a-input-number
-                    v-model:value="flow_info.font_size2"
-                    :min="0"
-                    :max="30"
-                    :step="1"
-                    size="small"
-                    class="form-width"
+                    @blur="onChangeFlow"
                   />
                 </a-form-item>
               </a-col>
@@ -111,22 +106,37 @@
                   <a-input-number
                     v-model:value="flow_info.space"
                     :min="20"
-                    :max="150"
-                    :step="5"
+                    :max="40"
+                    :step="1"
                     size="small"
                     class="form-width"
+                    @blur="onChangeFlow"
                   />
                 </a-form-item>
               </a-col>
               <a-col :span="12">
-                <a-form-item label="字号3">
+                <a-form-item label="字号1">
                   <a-input-number
-                    v-model:value="flow_info.font_size3"
-                    :min="0"
-                    :max="30"
-                    :step="1"
+                    v-model:value="flow_info.font_size1"
+                    :min="10"
+                    :max="18"
+                    :step="2"
                     size="small"
                     class="form-width"
+                    @blur="onChangeFlow"
+                  />
+                </a-form-item>
+              </a-col>
+              <a-col :span="12">
+                <a-form-item label="字号2">
+                  <a-input-number
+                    v-model:value="flow_info.font_size2"
+                    :min="14"
+                    :max="28"
+                    :step="2"
+                    size="small"
+                    class="form-width"
+                    @blur="onChangeFlow"
                   />
                 </a-form-item>
               </a-col>
@@ -186,51 +196,35 @@
           >
             <template
               v-for="col in flowDataIndex"
-              #[col]="{ record }"
+              #[col]="{ index }"
               :key="col"
             >
-              <div>
+              <div v-if="flow_info.flow_detail[index].turn">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 700 700"
                   class="road-sign"
                 >
-                  <defs>
-                    <marker
-                      :id="'arrow'"
-                      markerUnits="strokeWidth"
-                      markerWidth="3"
-                      markerHeight="3"
-                      viewBox="0 0 12 12"
-                      refX="6"
-                      refY="6"
-                      orient="auto"
-                    >
-                      <path
-                        xmlns="http://www.w3.org/2000/svg"
-                        d="M2,2 L10,6 L2,10 L2,6 L2,2"
-                        style="fill: #4f48ad"
-                      />
-                    </marker>
-                  </defs>
                   <path
                     :id="'direction'"
-                    :d="record[col].d"
+                    :d="flow_info.flow_detail[index].turn[Number(col)].d"
                     fill="none"
                     stroke="#4f48ad"
                     stroke-width="100"
                     :marker-end="'url(#arrow)'"
                   ></path>
                 </svg>
+                <a-input-number
+                  v-model:value="
+                    flow_info.flow_detail[index].turn[Number(col)].number
+                  "
+                  :min="0"
+                  :step="10"
+                  size="small"
+                  class="small-form-width"
+                  @blur="onChangeFlow"
+                />
               </div>
-              <a-input-number
-                v-model:value="record[col].number"
-                :min="0"
-                :step="10"
-                size="small"
-                class="small-form-width"
-                @blur="onChangeFlow"
-              />
             </template>
           </a-table>
         </div>
@@ -274,7 +268,6 @@ import {
   getMiddlePoint,
   getPoint,
   getQByPathCurv,
-  getRandomColor,
 } from "../../../utils/common";
 import {
   getCurvByAngle,
@@ -282,8 +275,11 @@ import {
   flowColumnsPart,
   lineInfoModel,
   flowDataIndex,
+  getLineWidth,
+  getK,
+  colorSchemes,
 } from ".";
-import _ from "lodash";
+import _, { remove } from "lodash";
 import { road_info } from "..";
 
 export default defineComponent({
@@ -294,12 +290,16 @@ export default defineComponent({
       cvs: null as HTMLElement | null,
       cx: 350, //圆心x
       cy: 350, //圆心y
+      r: 350, //半径
       curvature: 0.04, //右转道路曲率
-      road_r_k: 30, //每条车道宽度
+      road_r_k: 24, //每条车道宽度
       start_pts1: [] as any[], //所有路口交叉点外侧一层
       start_pts2: [] as any[], //所有路口交叉点内侧一层
-      road_lines: [] as any[],
+      road_lines: [] as any[], //所有路径信息
+      road_texts: [] as any[], //所有文字信息
       sign_pts: [] as any[],
+      line_width: 8,
+      is_init: false,
     });
 
     const initRoads = () => {
@@ -308,155 +308,92 @@ export default defineComponent({
       render();
     };
 
-    function render() {
-      for (var i = 0; i < road_info.road_attr.length; i++) {
-        var angle = road_info.road_attr[i].angle;
-        drawRoadSign(angle, i);
-      }
+    async function render() {
+      //设置节点数据
+      setRoadPoint();
+      //道路数据填充
+      await initRoadInfo();
       //画路
       drawMainRoad();
     }
 
-    //车辆标识
-    function drawRoadSign(angle: number, i: number) {
-      var road_r = states.road_r_k * road_info.road_attr.length;
-      var radian = (Math.PI / 180) * angle; // 角度转弧度
-      var x2 = Math.cos(radian) * 250 + 350; // 外层200
-      var y2 = -Math.sin(radian) * 250 + 350;
-      var x3 = Math.cos(radian) * 150 + 350; // 内层150
-      var y3 = -Math.sin(radian) * 150 + 350;
-      var color = getRandomColor(); //颜色
-      var right_line = []; //左边点
-      var left_line = []; //右边点
-      //道路左侧
-      const pt_fl1 = getPoint("fl", angle, x3, y3, road_r);
-      const pt_fl2 = getPoint("fl", angle, x2, y2, road_r);
-      left_line.push(pt_fl1);
-      left_line.push(pt_fl2);
-      //道路右侧
-      const pt_fr1 = getPoint("fr", angle, x3, y3, road_r);
-      const pt_fr2 = getPoint("fr", angle, x2, y2, road_r);
-      right_line.push(pt_fr1);
-      right_line.push(pt_fr2);
-      const road_line = { right_line, left_line, color };
-      states.road_lines.push(road_line);
+    //设置道路关键节点
+    function setRoadPoint() {
+      states.road_lines.length = 0;
+      states.road_texts.length = 0;
+      for (var i = 0; i < road_info.road_attr.length; i++) {
+        var angle = road_info.road_attr[i].angle;
+        var radian = (Math.PI / 180) * angle; // 角度转弧度
+        var width = 250 - road_info.flow_info.width;
+        var x2 = Math.cos(radian) * 250 + states.r; // 外层200
+        var y2 = -Math.sin(radian) * 250 + states.r;
+        var x3 = Math.cos(radian) * width + states.r; // 内层150
+        var y3 = -Math.sin(radian) * width + states.r;
+        var x4 = Math.cos(radian) * (width - 1) + states.r; // 内层149
+        var y4 = -Math.sin(radian) * (width - 1) + states.r;
+        var color = colorSchemes[road_info.flow_info.colorScheme][i]; //颜色
+        var right_line = []; //左边点
+        var left_line = []; //右边点
+        for (var j = 0; j < road_info.road_attr.length; j++) {
+          const road_r =
+            road_info.flow_info.space * road_info.road_attr.length -
+            j * states.line_width;
+          //道路左侧
+          const pt_fl = getPoint("fl", angle, x3, y3, road_r);
+          left_line.push(pt_fl);
+          //道路右侧
+          const pt_fr = getPoint("fr", angle, x3, y3, road_r);
+          right_line.push(pt_fr);
+        }
+        var ml_line = [];
+        var mr_line = [];
+        const k = getK(road_info.road_attr.length);
+        const road_mr =
+          road_info.flow_info.space * road_info.road_attr.length -
+          states.line_width * k;
+        //道路左侧
+        const pt_ml1 = getPoint("fl", angle, x4, y4, road_mr);
+        const pt_ml2 = getPoint("fl", angle, x2, y2, road_mr);
+        ml_line.push(pt_ml1, pt_ml2);
+        //道路中心右侧
+        const pt_mr1 = getPoint("fr", angle, x4, y4, road_mr);
+        const pt_mr2 = getPoint("fr", angle, x2, y2, road_mr);
+        mr_line.push(pt_mr1, pt_mr2);
+        const middle_line = { ml_line, mr_line }; //中心点
+        const road_line = { right_line, left_line, middle_line, color };
+        states.road_lines.push(road_line);
+      }
     }
 
+    //绘制道路
     function drawMainRoad() {
-      for (let i = 0; i < road_info.road_attr.length; i++) {
-        const road1 = states.road_lines[i]; //第一条路
-        //右侧道路
-        for (let j = i; j < road_info.road_attr.length + i; j++) {
-          let road2_index = j;
-          if (j > road_info.road_attr.length - 1) {
-            road2_index = j - road_info.road_attr.length;
-          }
-          const road2 = states.road_lines[road2_index]; //连接第二条路          const curvature = getCurvByAngle(
-          const angle1 = road_info.road_attr[i].angle;
-          const angle2 = road_info.road_attr[road2_index].angle;
-          const point11 = road1.right_line[0];
-          const point12 = road1.right_line[1];
-          const point21 = road2.left_line[0];
-          const point22 = road2.left_line[1];
-          const curvature = getCurvByAngle(
-            states.curvature,
-            angle1,
-            angle2,
-            point11,
-            point21
-          );
-          const Q = getQByPathCurv(point11, point21, curvature);
-          const d_str = `M${point12[0]} ${point12[1]} L ${point11[0]} ${point11[1]} Q ${Q} ${point21[0]} ${point21[1]} L ${point22[0]} ${point22[1]}`;
-          const line = document.createElementNS(states.ns, "path");
-          drawPath(line, "right_road", d_str, road1.color);
-        }
-      }
+      drawMRRoad();
+      drawRoadCross();
+      drawMLRoad();
+      setTimeout(() => drawText(), 30);
     }
-    //画主路路径
-    function drawMainRoadCopy() {
-      let hasDraw = [];
-      for (let i = 0; i < road_info.road_attr.length; i++) {
-        const road1 = states.road_lines[i]; //第一条路
-        //右侧道路
-        for (let j = i; j < road_info.road_attr.length + i; j++) {
-          let road2_j = j;
-          if (j > road_info.road_attr.length - 1) {
-            road2_j = j - road_info.road_attr.length;
-          }
-          const angle1 = road_info.road_attr[i].angle;
-          const angle2 = road_info.road_attr[road2_j].angle;
-          const road2 = states.road_lines[road2_j]; //连接第二条路
-          if (i != road2_j) {
-            for (let k = 0; k < road1.right_line.length; k++) {
-              const ij = i + "" + road2_j;
-              const ik = i + "" + k;
-              if (
-                hasDraw.filter((h) => h.ij === ij || h.ik === ik).length > 0
-              ) {
-                continue;
-              }
-              hasDraw.push({ ij, ik });
-              const point1 = road1.right_line[k];
-              const point2 = road2.left_line[0];
-              const line = document.createElementNS(states.ns, "path");
-              const curvature = getCurvByAngle(
-                states.curvature,
-                angle1,
-                angle2,
-                point1,
-                point2
-              );
-              const Q = getQByPathCurv(point1, point2, curvature);
-              const d_str = `M ${point1[0]} ${point1[1]} Q ${Q} ${point2[0]} ${point2[1]}`;
-              drawPath(line, "right_road" + ij, d_str, road1.color);
-            }
-          }
-        }
-        //左侧箭头
-        const line = document.createElementNS(states.ns, "path");
-        const d_str = `M ${road1.left_line[0][0]} ${road1.left_line[0][1]} L ${road1.left_line[1][0]} ${road1.left_line[1][1]}`;
-        const width = (road_info.road_attr.length * 3).toString();
-        drawPath(line, "left_road" + i, d_str, road1.color, width, true, i);
-      }
-    }
-
-    //画路面上的线
-    function drawPath(
-      line: Element,
-      id: string,
-      d_str: string,
-      color: string,
-      width = "5",
-      has_arrow = false,
-      id_index = 0
-    ) {
-      line.setAttribute("id", id);
-      line.setAttribute("d", d_str);
-      line.setAttribute("stroke", color);
-      line.setAttribute("stroke-width", width);
-      line.setAttribute("fill", `none`);
-      if (has_arrow) {
-        line.setAttribute("marker-end", `url(#arrow${id_index})`);
-      }
-      states.cvs?.appendChild(line);
-    }
-
     //填充表格
-    function initRoadInfo() {
-      //道路有更换的时候重新绘制
-      if (road_info.road_attr.length !== road_info.basic_info.count) {
-        initFlowDetail();
+    async function initRoadInfo() {
+      if (!states.is_init) {
+        //道路有更换的时候重新绘制
+        if (road_info.road_attr.length !== road_info.basic_info.count) {
+          console.log("重新加载");
+          initFlowDetail();
+        }
+        //表格中方向绘制
+        initDirections();
+        //标记当前道路数量
+        road_info.basic_info.count = road_info.road_attr.length;
       }
-      drawText();
-      initDirections();
-      //标记当前道路数量
-      road_info.basic_info.count = road_info.road_attr.length;
+      //标记已经初始化过了
+      states.is_init = true;
     }
 
     function initFlowDetail() {
+      road_info.flow_info.flowColumns.length = 0;
       Object.assign(road_info.flow_info.flowColumns, flowColumnsPart);
       for (let i = 0; i < road_info.road_attr.length; i++) {
-        let dataIndex = "turn" + i;
+        let dataIndex = i.toString();
         road_info.flow_info.flowColumns.push({
           title: "转向" + (i + 1),
           dataIndex: dataIndex,
@@ -476,89 +413,238 @@ export default defineComponent({
 
         let flow_detail = {} as any;
         flow_detail.road_name = "方向" + (i + 1);
-        flow_detail["turn0"] = { number: 0 };
-        for (let j = 1; j < states.road_lines.length; j++) {
-          flow_detail["turn" + j] = { number: 450 };
+        for (let j = 0; j < states.road_lines.length; j++) {
+          flow_detail[j.toString()] = { number: i === j ? 0 : 450 };
         }
         road_info.flow_info.flow_detail.push(flow_detail);
       }
-    }
-
-    //写数字
-    function drawText() {
-      states.road_lines.forEach((r, i) => {
-        r.center_text.forEach((midPoint: any, j: number) => {
-          const point = getMiddlePoint(midPoint[0], midPoint[1]);
-          const text = document.createElementNS(states.ns, "text");
-          let content =
-            road_info.flow_info.flow_detail[i]["turn" + (j + 1)].number;
-          let x = (point[0] - (content.length === 3 ? 10 : 15)).toString();
-          let y = (point[1] + 5).toString();
-          text.setAttribute("id", "turn" + i + "" + j);
-          text.setAttribute("x", x);
-          text.setAttribute("y", y);
-          text.setAttribute("fill", "#000");
-          text.setAttribute(
-            "transform",
-            `rotate(${360 - road_info.road_attr[i].angle} ${point[0]},${
-              point[1]
-            })`
-          );
-          text.appendChild(document.createTextNode(content)); //文本内容"450"
-          states.cvs?.appendChild(text);
-        });
-      });
-    }
-
-    function onChangeFlow() {
-      //先清空交叉路口
-      document.querySelectorAll("text").forEach((e) => {
-        if (e.id.indexOf("turn") > -1) e.remove();
-      });
-      drawText();
     }
 
     //加载各道路之间的方向
     const initDirections = () => {
       const roadCount = road_info.road_attr.length;
       for (let i = 0; i < roadCount; i++) {
-        const sign_pt = [] as any[];
+        const flow_item = road_info.flow_info.flow_detail[i];
+        const turn = [] as any[];
         for (let j = 0; j < roadCount; j++) {
           const road = road_info.road_attr[i];
           const nextRoad = road_info.road_attr[j];
-          const d = `M${road.coordinate[0]} ${road.coordinate[1]} L${states.cx} ${states.cy} L${nextRoad.coordinate[0]} ${nextRoad.coordinate[1]}`;
-          const order = j - i < 0 ? j - i + roadCount : j - i;
-          const path = { d, order };
-          sign_pt.push(path);
+          //转向属性
+          const turn_detail = {
+            number: flow_item[j.toString()].number,
+            d: `M${road.coordinate[0]} ${road.coordinate[1]} L${states.cx} ${states.cy} L${nextRoad.coordinate[0]} ${nextRoad.coordinate[1]}`,
+            tag: `${i}#${j}`, //标记从哪个车道到哪个车道
+            order: j - i <= 0 ? j - i + roadCount : j - i, //排序（为了把掉头车道放在第一个）
+          } as any;
+          turn.push(turn_detail);
         }
-        sign_pt.sort(function (a, b) {
-          return a.order - b.order;
+        flow_item.turn = turn;
+        //排序
+        flow_item.turn.sort(function (a: any, b: any) {
+          return b.order - a.order;
         });
-        states.sign_pts.push(sign_pt);
       }
-      road_info.flow_info.flow_detail.map((item, index) => {
-        for (let i = 0; i < roadCount; i++) {
-          item["turn" + i].d = states.sign_pts[index][i].d;
+      console.log(road_info.flow_info.flow_detail);
+    };
+
+    //绘制道路左右两侧(右侧)
+    function drawMRRoad() {
+      let line_width = getLineWidth(road_info.road_attr.length);
+      for (let i = 0; i < states.road_lines.length; i++) {
+        const road = states.road_lines[i];
+        //道路左侧
+        const point_l1 = road.middle_line.mr_line[0];
+        const point_l2 = road.middle_line.mr_line[1];
+        const rightLine = document.createElementNS(states.ns, "path");
+        const d_str = `M ${point_l1[0]} ${point_l1[1]} L ${point_l2[0]} ${point_l2[1]}`;
+        drawPath(rightLine, "road_r", d_str, road.color, "none", line_width);
+
+        //取两线中点用来标记数字
+        const midPoint = getMiddlePoint(point_l1, point_l2);
+        let content = 0;
+        road_info.flow_info.flow_detail[i].turn.map((t: any) => {
+          content += t.number;
+        });
+        setText(i, midPoint, road_info.road_attr[i].angle, content, "left");
+      }
+    }
+    //绘制道路左右两侧(左侧)
+    function drawMLRoad() {
+      let line_width = getLineWidth(road_info.road_attr.length);
+      for (let i = 0; i < states.road_lines.length; i++) {
+        const road = states.road_lines[i];
+        //道路左侧
+        const point_l1 = road.middle_line.ml_line[0];
+        const point_l2 = road.middle_line.ml_line[1];
+        const leftLine = document.createElementNS(states.ns, "path");
+        const d_str = `M ${point_l1[0]} ${point_l1[1]} L ${point_l2[0]} ${point_l2[1]}`;
+        drawPath(
+          leftLine,
+          "road_l",
+          d_str,
+          road.color,
+          "none",
+          line_width,
+          true,
+          i
+        );
+        //取两线中点用来标记数字
+        const midPoint = getMiddlePoint(point_l1, point_l2);
+        let content = 0;
+        road_info.flow_info.flow_detail.map((f) => {
+          content += f.turn.find(
+            (t: any) => t.tag.indexOf(`#${i}`) > -1
+          ).number;
+        });
+        setText(i, midPoint, road_info.road_attr[i].angle, content, "left");
+      }
+    }
+    //绘制交叉路
+    function drawRoadCross() {
+      for (let i = 0; i < states.road_lines.length; i++) {
+        let k = 0; //标记第二条路的索引
+        const road1 = states.road_lines[i]; //第一条路
+        for (let j = i + 1; j <= states.road_lines.length + i; j++) {
+          let road2_index = j;
+          if (j > road_info.road_attr.length - 1) {
+            road2_index = j - road_info.road_attr.length;
+          }
+          const road2 = states.road_lines[road2_index]; //连接第二条路
+          const angle1 = road_info.road_attr[i].angle;
+          const angle2 = road_info.road_attr[road2_index].angle;
+          const point1 = road1.right_line[k];
+          const point2 = road2.left_line[k];
+          const curvature = getCurvByAngle(
+            states.curvature,
+            angle1,
+            angle2,
+            point1,
+            point2
+          );
+          //道路两两连接
+          const line = document.createElementNS(states.ns, "path");
+          const Q = getQByPathCurv(point1, point2, curvature);
+          let d_str = `M ${point1[0]} ${point1[1]} Q ${Q} ${point2[0]} ${point2[1]}`;
+          drawPath(line, `main_path_${i}_${k}`, d_str, road1.color);
+          //路径文字
+          const tag = `${i}#${road2_index}`;
+          const content = road_info.flow_info.flow_detail[i].turn.find(
+            (t: any) => t.tag === tag
+          ).number;
+          setText(`${i}_${road2_index}`, point1, angle1, content, "main_road");
+          k++;
         }
+      }
+    }
+
+    //画路面上的线
+    function drawPath(
+      line: Element,
+      id: string,
+      d_str: string,
+      color: string,
+      fill = "none",
+      width = "5",
+      has_arrow = false,
+      id_index = 0
+    ) {
+      line.setAttribute("id", id);
+      line.setAttribute("d", d_str);
+      line.setAttribute("stroke", color);
+      line.setAttribute("stroke-width", width);
+      line.setAttribute("fill", fill);
+      if (has_arrow) {
+        line.setAttribute("marker-end", `url(#arrow${id_index})`);
+      }
+      states.cvs?.appendChild(line);
+    }
+
+    function drawRect(has_arrow = false) {
+      const rect = document.createElementNS(states.ns, "path");
+      rect.setAttribute("id", "xxx");
+      rect.setAttribute("x", "398");
+      rect.setAttribute("y", "100");
+      rect.setAttribute("width", "16");
+      rect.setAttribute("height", "100");
+      rect.setAttribute("stroke-width", "5");
+      rect.setAttribute("fill", `blue`);
+      if (has_arrow) {
+        rect.setAttribute("marker-end", `url(#arrow${0})`);
+      }
+      states.cvs?.appendChild(rect);
+    }
+
+    //数字写入数组
+    function setText(i: any, point: any, angle: any, content: any, type: any) {
+      const road_text = {
+        id: `left_text_${i}`,
+        point: point,
+        angle: angle,
+        content: content,
+        type,
+      };
+      states.road_texts.push(road_text);
+    }
+    //写数字
+    function drawText() {
+      states.road_texts.forEach((t) => {
+        const text = document.createElementNS(states.ns, "text");
+        text.setAttribute("id", t.id);
+        text.setAttribute("x", t.point[0]);
+        text.setAttribute("y", t.point[1]);
+        text.setAttribute("fill", "#000");
+        // 主路径字体取字体1
+        if (t.type === "main_road") {
+          text.setAttribute(
+            "style",
+            `font-size:${road_info.flow_info.font_size1}`
+          );
+        } else {
+          text.setAttribute(
+            "style",
+            `font-size:${road_info.flow_info.font_size2}`
+          );
+        }
+        text.setAttribute(
+          "transform",
+          `rotate(${t.angle} ${t.point[0]},${t.point[1]})
+          translate(${10},${20})`
+        );
+        text.appendChild(document.createTextNode(t.content)); //文本内容"450"
+        states.cvs?.appendChild(text);
+      });
+    }
+
+    const onChangeFlow = () => {
+      clearRoadPath();
+      render();
+    };
+
+    //清空道路svg
+    const clearRoadPath = () => {
+      document.querySelectorAll("path").forEach((e) => {
+        if (["direction", "direction_arrow"].indexOf(e.id) === -1) e.remove();
+      });
+      document.querySelectorAll("text").forEach((e) => {
+        e.remove();
       });
     };
 
     function drawPoint(x: number, y: number, color: string) {
       var g = document.createElementNS(states.ns, "g");
       g.setAttribute("stroke", color);
-      g.setAttribute("stroke-width", "3");
+      g.setAttribute("stroke-width", "1");
       g.setAttribute("fill", "black");
       var circle = document.createElementNS(states.ns, "circle");
       circle.setAttribute("cx", x.toString());
       circle.setAttribute("cy", y.toString());
-      circle.setAttribute("r", "3");
+      circle.setAttribute("r", "1");
       g.appendChild(circle);
       states.cvs?.appendChild(g);
     }
 
     onMounted(() => {
       initRoads();
-      // initRoadInfo();
     });
 
     return {

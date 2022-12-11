@@ -57,6 +57,42 @@
           </marker>
         </defs>
       </g>
+      <!-- 图例 -->
+      <g v-if="signal_info.is_show_legend">
+        <!-- 外层边框 -->
+        <rect
+          x="35"
+          y="200"
+          height="40"
+          width="790"
+          rx="4"
+          ry="4"
+          fill="rgba(0,0,0,0.3)"
+        />
+        <!-- 机动车文字 -->
+        <text x="75" y="225" class="legend-text">机动车</text>
+        <!-- 机动车图示 -->
+        <rect x="120" y="215" height="12" width="100" fill="#FFFFFF" />
+        <!-- 非机动车文字 -->
+        <text x="270" y="225" class="legend-text">非机动车</text>
+        <!-- 非机动车图示 -->
+        <rect x="328" y="215" height="12" width="100" fill="#FFB90F" />
+        <!-- 行人文字 -->
+        <text x="470" y="225" class="legend-text">行人</text>
+        <!-- 行人图示 -->
+        <rect x="503" y="215" height="12" width="100" fill="#00FF99" />
+        <!-- 待转文字 -->
+        <text x="638" y="225" class="legend-text">待转</text>
+        <!-- 待转图示 -->
+        <line
+          x1="671"
+          y1="221"
+          x2="771"
+          y2="221"
+          style="stroke: #ffffff; stroke-width: 12"
+          stroke-dasharray="5,5"
+        />
+      </g>
     </svg>
     <!-- 参数 -->
     <div class="menu">
@@ -97,6 +133,7 @@
                 <a-form-item label="图例">
                   <a-select
                     v-model:value="signal_info.is_show_legend"
+                    @change="onShowLegendChange"
                     size="small"
                     class="form-width"
                   >
@@ -436,11 +473,12 @@ export default defineComponent({
       document.querySelectorAll("text").forEach((e) => {
         if (e.id.indexOf("text") > -1) e.remove();
       });
+      const legendHeight = road_info.signal_info.is_show_legend ? 40 : 0;
       let start_x = 85; //x起始位置
-      let top = 220; //上边缘线
-      let signal = 235; //灯
-      let center = 250; //中心线
-      let bottom = 280; //下边缘线
+      let top = 220 + legendHeight; //上边缘线
+      let signal = 235 + legendHeight; //灯
+      let center = 250 + legendHeight; //中心线
+      let bottom = 280 + legendHeight; //下边缘线
       //默认四个相位
       for (let p = 0; p < road_info.signal_info.phase; p++) {
         let width = states.svg_width / road_info.signal_info.period; //每个刻度的宽度
@@ -716,6 +754,11 @@ export default defineComponent({
       calculatePeriod();
     };
 
+    //是否显示图例
+    const onShowLegendChange = () => {
+      drawScale();
+    };
+
     //灯时间变更
     const onItemPeriodBlur = () => {
       calculatePeriod();
@@ -879,6 +922,7 @@ export default defineComponent({
       ...toRefs(road_info),
       signalColor,
       phaseColumns,
+      onShowLegendChange,
       onRowClick,
       onPhaseChange,
       onItemPeriodBlur,

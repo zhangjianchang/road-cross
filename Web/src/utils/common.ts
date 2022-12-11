@@ -72,6 +72,10 @@ export function getQByPathCurv(a: number[], b: number[], curv: any) {
    * 默认A/B中点的坐标+curv*20,可以通过改基数10改变传入的参数范围
    */
   if (b[1] - a[1] === 0) {
+    const x = (a[0] + b[0]) / 2;
+    const y = (a[1] + b[1]) / 2;
+    let quadrant = getQuadrant(x, y);
+    curv = quadrant === 1 || quadrant === 2 ? curv : -curv;
     controX = Math.abs((b[0] + a[0]) / 2);
     controY = Math.abs(curv * 35 + (a[1] + b[1]) / 2);
   } else if (k2 === 0) {
@@ -137,7 +141,7 @@ function isWithInVerticalLine(a: number[], b: number[], curv: any) {
   if ((quadrant === 1 || quadrant === 4) && controX > x) {
     flag = false;
   }
-  if ((quadrant === 2 || quadrant === 3) && controX <= x) {
+  if ((quadrant === 2 || quadrant === 3) && controX < x) {
     flag = false;
   }
   return flag;
