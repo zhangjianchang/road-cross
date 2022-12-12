@@ -82,11 +82,11 @@ export function getK(roadCount: number): number {
 
 export function getLineWidth(roadCount: number) {
   if (roadCount === 3) {
-    return (6.5 * (roadCount - 1)).toString();
+    return 6.5 * (roadCount - 1);
   } else if (roadCount === 4) {
-    return (6 * (roadCount - 1)).toString();
+    return 6 * (roadCount - 1);
   } else if (roadCount === 5) {
-    return (5 * (roadCount - 1)).toString();
+    return 5 * (roadCount - 1);
   }
 }
 

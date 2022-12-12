@@ -50,7 +50,7 @@
               <a-col :span="12">
                 <a-form-item label="粗细">
                   <a-input-number
-                    v-model:value="flow_info.font_weight"
+                    v-model:value="flow_info.thickness"
                     :min="0"
                     :max="50"
                     size="small"

@@ -54,7 +54,7 @@ export const road_info = reactive({
   //流量信息
   flow_info: reactive({
     colorScheme: 0, //颜色
-    font_weight: 5, //粗细
+    thickness: 5, //粗细
     width: 100, //长度
     space: 24, //间距
     font_size1: 14, //字号1

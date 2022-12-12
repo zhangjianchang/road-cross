@@ -79,9 +79,9 @@
               <a-col :span="12">
                 <a-form-item label="粗细">
                   <a-input-number
-                    v-model:value="flow_info.font_weight"
-                    :min="0"
-                    :max="50"
+                    v-model:value="flow_info.thickness"
+                    :min="1"
+                    :max="8"
                     size="small"
                     class="form-width"
                     @blur="onChangeFlow"
@@ -365,23 +365,16 @@ export default defineComponent({
       }
     }
 
-    //绘制道路
-    function drawMainRoad() {
-      drawMRRoad();
-      drawRoadCross();
-      drawMLRoad();
-      setTimeout(() => drawText(), 30);
-    }
     //填充表格
     async function initRoadInfo() {
       if (!states.is_init) {
         //道路有更换的时候重新绘制
         if (road_info.road_attr.length !== road_info.basic_info.count) {
-          console.log("重新加载");
+          console.log("here");
           initFlowDetail();
         }
         //表格中方向绘制
-        initDirections();
+        // initDirections();
         //标记当前道路数量
         road_info.basic_info.count = road_info.road_attr.length;
       }
@@ -405,7 +398,8 @@ export default defineComponent({
       //先清空
       road_info.flow_info.line_info.length = 0;
       road_info.flow_info.flow_detail.length = 0;
-      for (let i = 0; i < road_info.road_attr.length; i++) {
+      const roadCount = road_info.road_attr.length;
+      for (let i = 0; i < roadCount; i++) {
         let line_info = _.cloneDeep(lineInfoModel);
         line_info.direction = "方向" + (i + 1);
         line_info.road_name = "方向" + (i + 1);
@@ -413,39 +407,43 @@ export default defineComponent({
 
         let flow_detail = {} as any;
         flow_detail.road_name = "方向" + (i + 1);
+        const turn = [] as any[];
         for (let j = 0; j < states.road_lines.length; j++) {
-          flow_detail[j.toString()] = { number: i === j ? 0 : 450 };
+          //转向属性
+          const turn_detail = getTurnDetail(i, j);
+          turn.push(turn_detail);
         }
+        flow_detail.turn = turn;
+        //排序
+        flow_detail.turn.sort(function (a: any, b: any) {
+          return b.order - a.order;
+        });
         road_info.flow_info.flow_detail.push(flow_detail);
       }
     }
 
     //加载各道路之间的方向
-    const initDirections = () => {
+    const getTurnDetail = (i: number, j: number) => {
       const roadCount = road_info.road_attr.length;
-      for (let i = 0; i < roadCount; i++) {
-        const flow_item = road_info.flow_info.flow_detail[i];
-        const turn = [] as any[];
-        for (let j = 0; j < roadCount; j++) {
-          const road = road_info.road_attr[i];
-          const nextRoad = road_info.road_attr[j];
-          //转向属性
-          const turn_detail = {
-            number: flow_item[j.toString()].number,
-            d: `M${road.coordinate[0]} ${road.coordinate[1]} L${states.cx} ${states.cy} L${nextRoad.coordinate[0]} ${nextRoad.coordinate[1]}`,
-            tag: `${i}#${j}`, //标记从哪个车道到哪个车道
-            order: j - i <= 0 ? j - i + roadCount : j - i, //排序（为了把掉头车道放在第一个）
-          } as any;
-          turn.push(turn_detail);
-        }
-        flow_item.turn = turn;
-        //排序
-        flow_item.turn.sort(function (a: any, b: any) {
-          return b.order - a.order;
-        });
-      }
-      console.log(road_info.flow_info.flow_detail);
+      const road = road_info.road_attr[i];
+      const nextRoad = road_info.road_attr[j];
+      //转向属性
+      const turn_detail = {
+        number: i === j ? 0 : 450,
+        d: `M${road.coordinate[0]} ${road.coordinate[1]} L${states.cx} ${states.cy} L${nextRoad.coordinate[0]} ${nextRoad.coordinate[1]}`,
+        tag: `${i}#${j}`, //标记从哪个车道到哪个车道
+        order: j - i <= 0 ? j - i + roadCount : j - i, //排序（为了把掉头车道放在第一个）
+      } as any;
+      return turn_detail;
     };
+
+    //绘制道路
+    function drawMainRoad() {
+      drawMRRoad();
+      drawRoadCross();
+      drawMLRoad();
+      setTimeout(() => drawText(), 30);
+    }
 
     //绘制道路左右两侧(右侧)
     function drawMRRoad() {
@@ -461,11 +459,12 @@ export default defineComponent({
 
         //取两线中点用来标记数字
         const midPoint = getMiddlePoint(point_l1, point_l2);
+        let angle = 360 - road_info.road_attr[i].angle;
         let content = 0;
         road_info.flow_info.flow_detail[i].turn.map((t: any) => {
           content += t.number;
         });
-        setText(i, midPoint, road_info.road_attr[i].angle, content, "left");
+        setText(i, midPoint, angle, content, "left");
       }
     }
     //绘制道路左右两侧(左侧)
@@ -490,13 +489,14 @@ export default defineComponent({
         );
         //取两线中点用来标记数字
         const midPoint = getMiddlePoint(point_l1, point_l2);
+        let angle = 360 - road_info.road_attr[i].angle;
         let content = 0;
         road_info.flow_info.flow_detail.map((f) => {
           content += f.turn.find(
             (t: any) => t.tag.indexOf(`#${i}`) > -1
           ).number;
         });
-        setText(i, midPoint, road_info.road_attr[i].angle, content, "left");
+        setText(i, midPoint, angle, content, "left");
       }
     }
     //绘制交叉路
@@ -531,7 +531,8 @@ export default defineComponent({
           const content = road_info.flow_info.flow_detail[i].turn.find(
             (t: any) => t.tag === tag
           ).number;
-          setText(`${i}_${road2_index}`, point1, angle1, content, "main_road");
+          const angle = 360 - angle1;
+          setText(`${i}_${road2_index}`, point1, angle, content, "main_road");
           k++;
         }
       }
@@ -544,14 +545,14 @@ export default defineComponent({
       d_str: string,
       color: string,
       fill = "none",
-      width = "5",
+      thickness = road_info.flow_info.thickness,
       has_arrow = false,
       id_index = 0
     ) {
       line.setAttribute("id", id);
       line.setAttribute("d", d_str);
       line.setAttribute("stroke", color);
-      line.setAttribute("stroke-width", width);
+      line.setAttribute("stroke-width", thickness.toString());
       line.setAttribute("fill", fill);
       if (has_arrow) {
         line.setAttribute("marker-end", `url(#arrow${id_index})`);
