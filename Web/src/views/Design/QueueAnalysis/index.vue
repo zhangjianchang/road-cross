@@ -1,8 +1,6 @@
 <template>
   <div class="basic-main">
-    <div class="func">
-      功能区
-    </div>
+    <div class="func">功能区</div>
     <!-- 图示 -->
     <svg id="canvas">
       <text v-for="(_, index) in road_attr" :key="index" x="330">
@@ -241,7 +239,7 @@ export default defineComponent({
     //当前道路某条车道的车流量
     const getCurrentWayFlow = (roadIndex: number, wayIdx: number) => {
       const current =
-        road_info.flow_info.flow_detail[roadIndex]["turn" + (wayIdx + 1)].number;;
+        road_info.flow_info.flow_detail[roadIndex].turn[wayIdx + 1].number;
       return current;
     };
 

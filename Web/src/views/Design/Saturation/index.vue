@@ -290,7 +290,7 @@ export default defineComponent({
       const flow_detail = road_info.flow_info.flow_detail[roadIndex];
       var total = getCurrentRoadTotalFlow(roadIndex);
       //todo 暂定，后续需改为方向
-      var left = flow_detail["turn2"].number;
+      var left = flow_detail.turn[2].number;
       var Bl = left / total;
       return Bl;
     };
@@ -300,7 +300,7 @@ export default defineComponent({
       const flow_detail = road_info.flow_info.flow_detail[roadIndex];
       var total = 0;
       for (let i = 0; i < road_info.road_attr.length; i++) {
-        total += flow_detail["turn" + i].number;
+        total += flow_detail.turn[i].number;
       }
       return total;
     };
@@ -308,8 +308,7 @@ export default defineComponent({
     //当前道路某条车道的车流量
     const getCurrentWayFlow = (roadIndex: number, wayIdx: number) => {
       const current =
-        road_info.flow_info.flow_detail[roadIndex]["turn" + (wayIdx + 1)]
-          .number;
+        road_info.flow_info.flow_detail[roadIndex].turn[wayIdx + 1].number;
       return current;
     };
 

@@ -219,6 +219,7 @@
                     flow_info.flow_detail[index].turn[Number(col)].number
                   "
                   :min="0"
+                  :max="9999"
                   :step="10"
                   size="small"
                   class="small-form-width"
