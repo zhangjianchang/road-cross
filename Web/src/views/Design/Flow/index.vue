@@ -132,7 +132,7 @@
                   <a-input-number
                     v-model:value="flow_info.font_size2"
                     :min="14"
-                    :max="28"
+                    :max="18"
                     :step="2"
                     size="small"
                     class="form-width"
@@ -309,10 +309,10 @@ export default defineComponent({
     };
 
     async function render() {
-      //设置节点数据
-      setRoadPoint();
       //道路数据填充
       await initRoadInfo();
+      //设置节点数据
+      setRoadPoint();
       //画路
       drawMainRoad();
     }
@@ -321,7 +321,8 @@ export default defineComponent({
     function setRoadPoint() {
       states.road_lines.length = 0;
       states.road_texts.length = 0;
-      for (var i = 0; i < road_info.road_attr.length; i++) {
+      let roadCount = road_info.road_attr.length;
+      for (var i = 0; i < roadCount; i++) {
         var angle = road_info.road_attr[i].angle;
         var radian = (Math.PI / 180) * angle; // 角度转弧度
         var width = 250 - road_info.flow_info.width;
@@ -334,10 +335,9 @@ export default defineComponent({
         var color = colorSchemes[road_info.flow_info.colorScheme][i]; //颜色
         var right_line = []; //左边点
         var left_line = []; //右边点
-        for (var j = 0; j < road_info.road_attr.length; j++) {
+        for (var j = 0; j < roadCount; j++) {
           const road_r =
-            road_info.flow_info.space * road_info.road_attr.length -
-            j * states.line_width;
+            road_info.flow_info.space * roadCount - j * states.line_width;
           //道路左侧
           const pt_fl = getPoint("fl", angle, x3, y3, road_r);
           left_line.push(pt_fl);
@@ -347,15 +347,22 @@ export default defineComponent({
         }
         var ml_line = [];
         var mr_line = [];
-        const k = getK(road_info.road_attr.length);
-        const road_mr =
-          road_info.flow_info.space * road_info.road_attr.length -
-          states.line_width * k;
+        const k = getK(roadCount);
         //道路左侧
-        const pt_ml1 = getPoint("fl", angle, x4, y4, road_mr);
-        const pt_ml2 = getPoint("fl", angle, x2, y2, road_mr);
+        let flowCount = getFlowCountL(i);
+        const road_ml =
+          road_info.flow_info.space * roadCount -
+          states.line_width * k +
+          (roadCount - flowCount) * 2.2;
+        const pt_ml1 = getPoint("fl", angle, x4, y4, road_ml);
+        const pt_ml2 = getPoint("fl", angle, x2, y2, road_ml);
         ml_line.push(pt_ml1, pt_ml2);
         //道路中心右侧
+        flowCount = getFlowCountR(i);
+        const road_mr =
+          road_info.flow_info.space * roadCount -
+          states.line_width * k +
+          (roadCount - flowCount) * 2.2;
         const pt_mr1 = getPoint("fr", angle, x4, y4, road_mr);
         const pt_mr2 = getPoint("fr", angle, x2, y2, road_mr);
         mr_line.push(pt_mr1, pt_mr2);
@@ -408,7 +415,7 @@ export default defineComponent({
         let flow_detail = {} as any;
         flow_detail.road_name = "方向" + (i + 1);
         const turn = [] as any[];
-        for (let j = 0; j < states.road_lines.length; j++) {
+        for (let j = 0; j < roadCount; j++) {
           //转向属性
           const turn_detail = getTurnDetail(i, j);
           turn.push(turn_detail);
@@ -447,56 +454,70 @@ export default defineComponent({
 
     //绘制道路左右两侧(右侧)
     function drawMRRoad() {
-      let line_width = getLineWidth(road_info.road_attr.length);
       for (let i = 0; i < states.road_lines.length; i++) {
+        const flow_count = getFlowCountR(i);
+        const line_width = getLineWidth(road_info.road_attr.length, flow_count);
         const road = states.road_lines[i];
         //道路左侧
-        const point_l1 = road.middle_line.mr_line[0];
-        const point_l2 = road.middle_line.mr_line[1];
-        const rightLine = document.createElementNS(states.ns, "path");
-        const d_str = `M ${point_l1[0]} ${point_l1[1]} L ${point_l2[0]} ${point_l2[1]}`;
-        drawPath(rightLine, "road_r", d_str, road.color, "none", line_width);
 
-        //取两线中点用来标记数字
-        const midPoint = getMiddlePoint(point_l1, point_l2);
-        let angle = 360 - road_info.road_attr[i].angle;
         let content = 0;
         road_info.flow_info.flow_detail[i].turn.map((t: any) => {
           content += t.number;
         });
-        setText(i, midPoint, angle, content, "left");
+        const point_r1 = road.middle_line.mr_line[0];
+        const point_r2 = road.middle_line.mr_line[1];
+        const rightLine = document.createElementNS(states.ns, "path");
+        const d_str = `M ${point_r1[0]} ${point_r1[1]} L ${point_r2[0]} ${point_r2[1]}`;
+        if (content !== 0) {
+          drawPath(rightLine, "road_r", d_str, road.color, "none", line_width);
+        }
+        //取同一侧道路中点用来标记入口车道总数
+        let midPoint = getMiddlePoint(point_r1, point_r2);
+        let angle = 360 - road_info.road_attr[i].angle;
+        if (content !== 0) {
+          setText(i, midPoint, angle, content);
+        }
+        //取两侧道路中点标记道路
+        const point_l1 = road.middle_line.ml_line[1];
+        midPoint = getMiddlePoint(point_l1, point_r1);
+        angle = 270 - road_info.road_attr[i].angle;
+        content = road_info.flow_info.line_info[i].road_name;
+        setText(i, midPoint, angle, content, "road_name", -15, 70);
       }
     }
     //绘制道路左右两侧(左侧)
     function drawMLRoad() {
-      let line_width = getLineWidth(road_info.road_attr.length);
       for (let i = 0; i < states.road_lines.length; i++) {
+        let flow_count = getFlowCountL(i);
+        let line_width = getLineWidth(road_info.road_attr.length, flow_count);
         const road = states.road_lines[i];
         //道路左侧
-        const point_l1 = road.middle_line.ml_line[0];
-        const point_l2 = road.middle_line.ml_line[1];
-        const leftLine = document.createElementNS(states.ns, "path");
-        const d_str = `M ${point_l1[0]} ${point_l1[1]} L ${point_l2[0]} ${point_l2[1]}`;
-        drawPath(
-          leftLine,
-          "road_l",
-          d_str,
-          road.color,
-          "none",
-          line_width,
-          true,
-          i
-        );
-        //取两线中点用来标记数字
-        const midPoint = getMiddlePoint(point_l1, point_l2);
-        let angle = 360 - road_info.road_attr[i].angle;
         let content = 0;
         road_info.flow_info.flow_detail.map((f) => {
           content += f.turn.find(
             (t: any) => t.tag.indexOf(`#${i}`) > -1
           ).number;
         });
-        setText(i, midPoint, angle, content, "left");
+        const point_l1 = road.middle_line.ml_line[0];
+        const point_l2 = road.middle_line.ml_line[1];
+        const leftLine = document.createElementNS(states.ns, "path");
+        const d_str = `M ${point_l1[0]} ${point_l1[1]} L ${point_l2[0]} ${point_l2[1]}`;
+        if (content !== 0) {
+          drawPath(
+            leftLine,
+            "road_l",
+            d_str,
+            road.color,
+            "none",
+            line_width,
+            true,
+            i
+          );
+          //取两线中点用来标记数字
+          const midPoint = getMiddlePoint(point_l1, point_l2);
+          let angle = 360 - road_info.road_attr[i].angle;
+          setText(i, midPoint, angle, content);
+        }
       }
     }
     //绘制交叉路
@@ -508,6 +529,13 @@ export default defineComponent({
           let road2_index = j;
           if (j > road_info.road_attr.length - 1) {
             road2_index = j - road_info.road_attr.length;
+          }
+          //流量为0跳过绘制
+          const number = road_info.flow_info.flow_detail[i].turn.find(
+            (t: any) => t.tag.indexOf(`#${road2_index}`) > -1
+          ).number;
+          if (number === 0) {
+            continue;
           }
           const road2 = states.road_lines[road2_index]; //连接第二条路
           const angle1 = road_info.road_attr[i].angle;
@@ -532,7 +560,15 @@ export default defineComponent({
             (t: any) => t.tag === tag
           ).number;
           const angle = 360 - angle1;
-          setText(`${i}_${road2_index}`, point1, angle, content, "main_road");
+          setText(
+            `${i}_${road2_index}`,
+            point1,
+            angle,
+            content,
+            "main_road",
+            -30,
+            7 * k
+          );
           k++;
         }
       }
@@ -576,13 +612,23 @@ export default defineComponent({
     }
 
     //数字写入数组
-    function setText(i: any, point: any, angle: any, content: any, type: any) {
+    function setText(
+      i: any,
+      point: any,
+      angle: any,
+      content: any,
+      type = "main_road",
+      translateX = -10,
+      translateY = 20
+    ) {
       const road_text = {
         id: `left_text_${i}`,
         point: point,
         angle: angle,
         content: content,
         type,
+        translateX,
+        translateY,
       };
       states.road_texts.push(road_text);
     }
@@ -595,21 +641,21 @@ export default defineComponent({
         text.setAttribute("y", t.point[1]);
         text.setAttribute("fill", "#000");
         // 主路径字体取字体1
-        if (t.type === "main_road") {
+        if (t.type === "road_name") {
           text.setAttribute(
             "style",
-            `font-size:${road_info.flow_info.font_size1}`
+            `font-size:${road_info.flow_info.font_size2}`
           );
         } else {
           text.setAttribute(
             "style",
-            `font-size:${road_info.flow_info.font_size2}`
+            `font-size:${road_info.flow_info.font_size1}`
           );
         }
         text.setAttribute(
           "transform",
           `rotate(${t.angle} ${t.point[0]},${t.point[1]})
-          translate(${10},${20})`
+          translate(${t.translateX},${t.translateY})`
         );
         text.appendChild(document.createTextNode(t.content)); //文本内容"450"
         states.cvs?.appendChild(text);
@@ -621,6 +667,25 @@ export default defineComponent({
       render();
     };
 
+    //右侧道路数（流量大于0）
+    function getFlowCountR(index: number) {
+      return road_info.flow_info.flow_detail[index].turn.filter(
+        (t: any) => t.number > 0
+      ).length;
+    }
+
+    //左侧道路数（流量大于0）
+    function getFlowCountL(index: number) {
+      let flow_count = 0;
+      road_info.flow_info.flow_detail.map((f) => {
+        if (
+          f.turn.find((t: any) => t.tag.indexOf(`#${index}`) > -1).number > 0
+        ) {
+          flow_count++;
+        }
+      });
+      return flow_count;
+    }
     //清空道路svg
     const clearRoadPath = () => {
       document.querySelectorAll("path").forEach((e) => {

@@ -58,7 +58,7 @@ export const road_info = reactive({
     width: 100, //长度
     space: 24, //间距
     font_size1: 14, //字号1
-    font_size2: 14, //字号2
+    font_size2: 16, //字号2
     line_info: [] as any[], //车道属性
     flow_detail: [] as any[], //进口道转向流量
     saturation: [1650, 1650, 1650],
