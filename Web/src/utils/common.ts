@@ -218,3 +218,53 @@ export function getRandomColor() {
     Math.random() * 256
   })`;
 }
+
+// 2直线交点
+export function intersect_line_point(
+  a: { y: number; x: number },
+  b: { y: number; x: number },
+  c: { x: number; y: number },
+  d: { x: number; y: number }
+) {
+  // 解线性方程组, 求线段交点
+  // 如果分母为0 则平行或共线, 不相交
+  var denominator = (b.y - a.y) * (d.x - c.x) - (a.x - b.x) * (c.y - d.y);
+  if (denominator == 0) {
+    return false;
+  }
+
+  // 线段所在直线的交点坐标 (x , y)
+  var x =
+    ((b.x - a.x) * (d.x - c.x) * (c.y - a.y) +
+      (b.y - a.y) * (d.x - c.x) * a.x -
+      (d.y - c.y) * (b.x - a.x) * c.x) /
+    denominator;
+  var y =
+    -(
+      (b.y - a.y) * (d.y - c.y) * (c.x - a.x) +
+      (b.x - a.x) * (d.y - c.y) * a.y -
+      (d.x - c.x) * (b.y - a.y) * c.y
+    ) / denominator;
+
+  return {
+    x: x,
+    y: y,
+  };
+}
+
+// 已知2点求共线第3点
+export function line_pt3(
+  pt1: { x: number; y: number },
+  pt2: { x: number; y: number },
+  len1: number,
+  len2: number
+) {
+  var fct = len2 / len1;
+  var x = fct * (pt2.x - pt1.x) + pt1.x;
+  var y = fct * (pt2.y - pt1.y) + pt1.y;
+
+  return {
+    x: x,
+    y: y,
+  };
+}
