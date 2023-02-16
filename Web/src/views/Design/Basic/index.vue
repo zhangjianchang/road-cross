@@ -210,13 +210,13 @@ export default defineComponent({
     }
 
     function onMouseDown(e: any) {
-      states.currentLine = e.path[0];
       const event = window.event || e;
-      states.dragId = event.path[0].id;
+      states.currentLine = event.target;
+      console.log(states.currentLine);
+      states.dragId = states.currentLine.id;
       //删除模式
       if (states.deleting) {
-        e.path[0].remove();
-        console.log(111, states.dragId);
+        e.target.remove();
         road_info.road_attr = road_info.road_attr.filter(
           (r) => r.id !== states.dragId
         );
@@ -341,7 +341,6 @@ export default defineComponent({
       columns,
       onRedraw,
       onClick,
-      onMouseDown,
       onMouseMove,
       onMouseUp,
     };

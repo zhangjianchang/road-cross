@@ -38,7 +38,9 @@
   //字体大小
   :deep(.ant-form-item-label > label),
   :deep(.ant-select),
-  :deep(.ant-input-number-input) {
+  :deep(.ant-input),
+  :deep(.ant-input-number-input),
+  :deep(.ant-select-dropdown) {
     font-size: 12px;
   }
 }
@@ -50,11 +52,11 @@
   color: #ff0000;
 }
 
-.content{
-  :deep(.ant-form-item){
+.content {
+  :deep(.ant-form-item) {
     margin-bottom: -2px !important;
   }
-  :deep(.ant-select-item){
+  :deep(.ant-select-item) {
     font-size: 12px !important;
   }
 }
@@ -63,7 +65,7 @@
   width: 75px !important;
 }
 
-.span-unit{
+.span-unit {
   width: 15px;
   display: inline-block;
   font-size: 12px;

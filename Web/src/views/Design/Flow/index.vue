@@ -153,11 +153,12 @@
             size="small"
           >
             <!-- 路名 -->
-            <template #road_name="{ record }">
+            <template #road_name="{ index }">
               <a-input
-                v-model:value="record.road_name"
+                v-model:value="canalize_info[index].name"
                 size="small"
                 class="form-width"
+                @change="onChangeFlow"
               />
             </template>
             <!-- 大车比率 -->
@@ -378,7 +379,6 @@ export default defineComponent({
       if (!states.is_init) {
         //道路有更换的时候重新绘制
         if (road_info.road_attr.length !== road_info.basic_info.count) {
-          console.log("here");
           initFlowDetail();
         }
         //表格中方向绘制
@@ -410,11 +410,11 @@ export default defineComponent({
       for (let i = 0; i < roadCount; i++) {
         let line_info = _.cloneDeep(lineInfoModel);
         line_info.direction = "方向" + (i + 1);
-        line_info.road_name = "方向" + (i + 1);
+        line_info.road_name = road_info.canalize_info[i].name;
         road_info.flow_info.line_info.push(line_info);
 
         let flow_detail = {} as any;
-        flow_detail.road_name = "方向" + (i + 1);
+        flow_detail.road_name = road_info.canalize_info[i].name;
         const turn = [] as any[];
         for (let j = 0; j < roadCount; j++) {
           //转向属性
@@ -482,7 +482,7 @@ export default defineComponent({
         const point_l1 = road.middle_line.ml_line[1];
         midPoint = getMiddlePoint(point_l1, point_r1);
         angle = 270 - road_info.road_attr[i].angle;
-        content = road_info.flow_info.line_info[i].road_name;
+        content = road_info.canalize_info[i].name;
         setText(i, midPoint, angle, content, "road_name", -15, 70);
       }
     }

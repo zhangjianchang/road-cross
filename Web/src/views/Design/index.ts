@@ -42,15 +42,7 @@ export const road_info = reactive({
   //交叉路口信息
   road_attr: [] as any[],
   //渠化信息
-  canalize_info: {
-    direction: "road_1", //当前方向
-    direction_index: 0, //当前方向索引
-    size: 5, //交叉路口大小
-    curvature: 0.5, //右转道路曲率
-    roadAttr: [] as any[], //道路属性
-    entranceAttr: [] as any[], //进口属性
-    exitAttr: [] as any[], //出口属性
-  } as any,
+  canalize_info: [] as any[],
   //流量信息
   flow_info: reactive({
     colorScheme: 0, //颜色
@@ -61,7 +53,7 @@ export const road_info = reactive({
     font_size2: 16, //字号2
     line_info: [] as any[], //车道属性
     flow_detail: [] as any[], //进口道转向流量
-    saturation: [1650, 1650, 1650],
+    saturation: [] as any,
     flowColumns: [] as any[],
   }),
   //信号信息
