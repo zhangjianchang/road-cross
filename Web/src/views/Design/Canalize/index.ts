@@ -77,6 +77,22 @@ export const roadSigns = [
   },
 ];
 
+export const canalizeTypeOption = [
+  { label: "否", value: "否" },
+  { label: "划线渠化-无单独出口", value: "划线渠化-无单独出口" },
+  { label: "划线渠化-有单独出口", value: "划线渠化-有单独出口" },
+  { label: "固体渠化-无单独出口", value: "固体渠化-无单独出口" },
+  { label: "固体渠化-有单独出口", value: "固体渠化-有单独出口" },
+];
+
+export const medianStripTypeOption = [
+  { label: "双黄线", value: "双黄线" },
+  { label: "单黄线", value: "单黄线" },
+  { label: "护栏", value: "护栏" },
+  { label: "鱼肚线", value: "鱼肚线" },
+  { label: "黄斜线", value: "黄斜线" },
+  { label: "绿化带", value: "绿化带" },
+];
 //根据车道获取默认路标 k系数，>=1正向路，否则反向路
 export function getRoadDefaultSign(
   wayIndex: number,

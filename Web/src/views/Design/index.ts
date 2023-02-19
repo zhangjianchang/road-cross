@@ -33,10 +33,19 @@ export interface RoadInfo {
   signal_info: {} | any;
 }
 
-export const road_info = reactive({
+//道路信息
+export const roadStates = reactive({
+  road_list: [] as any[], //TODO缓存方案，后期删
+  currentUrl: "Basic",
+});
+
+export const road_model = {
   //基础信息
   basic_info: {
+    id: "", //自动生成
     name: "", //道路名称
+    createDate: "", //创建时间 TODO后续删除取服务器时间
+    updateDate: "", //修改时间 TODO后续删除取服务器时间
     count: 0,
   },
   //交叉路口信息
@@ -65,4 +74,6 @@ export const road_info = reactive({
   },
   //饱和度
   saturation_info: [] as any[],
-});
+};
+
+export const road_info = reactive(road_model);

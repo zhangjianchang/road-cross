@@ -1,6 +1,7 @@
 import { createRouter, createWebHashHistory } from "vue-router";
 import Home from "../views/Home/index.vue";
 import Design from "../views/Design/index.vue";
+import DesignRoadList from "../views/DesignRoadList/index.vue";
 import Doc from "../views/Doc/index.vue";
 import Authorize from "../views/Authorize/index.vue";
 import Contact from "../views/Contact/index.vue";
@@ -20,6 +21,16 @@ const routes = [
     path: "/design",
     name: PageEnum.Design,
     component: Design,
+  },
+  {
+    path: "/design/edit/:id",
+    name: PageEnum.DesignEdit,
+    component: Design,
+  },
+  {
+    path: "/designRoadList",
+    name: PageEnum.DesignRoadList,
+    component: DesignRoadList,
   },
   {
     path: "/doc",

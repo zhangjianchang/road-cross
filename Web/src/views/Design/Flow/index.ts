@@ -29,6 +29,7 @@ export const flowColumnsPart = [
     title: "路名",
     dataIndex: "road_name",
     width: 30,
+    align: "center",
   },
 ];
 
@@ -82,6 +83,9 @@ export function getK(roadCount: number): number {
 
 //roundCount 实际道路数量，flowCount 车流大于0的道路数量
 export function getLineWidth(roadCount: number, flowCount: number) {
+  if (flowCount === 2) {
+    return (6.5 * (roadCount - 1) * flowCount) / roadCount;
+  }
   if (flowCount === 3) {
     return (6.5 * (roadCount - 1) * flowCount) / roadCount;
   } else if (flowCount === 4) {

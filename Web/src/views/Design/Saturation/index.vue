@@ -307,8 +307,9 @@ export default defineComponent({
 
     //当前道路某条车道的车流量
     const getCurrentWayFlow = (roadIndex: number, wayIdx: number) => {
+      console.log(road_info.flow_info.flow_detail);
       const current =
-        road_info.flow_info.flow_detail[roadIndex].turn[wayIdx + 1].number;
+        road_info.flow_info.flow_detail[roadIndex].turn[wayIdx].number;
       return current;
     };
 

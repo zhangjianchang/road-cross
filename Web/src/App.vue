@@ -8,10 +8,18 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, provide } from "vue";
 import Menu from "./views/Menu/menu.vue";
 export default defineComponent({
   components: { Menu },
-  setup() {},
+  setup() {
+    //菜单切换强行刷新页面
+    const routerRefresh = () => {
+      location.reload();
+    };
+    //提供子组件调用
+    provide("routerRefresh", routerRefresh);
+    return {};
+  },
 });
 </script>

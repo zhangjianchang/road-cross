@@ -149,7 +149,7 @@
           <a-table
             :dataSource="signal_info.phase_list"
             :columns="phaseColumns"
-            :scroll="{ x: 430 }"
+            :scroll="{ x: 485 }"
             :customRow="onRowClick"
             :pagination="false"
             :bordered="true"
@@ -518,7 +518,7 @@ export default defineComponent({
         y1 = center + p * states.phase_height;
         x2 = start_x + states.svg_width;
         y2 = y1;
-        createLine(x1, y1, x2, y2, "#4f48ad", "3");
+        createLine(x1, y1, x2, y2, "red", "3");
         /**中心线 */
         /**绿色信号 */
         x1 =
@@ -801,6 +801,11 @@ export default defineComponent({
 
     //点击方向
     const onDirectionClick = (index: number) => {
+      setDirection(index);
+    };
+
+    //非机动车点击方向
+    const onDirectionClick2 = (index: number) => {
       setDirection(index);
     };
 

@@ -29,12 +29,12 @@
                 </a-form-item>
               </a-col>
               <a-col :span="12">
-                <a-form-item label="机动车道">
+                <a-form-item label="非机动车道">
                   <a-button
                     type="primary"
                     size="small"
                     class="line-button"
-                    @click="modalVisible = true"
+                    @click="on_bike_lane_set(1)"
                   >
                     设置
                   </a-button>
@@ -43,6 +43,7 @@
                     size="small"
                     class="line-button"
                     style="margin-left: 3px"
+                    @click="on_bike_lane_set(0)"
                   >
                     取消
                   </a-button>
@@ -127,6 +128,7 @@
                     size="small"
                     class="form-width"
                   />
+                  <div class="span-unit">Km/h</div>
                 </a-form-item>
               </a-col>
               <a-col :span="12">
@@ -198,25 +200,25 @@
             <a-row>
               <a-col :span="12">
                 <a-form-item label="渠化方式">
-                  <a-select
-                    v-model:value="canalize_info[cur_road_dir].canalize.type"
-                    size="small"
-                    class="form-width"
-                  >
-                    <a-select-option value="否"> 否 </a-select-option>
-                    <a-select-option value="划线渠化-无单独出口">
-                      划线渠化-无单独出口
-                    </a-select-option>
-                    <a-select-option value="划线渠化-有单独出口">
-                      划线渠化-有单独出口
-                    </a-select-option>
-                    <a-select-option value="固体渠化-无单独出口">
-                      固体渠化-无单独出口
-                    </a-select-option>
-                    <a-select-option value="固体渠化-有单独出口">
-                      固体渠化-有单独出口
-                    </a-select-option>
-                  </a-select>
+                  <a-tooltip>
+                    <template #title>{{
+                      canalize_info[cur_road_dir].canalize.type
+                    }}</template>
+                    <a-select
+                      v-model:value="canalize_info[cur_road_dir].canalize.type"
+                      size="small"
+                      class="form-width"
+                    >
+                      <a-select-option
+                        v-for="item in canalizeTypeOption"
+                        :key="item.value"
+                        :value="item.value"
+                        :title="item.label"
+                      >
+                        {{ item.label }}
+                      </a-select-option>
+                    </a-select>
+                  </a-tooltip>
                 </a-form-item>
               </a-col>
               <a-col :span="12">
@@ -464,12 +466,13 @@
                     size="small"
                     class="form-width"
                   >
-                    <a-select-option value="双黄线"> 双黄线 </a-select-option>
-                    <a-select-option value="单黄线"> 单黄线 </a-select-option>
-                    <a-select-option value="护栏"> 护栏 </a-select-option>
-                    <a-select-option value="鱼肚线"> 鱼肚线 </a-select-option>
-                    <a-select-option value="黄斜线"> 黄斜线 </a-select-option>
-                    <a-select-option value="绿化带"> 绿化带 </a-select-option>
+                    <a-select-option
+                      v-for="item in medianStripTypeOption"
+                      :value="item.value"
+                      :key="item.value"
+                    >
+                      {{ item.label }}
+                    </a-select-option>
                   </a-select>
                 </a-form-item>
               </a-col>
@@ -566,6 +569,7 @@
                       canalize_info[cur_road_dir].enter.bike_lane.width
                     "
                     @change="on_prop_change"
+                    :disabled="!canalize_info[cur_road_dir].enter.bike_lane.has"
                     :min="1"
                     :max="4"
                     :step="1"
@@ -582,6 +586,7 @@
                       canalize_info[cur_road_dir].exit.bike_lane.width
                     "
                     @change="on_prop_change"
+                    :disabled="!canalize_info[cur_road_dir].exit.bike_lane.has"
                     :min="1"
                     :max="4"
                     :step="1"
@@ -597,6 +602,7 @@
                     v-model:value="
                       canalize_info[cur_road_dir].enter.bike_lane.div_type
                     "
+                    :disabled="!canalize_info[cur_road_dir].enter.bike_lane.has"
                     size="small"
                     class="form-width"
                   >
@@ -612,6 +618,7 @@
                     v-model:value="
                       canalize_info[cur_road_dir].exit.bike_lane.div_type
                     "
+                    :disabled="!canalize_info[cur_road_dir].exit.bike_lane.has"
                     size="small"
                     class="form-width"
                   >
@@ -652,7 +659,13 @@
 
 <script lang="ts">
 import { defineComponent, inject, onMounted, reactive, ref, toRefs } from "vue";
-import { getDirectionIndex, getRoadDefaultSign, roadSigns } from "./index";
+import {
+  canalizeTypeOption,
+  getDirectionIndex,
+  getRoadDefaultSign,
+  medianStripTypeOption,
+  roadSigns,
+} from "./index";
 import Container from "../../../components/Container/index.vue";
 import { notification } from "ant-design-vue";
 import { DragOutlined } from "@ant-design/icons-vue";
@@ -662,8 +675,6 @@ import {
   line_pt3,
 } from "../../../utils/common";
 import { road_info } from "..";
-import { update } from "lodash";
-import { func } from "vue-types";
 
 export default defineComponent({
   components: { Container, DragOutlined },
@@ -1544,7 +1555,6 @@ export default defineComponent({
           };
           d_str += "Q" + qpt.x + "," + qpt.y + " " + pt.x + "," + pt.y + " ";
         }
-        console.log(1111, d_str);
         var cross = document.createElementNS(states.ns, "path"); //交叉口右转白线
         cross.setAttribute("d", d_str);
         cross.setAttribute("stroke", "rgb(255,255,255)");
@@ -1646,6 +1656,13 @@ export default defineComponent({
     // 方向选择
     function on_sel_dirs_change() {
       // update_panel();
+      render();
+    }
+
+    //设置机动车道
+    function on_bike_lane_set(is_set: number) {
+      road_info.canalize_info[states.cur_road_dir].enter.bike_lane.has = is_set;
+      road_info.canalize_info[states.cur_road_dir].exit.bike_lane.has = is_set;
       render();
     }
 
@@ -1761,7 +1778,10 @@ export default defineComponent({
       roadSigns,
       on_prop_change,
       on_sel_dirs_change,
+      on_bike_lane_set,
       handleConfirmSign,
+      canalizeTypeOption,
+      medianStripTypeOption,
     };
   },
 });

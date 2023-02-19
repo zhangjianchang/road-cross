@@ -1,6 +1,8 @@
 export enum PageEnum {
   Home = "Home",
   Design = "Design",
+  DesignEdit = "DesignEdit",
+  DesignRoadList = "DesignRoadList",
   Doc = "Doc",
   Authorize = "Authorize",
   Contact = "Contact",

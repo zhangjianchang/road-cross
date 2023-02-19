@@ -33,7 +33,7 @@ export const phaseColumns = [
   {
     title: "名称",
     dataIndex: "name",
-    width: 60,
+    width: 80,
     slots: { customRender: "name" },
   },
   {

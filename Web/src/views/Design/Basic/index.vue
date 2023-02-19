@@ -94,11 +94,17 @@ import {
   ExclamationCircleOutlined,
 } from "@ant-design/icons-vue";
 import { getAngle } from "../../../utils/common";
-import { road_info } from "..";
+import { roadStates, road_info, road_model } from "..";
+import { buildUUID } from "../../../utils/uuid";
+import { useRoute } from "vue-router";
+import { object } from "vue-types";
 
 export default defineComponent({
   components: { Container, CloseOutlined },
   setup() {
+    const route = useRoute();
+    const id = (route.params.id ?? "").toString();
+
     const states = reactive({
       ns: "",
       cvs: null as HTMLElement | null,
@@ -110,6 +116,7 @@ export default defineComponent({
       currentLine: null as any,
       dragging: false,
       dragId: "",
+      index: 0, //标记线段id，永远叠加
     });
 
     function render() {
@@ -137,7 +144,7 @@ export default defineComponent({
           text.setAttribute("x", x3.toString());
           text.setAttribute("y", y3.toString());
           text.setAttribute("fill", "#000");
-          text.setAttribute("style", "font-size:12px");
+          text.setAttribute("style", "font-size:12px;user-select:none");
           text.setAttribute(
             "transform",
             `rotate(${90 - angle} ${x3},${y3}) translate(${translateX},0)`
@@ -151,8 +158,11 @@ export default defineComponent({
     //编辑页进来需要反显线段
     function initIines() {
       if (road_info.road_attr.length > 0) {
-        road_info.road_attr.map((road, index) => {
-          createLine(road.coordinate, index);
+        road_info.road_attr.map((road) => {
+          road.id = `line_${states.index}`;
+          road.arrowId = `arrow${states.index}`;
+          createLine(road.coordinate);
+          states.index++;
         });
       }
     }
@@ -180,43 +190,46 @@ export default defineComponent({
       //根据点击点获取在圆上的坐标
       let coordinate = getCoordinate(states.cx, states.cy, states.radius, x, y);
       //画线
-      let index = road_info.road_attr.length;
-      createLine(coordinate, index);
+      createLine(coordinate);
 
       //根据坐标获取角度
       let angle = getAngle(states.cx, states.cy, coordinate[0], coordinate[1]);
       //存数据至全局变量
       road_info.road_attr.push({
         position: `X:${coordinate[0]}\n Y:${coordinate[1]}`,
-        id: `line_${index}`,
+        id: `line_${states.index}`,
+        arrowId: `arrow${states.index}`,
         coordinate,
         angle,
-        arrowId: `arrow${index}`,
       });
       setRoadDir(coordinate);
+      states.index++;
     }
 
-    function createLine(coordinate: number[], index: number) {
+    function createLine(coordinate: number[]) {
       let line = document.createElementNS(states.ns, "line"); // 创建SVG元素
-      let id = "line_" + index;
+      let id = "line_" + states.index;
       setLineXY(line, states.cx, states.cy, coordinate[0], coordinate[1]);
       line.setAttribute("id", id);
       line.setAttribute("stroke-width", "15px");
-      line.setAttribute("marker-end", `url(#arrow${index})`);
-      line.setAttribute("tag", `arrow${index}`);
+      line.setAttribute("marker-end", `url(#arrow${states.index})`);
+      line.setAttribute("tag", `arrow${states.index}`);
       //事件
       line.addEventListener("mousedown", onMouseDown, false);
       states.cvs?.appendChild(line);
     }
 
+    //鼠标按下
     function onMouseDown(e: any) {
       const event = window.event || e;
       states.currentLine = event.target;
-      console.log(states.currentLine);
       states.dragId = states.currentLine.id;
       //删除模式
       if (states.deleting) {
         e.target.remove();
+        console.log(states.dragId);
+        console.log(road_info.road_attr.map((r) => r.id));
+
         road_info.road_attr = road_info.road_attr.filter(
           (r) => r.id !== states.dragId
         );
@@ -230,6 +243,7 @@ export default defineComponent({
       currentArrow?.setAttribute("style", "fill: rgb(48 44 102)");
     }
 
+    //拖动鼠标
     function onMouseMove(e: any) {
       const event = e || window.event;
       if (!states.dragging) {
@@ -242,19 +256,23 @@ export default defineComponent({
         return;
       }
       let coordinate = getXYByNxNy(nx, ny);
-      const stroke = states.dragging ? "rgb(48 44 102)" : "#4f48ad";
+      // const stroke = states.dragging ? "rgb(48 44 102)" : "#4f48ad";
       setLineXY(
         states.currentLine,
         states.cx,
         states.cy,
         coordinate[0],
         coordinate[1],
-        stroke
+        "rgb(48 44 102)"
       );
-      setRoadDir(coordinate);
+      // setRoadDir(coordinate);
     }
 
+    //鼠标抬起
     function onMouseUp(e: any) {
+      if (states.deleting) {
+        return; //删除线段时直接返回
+      }
       const event = e || window.event;
       let nx = event.offsetX;
       let ny = event.offsetY;
@@ -280,11 +298,12 @@ export default defineComponent({
         setRoadDir(coordinate);
         states.currentLine = null;
         states.dragging = false;
-      }, 10);
+      }, 30);
     }
 
     function setRoadDir(coordinate: number[]) {
       let angle = getAngle(states.cx, states.cy, coordinate[0], coordinate[1]);
+      console.log(angle);
       road_info.road_attr.map((c) => {
         if (c.id === states.dragId) {
           c.position = `X:${coordinate[0]}\n\n Y:${coordinate[1]}`;
@@ -295,20 +314,12 @@ export default defineComponent({
       road_info.road_attr.sort(function (a, b) {
         return a.angle - b.angle;
       });
+      road_info.basic_info.count = road_info.road_attr.length;
     }
 
     //根据当前点位获取在圆上的点
     function getXYByNxNy(nx: number, ny: number) {
       return getCoordinate(states.cx, states.cy, states.radius, nx, ny);
-    }
-
-    //确认绘制
-    function confirm() {
-      // render();
-      road_info.road_attr.length = 0;
-      document.querySelectorAll("line").forEach((e) => {
-        if (e.id) e.remove();
-      });
     }
 
     //重新绘制
@@ -320,7 +331,7 @@ export default defineComponent({
         okText: "确认",
         cancelText: "取消",
         onOk() {
-          confirm();
+          location.reload();
         },
       });
     };
@@ -330,14 +341,20 @@ export default defineComponent({
       return states.currentLine.getAttribute("tag");
     }
 
-    onMounted(() => {
+    const init = () => {
       render();
       initIines();
+    };
+
+    onMounted(() => {
+      //换在父页面中执行
+      init();
     });
 
     return {
       ...toRefs(states),
       ...toRefs(road_info),
+      init,
       columns,
       onRedraw,
       onClick,

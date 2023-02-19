@@ -215,7 +215,7 @@ export default defineComponent({
     const getQueue = (roadIndex: number, wayIndex: number) => {
       const q = getCurrentWayFlow(roadIndex, wayIndex);
       const r = get_red(roadIndex);
-      const Q = road_info.flow_info.saturation[wayIndex];
+      const Q = road_info.flow_info.saturation[roadIndex][wayIndex].number;
       var ql = q_ql(q, r, Q);
       return ql;
     };

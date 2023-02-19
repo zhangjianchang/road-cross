@@ -84,7 +84,7 @@
                     :max="8"
                     size="small"
                     class="form-width"
-                    @blur="onChangeFlow"
+                    @change="onChangeFlow"
                   />
                 </a-form-item>
               </a-col>
@@ -97,7 +97,7 @@
                     :step="1"
                     size="small"
                     class="form-width"
-                    @blur="onChangeFlow"
+                    @change="onChangeFlow"
                   />
                 </a-form-item>
               </a-col>
@@ -110,7 +110,7 @@
                     :step="1"
                     size="small"
                     class="form-width"
-                    @blur="onChangeFlow"
+                    @change="onChangeFlow"
                   />
                 </a-form-item>
               </a-col>
@@ -123,7 +123,7 @@
                     :step="2"
                     size="small"
                     class="form-width"
-                    @blur="onChangeFlow"
+                    @change="onChangeFlow"
                   />
                 </a-form-item>
               </a-col>
@@ -136,7 +136,7 @@
                     :step="2"
                     size="small"
                     class="form-width"
-                    @blur="onChangeFlow"
+                    @change="onChangeFlow"
                   />
                 </a-form-item>
               </a-col>
@@ -150,6 +150,10 @@
             :columns="lineColumns"
             :pagination="false"
             :bordered="true"
+            :customRow="onRowClick"
+            :rowClassName="
+              (_: any, index: number) => (index === currentRoad ? 'click-row' : null)
+            "
             size="small"
           >
             <!-- 路名 -->
@@ -169,7 +173,7 @@
                 :max="100"
                 :step="1"
                 size="small"
-                class="small-form-width"
+                class="form-width"
               />
             </template>
             <!-- 高峰小时系数 -->
@@ -180,7 +184,7 @@
                 :max="1"
                 :step="0.01"
                 size="small"
-                class="small-form-width"
+                class="form-width"
               />
             </template>
           </a-table>
@@ -193,6 +197,10 @@
             :pagination="false"
             :showHeader="false"
             :bordered="true"
+            :customRow="onRowClick"
+            :rowClassName="
+              (_: any, index: number) => (index === currentRoad ? 'click-row' : null)
+            "
             size="small"
           >
             <template
@@ -215,17 +223,19 @@
                     :marker-end="'url(#arrow)'"
                   ></path>
                 </svg>
-                <a-input-number
-                  v-model:value="
-                    flow_info.flow_detail[index].turn[Number(col)].number
-                  "
-                  :min="0"
-                  :max="9999"
-                  :step="10"
-                  size="small"
-                  class="small-form-width"
-                  @blur="onChangeFlow"
-                />
+                <div>
+                  <a-input-number
+                    v-model:value="
+                      flow_info.flow_detail[index].turn[Number(col)].number
+                    "
+                    :min="0"
+                    :max="9999"
+                    :step="10"
+                    size="small"
+                    class="small-form-width"
+                    @change="onChangeFlow"
+                  />
+                </div>
               </div>
             </template>
           </a-table>
@@ -240,12 +250,12 @@
             <a-row>
               <a-col
                 :span="8"
-                v-for="(rec, index) in flow_info.saturation"
+                v-for="(rec, index) in flow_info.saturation[currentRoad]"
                 :key="rec"
               >
                 <a-form-item :label="'车道' + (index + 1)">
                   <a-input-number
-                    v-model:value="flow_info.saturation[index]"
+                    v-model:value="rec.number"
                     :min="0"
                     :step="50"
                     size="small"
@@ -281,7 +291,7 @@ import {
   getK,
   colorSchemes,
 } from ".";
-import _, { remove } from "lodash";
+import _ from "lodash";
 import { road_info } from "..";
 
 export default defineComponent({
@@ -302,6 +312,7 @@ export default defineComponent({
       sign_pts: [] as any[],
       line_width: 8,
       is_init: false,
+      currentRoad: 0, //当前选中道路
     });
 
     const initRoads = () => {
@@ -313,10 +324,23 @@ export default defineComponent({
     async function render() {
       //道路数据填充
       await initRoadInfo();
+      //进口车道设置
+      initEnterNum();
       //设置节点数据
       setRoadPoint();
       //画路
       drawMainRoad();
+    }
+
+    function initEnterNum() {
+      road_info.flow_info.saturation.length = 0;
+      road_info.canalize_info.forEach((item) => {
+        const currentSaturation = [];
+        for (let i = 0; i < item.enter.num; i++) {
+          currentSaturation.push({ number: 1650 });
+        }
+        road_info.flow_info.saturation.push(currentSaturation);
+      });
     }
 
     //设置道路关键节点
@@ -378,13 +402,11 @@ export default defineComponent({
     async function initRoadInfo() {
       if (!states.is_init) {
         //道路有更换的时候重新绘制
-        if (road_info.road_attr.length !== road_info.basic_info.count) {
-          initFlowDetail();
-        }
+        // if (road_info.road_attr.length !== road_info.basic_info.count) {
+        initFlowDetail();
+        // }
         //表格中方向绘制
         // initDirections();
-        //标记当前道路数量
-        road_info.basic_info.count = road_info.road_attr.length;
       }
       //标记已经初始化过了
       states.is_init = true;
@@ -400,6 +422,7 @@ export default defineComponent({
           dataIndex: dataIndex,
           width: 30,
           slots: { customRender: dataIndex },
+          align: "center",
         });
         flowDataIndex.push(dataIndex);
       }
@@ -710,6 +733,15 @@ export default defineComponent({
       states.cvs?.appendChild(g);
     }
 
+    //表格行点击事件
+    const onRowClick = (record: any, index: number) => {
+      return {
+        onClick: () => {
+          states.currentRoad = index;
+        },
+      };
+    };
+
     onMounted(() => {
       initRoads();
     });
@@ -722,6 +754,7 @@ export default defineComponent({
       lineColumns,
       flowDataIndex,
       onChangeFlow,
+      onRowClick,
     };
   },
 });
