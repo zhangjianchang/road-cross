@@ -161,7 +161,6 @@ export default defineComponent({
         roadStates.road_list.map((item) => {
           if (item.basic_info.id === id) {
             Object.assign(road_info, item);
-            console.log(road_info);
           }
         });
       } else {

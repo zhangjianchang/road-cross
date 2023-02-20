@@ -53,8 +53,8 @@
                 <a-form-item label="交叉口大小">
                   <a-input-number
                     v-model:value="canalize_info[cur_road_dir].cross_len"
-                    :min="25"
-                    :max="40"
+                    :min="20"
+                    :max="25"
                     size="small"
                     class="form-width"
                     @change="on_prop_change"
@@ -262,7 +262,7 @@
                   <a-input-number
                     v-model:value="canalize_info[cur_road_dir].enter.lane_width"
                     @change="on_prop_change"
-                    :min="0"
+                    :min="3.5"
                     :max="10"
                     :step="1"
                     size="small"
@@ -306,8 +306,8 @@
                   <a-input-number
                     v-model:value="canalize_info[cur_road_dir].enter.extend_len"
                     @change="on_prop_change"
-                    :min="0"
-                    :max="100"
+                    :min="30"
+                    :max="40"
                     :step="5"
                     size="small"
                     class="form-width"
@@ -383,7 +383,7 @@
                   <a-input-number
                     v-model:value="canalize_info[cur_road_dir].exit.lane_width"
                     @change="on_prop_change"
-                    :min="0"
+                    :min="3.5"
                     :max="10"
                     :step="1"
                     size="small"
@@ -426,8 +426,8 @@
                   <a-input-number
                     v-model:value="canalize_info[cur_road_dir].exit.extend_len"
                     @change="on_prop_change"
-                    :min="0"
-                    :max="100"
+                    :min="30"
+                    :max="40"
                     :step="5"
                     size="small"
                     class="form-width"
@@ -697,11 +697,11 @@ export default defineComponent({
       origin: { x: 0, y: 0 }, // 原点，绘图中心，单位
       offset: 0.5, // 偏移量
       length: 80, // 路长125m
-      cross_len: 30, // 交叉口长度m（距离原点），待完善：当右转路夹角很小时，该长度变长
+      cross_len: 20, // 交叉口长度m（距离原点），TODO：当右转路夹角很小时，该长度变长
 
       speed: 40, //路段速度
 
-      walk: { has: 1, zebra_len: 8 }, // 人行道
+      walk: { has: 1, zebra_len: 5 }, // 人行道
       margin: 1, // 路边
 
       canalize: {
@@ -715,7 +715,7 @@ export default defineComponent({
         num: 3, // 进口车道数
         lane_width: 3.5, //车道宽度，米
         extend_num: 0, // 展宽数量
-        extend_len: 45, // 展宽段长
+        extend_len: 40, // 展宽段长
         extend_width: 3, // 展宽车道宽度
         in_curv: 12, // 内侧渐变段长
         out_curv: 6, // 外侧渐变段长
@@ -733,7 +733,7 @@ export default defineComponent({
         num: 3, // 出口车道数
         lane_width: 3.5, //车道宽度
         extend_num: 0, // 展宽数量
-        extend_len: 20, // 展宽段长
+        extend_len: 40, // 展宽段长
         extend_width: 3, // 展宽车道宽度
         in_curv: 12, // 内侧渐变段长
         out_curv: 6, // 外侧渐变段长
@@ -883,10 +883,20 @@ export default defineComponent({
 
     function update_road_corss() {
       var dir = road_info.road_attr.map((r) => r.angle);
-      road_info.canalize_info.map((c, index) => {
-        var angle = parseFloat(dir[index]); // 角度
-        c.angle = angle;
-      });
+      const canalize_info_list = [];
+      for (var i = 0; i < dir.length; i++) {
+        let rc = {} as any;
+        if (i < road_info.canalize_info.length) {
+          rc = road_info.canalize_info[i]; //存在则取原有数据
+        } else {
+          rc = JSON.parse(JSON.stringify(RoadCross)); // 不存在则取模板对象
+        }
+        var angle = parseFloat(dir[i]); // 角度
+        rc.angle = angle;
+        canalize_info_list.push(rc);
+      }
+      road_info.canalize_info.length = 0;
+      Object.assign(road_info.canalize_info, canalize_info_list);
     }
 
     // 创建用于渲染（绘制）的数据结构
@@ -947,12 +957,14 @@ export default defineComponent({
           (rc.enter.num * rc.enter.lane_width -
             rc.enter.extend_num * rc.enter.extend_width +
             rc.median_strip.width +
-            rc.margin) *
+            rc.margin +
+            (rc.enter.bike_lane.has ? rc.enter.bike_lane.width : 0)) *
           dw.ratio;
         len2 =
           (rc.enter.num * rc.enter.lane_width -
             rc.enter.extend_num * rc.enter.extend_width +
-            rc.median_strip.width) *
+            rc.median_strip.width +
+            (rc.enter.bike_lane.has ? rc.enter.bike_lane.width : 0)) *
           dw.ratio;
         pt = cal_point(dw, d, dr, len);
         sd.ext2 = pt;
@@ -973,32 +985,40 @@ export default defineComponent({
           (rc.exit.num * rc.exit.lane_width -
             rc.exit.extend_num * rc.exit.extend_width +
             rc.median_strip.width +
-            rc.margin) *
+            rc.margin +
+            (rc.exit.bike_lane.has ? rc.exit.bike_lane.width : 0)) *
           dw.ratio;
         len2 =
           (rc.exit.num * rc.exit.lane_width -
             rc.exit.extend_num * rc.exit.extend_width +
-            rc.median_strip.width) *
+            rc.median_strip.width +
+            (rc.exit.bike_lane.has ? rc.exit.bike_lane.width : 0)) *
           dw.ratio;
+        console.log(111,len, len2);
         pt = cal_point(dw, d, dr, len);
         sd.far = pt;
         pt = cal_point(dw, d, dr, len2);
         sd2.far = pt;
 
         // 展宽
-        d = (rc.cross_len + rc.enter.extend_len + rc.enter.in_curv) * dw.ratio;
+        d = (rc.cross_len + rc.exit.extend_len + rc.exit.in_curv) * dw.ratio;
         pt = cal_point(dw, d, dr, len);
         sd.ext2 = pt;
         pt = cal_point(dw, d, dr, len2);
         sd2.ext2 = pt;
-        d = (rc.cross_len + rc.enter.extend_len) * dw.ratio;
+        d = (rc.cross_len + rc.exit.extend_len) * dw.ratio;
         len =
           (rc.exit.num * rc.exit.lane_width +
             rc.median_strip.width +
-            rc.margin) *
+            rc.margin +
+            (rc.exit.bike_lane.has ? rc.exit.bike_lane.width : 0)) *
           dw.ratio;
         len2 =
-          (rc.exit.num * rc.exit.lane_width + rc.median_strip.width) * dw.ratio;
+          (rc.exit.num * rc.exit.lane_width +
+            rc.median_strip.width +
+            (rc.exit.bike_lane.has ? rc.exit.bike_lane.width : 0)) *
+          dw.ratio;
+        console.log(222, len, len2);
         pt = cal_point(dw, d, dr, len);
         sd.ext1 = pt;
         pt = cal_point(dw, d, dr, len2);
@@ -1072,9 +1092,9 @@ export default defineComponent({
         d = (rc.cross_len + rc.length * 0.3) * dw.ratio;
         len =
           (rc.enter.num * rc.enter.lane_width -
-            rc.enter.extend_num * rc.enter.extend_width +
             rc.median_strip.width +
-            rc.margin) *
+            rc.margin +
+            rc.enter.bike_lane.width) *
           dw.ratio;
         pt = cal_point(dw, d, -dr, len + 20);
         dw.txt.pos = pt;
@@ -1130,28 +1150,29 @@ export default defineComponent({
       var d_str = "";
       for (var i = 0; i < arr_rc_draw.length; i++) {
         var dw1 = arr_rc_draw[i];
-        var sd = dw1.enter_side;
+        var sd = dw1.exit_side;
         var pt = sd.walk2;
         if (i == 0) d_str = "M" + pt.x + "," + pt.y + " ";
         else d_str += "L" + pt.x + "," + pt.y + " ";
-        sd = dw1.exit_side;
+        sd = dw1.enter_side;
         pt = sd.walk2;
         d_str += "L" + pt.x + "," + pt.y + " ";
 
         var dw2;
-        if (i == 0) dw2 = arr_rc_draw[arr_rc_draw.length - 1];
-        else dw2 = arr_rc_draw[i - 1];
-        sd = dw2.enter_side;
+        if (i == arr_rc_draw.length - 1) dw2 = arr_rc_draw[0];
+        else dw2 = arr_rc_draw[i + 1];
+
+        sd = dw2.exit_side;
         pt = sd.walk2;
         var insect_pt = intersect_line_point(
-          dw1.exit_side.walk2,
-          dw1.exit_side.walk1,
-          dw2.enter_side.walk2,
-          dw2.enter_side.walk1
+          dw1.enter_side.walk2,
+          dw1.enter_side.walk1,
+          dw2.exit_side.walk2,
+          dw2.exit_side.walk1
         ); // 相邻两直线的交点
         var mid_pt = {
-          x: (dw1.exit_side.walk2.x + dw2.enter_side.walk2.x) * 0.5,
-          y: (dw1.exit_side.walk2.y + dw2.enter_side.walk2.y) * 0.5,
+          x: (dw1.enter_side.walk2.x + dw2.exit_side.walk2.x) * 0.5,
+          y: (dw1.enter_side.walk2.y + dw2.exit_side.walk2.y) * 0.5,
         };
         // 曲度插值法计算Q的中间点
         if (insect_pt) {
@@ -1211,7 +1232,7 @@ export default defineComponent({
 
         // 轮廓（白线）
         d_str = "";
-
+        //入口边缘线
         var sd = dw.enter_side2;
         var pt = sd.walk1;
         //d_str += "M" + pt.x + "," + pt.y + " ";
@@ -1224,6 +1245,7 @@ export default defineComponent({
         pt = sd.far;
         d_str += "L" + pt.x + "," + pt.y + " ";
 
+        //出口边缘线
         sd = dw.exit_side2;
         pt = sd.far;
         d_str += "M" + pt.x + "," + pt.y + " ";
@@ -1769,6 +1791,19 @@ export default defineComponent({
     const handleConfirmSign = (key: any) => {
       console.log(key);
     };
+
+    function drawPoint(x: number, y: number, color: string) {
+      var g = document.createElementNS(states.ns, "g");
+      g.setAttribute("stroke", color);
+      g.setAttribute("stroke-width", "2");
+      g.setAttribute("fill", "black");
+      var circle = document.createElementNS(states.ns, "circle");
+      circle.setAttribute("cx", x.toString());
+      circle.setAttribute("cy", y.toString());
+      circle.setAttribute("r", "2");
+      g.appendChild(circle);
+      states.cvs?.appendChild(g);
+    }
 
     return {
       ...toRefs(states),
