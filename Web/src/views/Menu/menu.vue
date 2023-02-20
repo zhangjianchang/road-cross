@@ -32,7 +32,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, inject, ref } from "vue";
+import { defineComponent, ref } from "vue";
 import { UserOutlined } from "@ant-design/icons-vue";
 import { PageEnum } from "../../router/data";
 import { goRouterByParam } from "../../utils/common";
@@ -45,12 +45,9 @@ export default defineComponent({
     if (strUser) {
       userInfo.value = JSON.parse(strUser);
     }
-    const routerRefresh = inject("routerRefresh") as any;
-
     //路由跳转
     const onRouterClick = (routerName: string) => {
       goRouterByParam(routerName);
-      routerRefresh();
     };
     return {
       userInfo,
