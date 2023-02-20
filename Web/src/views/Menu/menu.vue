@@ -1,19 +1,22 @@
 <template>
   <div id="nav">
     <div class="menu">
-      <router-link @click="onRouterClick(PageEnum.Home)" to="/">
+      <router-link @click="handleRouterClick(PageEnum.Home)" to="/">
         首页
       </router-link>
-      <router-link @click="onRouterClick(PageEnum.Design)" to="/design">
+      <router-link @click="handleRouterClick(PageEnum.Design)" to="/design">
         设计
       </router-link>
-      <router-link @click="onRouterClick(PageEnum.Doc)" to="/doc">
+      <router-link @click="handleRouterClick(PageEnum.Doc)" to="/doc">
         文档
       </router-link>
-      <router-link @click="onRouterClick(PageEnum.Authorize)" to="/authorize">
+      <router-link
+        @click="handleRouterClick(PageEnum.Authorize)"
+        to="/authorize"
+      >
         软件授权
       </router-link>
-      <router-link @click="onRouterClick(PageEnum.Contact)" to="/contact">
+      <router-link @click="handleRouterClick(PageEnum.Contact)" to="/contact">
         联系我们
       </router-link>
     </div>
@@ -26,7 +29,22 @@
       <!-- <router-link to="/contact">创建账号</router-link> -->
     </div>
     <div v-else>
-      <router-link to="/userCenter"> 个人中心 </router-link>
+      <a-dropdown placement="bottomLeft" size="large">
+        <a class="ant-dropdown-link" @click.prevent>
+          {{ userInfo.userName }}
+        </a>
+        <template #overlay>
+          <a-menu>
+            <a-menu-item>
+              <a @click="handleRouterClick(PageEnum.UserCenter)"> 个人中心 </a>
+            </a-menu-item>
+            <a-menu-divider />
+            <a-menu-item>
+              <a @click="handleLogout"> 退出登录 </a>
+            </a-menu-item>
+          </a-menu>
+        </template>
+      </a-dropdown>
     </div>
   </div>
 </template>
@@ -40,19 +58,25 @@ import { goRouterByParam } from "../../utils/common";
 export default defineComponent({
   components: { UserOutlined },
   setup() {
-    const userInfo = ref(undefined) as any;
+    const userInfo = ref({}) as any;
     var strUser = localStorage.getItem("userInfo");
     if (strUser) {
       userInfo.value = JSON.parse(strUser);
     }
     //路由跳转
-    const onRouterClick = (routerName: string) => {
+    const handleRouterClick = (routerName: string) => {
       goRouterByParam(routerName);
+    };
+    const handleLogout = () => {
+      localStorage.removeItem("userInfo");
+      localStorage.removeItem("token");
+      goRouterByParam(PageEnum.Login);
     };
     return {
       userInfo,
       PageEnum,
-      onRouterClick,
+      handleRouterClick,
+      handleLogout,
     };
   },
 });

@@ -47,6 +47,7 @@ import { userLogin } from "../../request/api";
 import { PageEnum } from "../../router/data";
 import { goRouterByParam } from "../../utils/common";
 import { Md5 } from "ts-md5";
+import { buildUUID } from "../../utils/uuid";
 
 export default defineComponent({
   setup() {
@@ -60,6 +61,21 @@ export default defineComponent({
         username: formState.username,
         password: Md5.hashStr(formState.password),
       };
+      //todo 暂采用本地缓存模式
+      if (formState.username === "admin" && formState.password === "123") {
+        message.success("登录成功");
+        const userInfo = { userCode: "admin", userName: "系统管理员" };
+        localStorage.setItem("userInfo", JSON.stringify(userInfo));
+        localStorage.setItem("token", buildUUID());
+        goRouterByParam(PageEnum.UserCenter);
+      } else {
+        notification["error"]({
+          message: "错误提醒",
+          description: "用户名或密码错误",
+          duration: 10,
+        });
+      }
+      return;
       userLogin(param)
         .then((res: any) => {
           if (res.code === 100) {

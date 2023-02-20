@@ -1,7 +1,7 @@
 <template>
   <Container class="main-container">
     <div style="display: flex">
-      <a-card hoverable class="card">
+      <a-card hoverable class="card" @click="handleSetting">
         <template #cover>
           <img
             height="180"
@@ -33,6 +33,7 @@
 </template>
 
 <script lang="ts">
+import { message } from "ant-design-vue";
 import { defineComponent } from "vue";
 import Container from "../../components/Container/index.vue";
 import { PageEnum } from "../../router/data";
@@ -47,11 +48,16 @@ export default defineComponent({
       goRouterByParam(PageEnum.Login);
     };
 
+    const handleSetting = () => {
+      message.warning("正在开发中");
+    };
+
     const handleMyList = () => {
       goRouterByParam(PageEnum.DesignRoadList);
     };
 
     return {
+      handleSetting,
       handleLogout,
       handleMyList,
     };

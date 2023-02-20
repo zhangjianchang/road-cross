@@ -698,6 +698,7 @@ export default defineComponent({
       offset: 0.5, // 偏移量
       length: 80, // 路长125m
       cross_len: 20, // 交叉口长度m（距离原点），TODO：当右转路夹角很小时，该长度变长
+      stop_line_length: 30, //长实线长度
 
       speed: 40, //路段速度
 
@@ -994,7 +995,6 @@ export default defineComponent({
             rc.median_strip.width +
             (rc.exit.bike_lane.has ? rc.exit.bike_lane.width : 0)) *
           dw.ratio;
-        console.log(111,len, len2);
         pt = cal_point(dw, d, dr, len);
         sd.far = pt;
         pt = cal_point(dw, d, dr, len2);
@@ -1018,7 +1018,6 @@ export default defineComponent({
             rc.median_strip.width +
             (rc.exit.bike_lane.has ? rc.exit.bike_lane.width : 0)) *
           dw.ratio;
-        console.log(222, len, len2);
         pt = cal_point(dw, d, dr, len);
         sd.ext1 = pt;
         pt = cal_point(dw, d, dr, len2);
@@ -1329,7 +1328,7 @@ export default defineComponent({
           dr = Math.PI * 0.5;
           pt = cal_point(dw, d, dr, len);
           d_str = "M" + pt.x + "," + pt.y + " ";
-          d = (rc.cross_len + rc.enter.extend_len - 22) * dw.ratio;
+          d = (rc.stop_line_length + 10) * dw.ratio;
           pt = cal_point(dw, d, dr, len);
           d_str += "L" + pt.x + "," + pt.y + " ";
 

@@ -35,7 +35,7 @@
               type="primary"
               class="login-button"
               block
-              @click="handleLogin"
+              @click="handleSignIn"
             >
               注册
             </a-button>
@@ -48,6 +48,7 @@
 </template>
 
 <script lang="ts">
+import { message } from "ant-design-vue";
 import { defineComponent, reactive } from "vue";
 import { userLogin } from "../../request/api";
 import { PageEnum } from "../../router/data";
@@ -60,10 +61,8 @@ export default defineComponent({
       password: "",
     });
 
-    const handleLogin = () => {
-      userLogin(formState).then((res: any) => {
-        console.log(res);
-      });
+    const handleSignIn = () => {
+      message.warning("内测阶段暂未开放用户注册功能");
     };
 
     const gotoLogIn = () => {
@@ -72,7 +71,7 @@ export default defineComponent({
 
     return {
       formState,
-      handleLogin,
+      handleSignIn,
       gotoLogIn,
     };
   },

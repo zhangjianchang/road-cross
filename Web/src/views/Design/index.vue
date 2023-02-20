@@ -80,6 +80,13 @@ export default defineComponent({
   setup() {
     const route = useRoute();
     const id = (route.params.id ?? "").toString();
+    //判断权限
+    var token = localStorage.getItem("userInfo");
+    if (!token) {
+      message.warning("请先登录");
+      goRouterByParam(PageEnum.Login);
+    }
+
     //子页面
     const basicRef = ref();
     roadStates.currentUrl = MenuListEnum.Basic;
