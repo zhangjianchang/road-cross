@@ -85,7 +85,14 @@
 </template>
 
 <script lang="ts">
-import { createVNode, defineComponent, onMounted, reactive, toRefs } from "vue";
+import {
+  createVNode,
+  defineComponent,
+  inject,
+  onMounted,
+  reactive,
+  toRefs,
+} from "vue";
 import { isPointInCircle, getCoordinate, setLineXY, columns } from "./index";
 import Container from "../../../components/Container/index.vue";
 import { Modal, notification } from "ant-design-vue";
@@ -227,9 +234,6 @@ export default defineComponent({
       //删除模式
       if (states.deleting) {
         e.target.remove();
-        console.log(states.dragId);
-        console.log(road_info.road_attr.map((r) => r.id));
-
         road_info.road_attr = road_info.road_attr.filter(
           (r) => r.id !== states.dragId
         );
@@ -270,7 +274,7 @@ export default defineComponent({
 
     //鼠标抬起
     function onMouseUp(e: any) {
-      if (states.deleting) {
+      if (states.deleting || !states.dragging) {
         return; //删除线段时直接返回
       }
       const event = e || window.event;
@@ -281,12 +285,11 @@ export default defineComponent({
         return;
       }
       setTimeout(() => {
-        //颜色释放
-        if (states.dragging) {
-          const arrowId = getArrowId();
-          const currentArrow = document.querySelector(`#${arrowId}>path`);
-          currentArrow?.setAttribute("style", "fill: rgb(79, 72, 173)");
-        }
+        //箭头颜色释放
+        const arrowId = getArrowId();
+        const currentArrow = document.querySelector(`#${arrowId}>path`);
+        currentArrow?.setAttribute("style", "fill: rgb(79, 72, 173)");
+        //重新定位
         let coordinate = getXYByNxNy(nx, ny);
         setLineXY(
           states.currentLine,
@@ -298,12 +301,12 @@ export default defineComponent({
         setRoadDir(coordinate);
         states.currentLine = null;
         states.dragging = false;
+        states.dragId = "";
       }, 30);
     }
 
     function setRoadDir(coordinate: number[]) {
       let angle = getAngle(states.cx, states.cy, coordinate[0], coordinate[1]);
-      console.log(angle);
       road_info.road_attr.map((c) => {
         if (c.id === states.dragId) {
           c.position = `X:${coordinate[0]}\n\n Y:${coordinate[1]}`;
