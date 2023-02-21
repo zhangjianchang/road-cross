@@ -127,3 +127,35 @@ export function getRoadDefaultSign(
 export function getDirectionIndex(direction: string) {
   return Number(direction.replace("road_", "")) - 1;
 }
+
+/**
+ *设置隔离带样式
+ * @param path 路径对象
+ * @param div_type 分割类型
+ * @param width 可设宽度的路口宽度
+ */
+export function setIsolationStyle(
+  path: any,
+  div_type: string,
+  width: number = 2
+) {
+  if (
+    div_type === "双黄线" ||
+    div_type === "单黄线" ||
+    div_type === "鱼肚线" ||
+    div_type === "黄斜线"
+  ) {
+    path.setAttribute("stroke", "rgb(255,165,0)");
+  } else if (div_type === "划线") {
+    path.setAttribute("stroke", "rgb(255,255,255)");
+  } else if (div_type === "绿化带") {
+    path.setAttribute("stroke", "rgb(50,205,50)");
+    path.setAttribute("stroke-width", width.toString());
+  } else if (div_type === "护栏") {
+    path.setAttribute("stroke", "rgb(255,255,255)");
+    path.setAttribute("stroke-dasharray", "5,5");
+    path.setAttribute("stroke-width", "4");
+  } else {
+    path.setAttribute("stroke", "rgb(255,255,255)");
+  }
+}
