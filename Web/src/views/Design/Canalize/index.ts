@@ -129,6 +129,20 @@ export function getDirectionIndex(direction: string) {
 }
 
 /**
+ * 获取非机动车宽度
+ * @param road_info 路口信息
+ * @param index 道路索引
+ */
+export function getBikeLaneWidth(road_info: any, index: number) {
+  return (
+    (road_info.canalize_info[index].enter.bike_lane.width / 3.5) *
+      road_info.canalize_info[index].enter.bike_lane.has +
+    (road_info.canalize_info[index].exit.bike_lane.width / 3.5) *
+      road_info.canalize_info[index].exit.bike_lane.has
+  );
+}
+
+/**
  *设置隔离带样式
  * @param path 路径对象
  * @param div_type 分割类型

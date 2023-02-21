@@ -674,6 +674,7 @@ import {
   medianStripTypeOption,
   roadSigns,
   setIsolationStyle,
+  getBikeLaneWidth,
 } from "./index";
 import Container from "../../../components/Container/index.vue";
 import { notification } from "ant-design-vue";
@@ -1630,7 +1631,6 @@ export default defineComponent({
       let road = 0;
       var way_count = 0; //每条路单行三条道
       for (var i = 0; i < states.cross_line_pts.length; i++) {
-        console.log(road, road_info.canalize_info[road]);
         let all_count =
           road_info.canalize_info[road].enter.num +
           road_info.canalize_info[road].exit.num; //每条路全部车道数量
@@ -1640,15 +1640,25 @@ export default defineComponent({
           var prevPt = states.cross_line_pts[i - 1];
           //几条道路（默认双向六条）
           for (let way_idx = 0; way_idx < all_count; way_idx++) {
-            var is_reverse = way_idx < way_count;
+            var is_reverse = way_idx < way_count; //出口
             var right_idx = way_idx - way_count;
             var is_last = all_count === way_idx + 1;
-            //右侧道路离中心距离微调
-            var k = way_idx < way_count ? way_idx : way_idx * 0.97;
+            //左右侧道路离中心距离微调
+            var k =
+              (way_idx +
+                (road_info.canalize_info[road].enter.bike_lane.width / 3.5) *
+                  road_info.canalize_info[road].enter.bike_lane.has +
+                (road_info.canalize_info[road].exit.bike_lane.width / 3.5) *
+                  road_info.canalize_info[road].exit.bike_lane.has) *
+              0.97;
             //(x1+k(x2-x1)/n,y1+k(y2-y1)/n)线段n等分公式
             var wayPt = [
-              prevPt.x + (k * (pt.x - prevPt.x)) / all_count,
-              prevPt.y + (k * (pt.y - prevPt.y)) / all_count,
+              prevPt.x +
+                (k * (pt.x - prevPt.x)) /
+                  (all_count + getBikeLaneWidth(road_info, road)),
+              prevPt.y +
+                (k * (pt.y - prevPt.y)) /
+                  (all_count + getBikeLaneWidth(road_info, road)),
             ];
             var path = document.createElementNS(states.ns, "path");
             path.setAttribute("id", `road_sign_${i}`);
