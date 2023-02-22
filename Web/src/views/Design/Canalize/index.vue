@@ -1219,7 +1219,7 @@ export default defineComponent({
 
         //var pt = dw.origin;
         //d_str += "M" + pt.x + "," + pt.y + " ";
-
+        //todo walk1 人行道外侧 walk2 人行道里侧，当另一条道路过宽时修改相邻道路这两个数值
         var sd = dw.enter_side;
         var pt = sd.walk1;
         d_str += "M" + pt.x + "," + pt.y + " ";
