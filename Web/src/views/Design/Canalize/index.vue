@@ -201,9 +201,9 @@
               <a-col :span="12">
                 <a-form-item label="渠化方式">
                   <a-tooltip>
-                    <template #title>{{
-                      canalize_info[cur_road_dir].canalize.type
-                    }}</template>
+                    <template #title>
+                      {{ canalize_info[cur_road_dir].canalize.type }}
+                    </template>
                     <a-select
                       v-model:value="canalize_info[cur_road_dir].canalize.type"
                       size="small"
@@ -262,8 +262,9 @@
                   <a-input-number
                     v-model:value="canalize_info[cur_road_dir].enter.lane_width"
                     @change="on_prop_change"
+                    :disabled="!canalize_info[cur_road_dir].enter.num"
                     :min="3.5"
-                    :max="10"
+                    :max="5.5"
                     :step="1"
                     size="small"
                     class="form-width"
@@ -276,6 +277,7 @@
                   <a-input-number
                     v-model:value="canalize_info[cur_road_dir].enter.extend_num"
                     @change="on_prop_change"
+                    :disabled="!canalize_info[cur_road_dir].enter.num"
                     :min="-2"
                     :max="2"
                     :step="1"
@@ -292,6 +294,7 @@
                       canalize_info[cur_road_dir].enter.extend_width
                     "
                     @change="on_prop_change"
+                    :disabled="!canalize_info[cur_road_dir].enter.num"
                     :min="0"
                     :max="6"
                     :step="1"
@@ -306,6 +309,7 @@
                   <a-input-number
                     v-model:value="canalize_info[cur_road_dir].enter.extend_len"
                     @change="on_prop_change"
+                    :disabled="!canalize_info[cur_road_dir].enter.num"
                     :min="30"
                     :max="40"
                     :step="5"
@@ -320,6 +324,7 @@
                   <a-input-number
                     v-model:value="canalize_info[cur_road_dir].enter.out_curv"
                     @change="on_prop_change"
+                    :disabled="!canalize_info[cur_road_dir].enter.num"
                     :min="0"
                     :max="50"
                     :step="1"
@@ -334,6 +339,7 @@
                   <a-input-number
                     v-model:value="canalize_info[cur_road_dir].enter.offset"
                     @change="on_prop_change"
+                    :disabled="!canalize_info[cur_road_dir].enter.num"
                     :min="0"
                     :max="10"
                     :step="1"
@@ -348,6 +354,7 @@
                   <a-input-number
                     v-model:value="canalize_info[cur_road_dir].enter.in_curv"
                     @change="on_prop_change"
+                    :disabled="!canalize_info[cur_road_dir].enter.num"
                     :min="0"
                     :max="50"
                     :step="1"
@@ -383,8 +390,9 @@
                   <a-input-number
                     v-model:value="canalize_info[cur_road_dir].exit.lane_width"
                     @change="on_prop_change"
+                    :disabled="!canalize_info[cur_road_dir].exit.num"
                     :min="3.5"
-                    :max="10"
+                    :max="5.5"
                     :step="1"
                     size="small"
                     class="form-width"
@@ -397,6 +405,7 @@
                   <a-input-number
                     v-model:value="canalize_info[cur_road_dir].exit.extend_num"
                     @change="on_prop_change"
+                    :disabled="!canalize_info[cur_road_dir].exit.num"
                     :min="-2"
                     :max="2"
                     :step="1"
@@ -413,6 +422,7 @@
                       canalize_info[cur_road_dir].exit.extend_width
                     "
                     @change="on_prop_change"
+                    :disabled="!canalize_info[cur_road_dir].exit.num"
                     :min="0"
                     :max="10"
                     :step="1"
@@ -427,6 +437,7 @@
                   <a-input-number
                     v-model:value="canalize_info[cur_road_dir].exit.extend_len"
                     @change="on_prop_change"
+                    :disabled="!canalize_info[cur_road_dir].exit.num"
                     :min="30"
                     :max="40"
                     :step="5"
@@ -441,6 +452,7 @@
                   <a-input-number
                     v-model:value="canalize_info[cur_road_dir].exit.out_curv"
                     @change="on_prop_change"
+                    :disabled="!canalize_info[cur_road_dir].exit.num"
                     :min="0"
                     :max="50"
                     :step="1"
@@ -865,8 +877,6 @@ export default defineComponent({
 
     function onLoad() {
       create_road_cross(); // 创建路口数据结构
-      // init_panel();
-      // update_panel(); // 初始化参数面板
       render(); // 渲染图形
       // setTimeout(initZoomPan, 500);
     }
@@ -1235,7 +1245,7 @@ export default defineComponent({
         d_str += "L" + pt.x + "," + pt.y + " ";
 
         road.setAttribute("d", d_str);
-        // road.setAttribute("stroke", "rgb(162,162,162)");
+        road.setAttribute("id", "main_road_" + (i + 1));
         road.setAttribute("fill", "rgba(162,162,162, 1)");
 
         states.cvs?.appendChild(road);
@@ -1318,13 +1328,15 @@ export default defineComponent({
         pt = cal_point(dw, d, -dr, len);
         d_str += "L" + pt.x + "," + pt.y + " ";
 
-        var sep = document.createElementNS(states.ns, "path"); // 隔离带
-        sep.setAttribute("d", d_str);
-        sep.setAttribute("stroke-width", "2");
-        sep.setAttribute("fill", "none");
-        setIsolationStyle(sep, rc.median_strip.type);
-        states.cvs?.appendChild(sep);
-
+        //如果没有入口或出口车道，不绘制隔离带
+        if (rc.enter.num !== 0 && rc.exit.num !== 0) {
+          var sep = document.createElementNS(states.ns, "path"); // 隔离带
+          sep.setAttribute("d", d_str);
+          sep.setAttribute("stroke-width", "2");
+          sep.setAttribute("fill", "none");
+          setIsolationStyle(sep, rc.median_strip.type);
+          states.cvs?.appendChild(sep);
+        }
         // 进口人行道横白条
         pt = ewkb_pt;
         d_str = "M" + pt.x + "," + pt.y + " ";
@@ -1560,6 +1572,34 @@ export default defineComponent({
           setIsolationStyle(bkdiv, rc.exit.bike_lane.div_type);
           states.cvs?.appendChild(bkdiv);
         }
+
+        // 入口路标
+        for (var j = 0; j < rc.enter.num; j++) {
+          //增加偏移系数k，微调路标位置
+          const k = j === 0 ? -0.2 : j < 3 ? j * 0.9 : j * 0.97;
+          //增加偏移系数k2，调整路宽时调整路标位置
+          const k2 = (rc.enter.lane_width - 3.5) * 0.8;
+          len =
+            (rc.median_strip.width + rc.enter.lane_width * k + k2) * dw.ratio;
+          d = rc.cross_len * dw.ratio;
+          dr = Math.PI * 0.5;
+          pt = cal_point(dw, d, dr, len);
+          create_road_sign(pt, i, j, j === rc.enter.num - 1);
+        }
+
+        // 出口路标
+        for (var j = 1; j <= rc.exit.num; j++) {
+          //增加偏移系数k，微调路标位置
+          const k = j === 1 ? j * 1.1 : j * 1.05;
+          //增加偏移系数k2，调整路宽时调整路标位置
+          const k2 = -(rc.exit.lane_width - 3.5) * 0.8;
+          len =
+            (rc.median_strip.width + rc.exit.lane_width * k + k2) * dw.ratio;
+          d = rc.cross_len * dw.ratio;
+          dr = -Math.PI * 0.5;
+          pt = cal_point(dw, d, dr, len);
+          create_road_sign(pt, i, 0, false, true);
+        }
       }
 
       // cross的右转白线 和旋转的文字“方向n”
@@ -1623,11 +1663,56 @@ export default defineComponent({
 
         states.cvs?.appendChild(txt);
       }
-      //画路标
-      create_road_sign();
     }
 
-    function create_road_sign() {
+    /**
+     * 绘制路标
+     * @param way_pt 绘制坐标原点
+     * @param index 整条道路index
+     * @param right_idx 右边车道index
+     * @param is_last 是否是入口最后一个车道
+     * @param is_reverse 是否反转(即是否出口车道)
+     */
+    function create_road_sign(
+      way_pt: { x: number; y: number },
+      index: number,
+      right_idx: number,
+      is_last = false,
+      is_reverse = false
+    ) {
+      var path = document.createElementNS(states.ns, "path");
+      path.setAttribute("id", `road_sign_${index}`);
+      path.setAttribute(
+        "d",
+        getRoadDefaultSign(right_idx, is_reverse, is_last)
+      );
+      path.setAttribute("fill", "#ffffff");
+      path.setAttribute("width", "100");
+      path.setAttribute("height", "100");
+
+      var svg = document.createElementNS(states.ns, "svg");
+      svg.appendChild(path);
+      svg.setAttribute("viewBox", "0 0 1024 1024");
+      svg.setAttribute("height", "40");
+      svg.setAttribute("width", "18");
+      svg.setAttribute("x", way_pt.x.toString());
+      svg.setAttribute("y", way_pt.y.toString());
+      var g = document.createElementNS(states.ns, "g");
+      g.setAttribute(
+        "transform",
+        `rotate(${270 - road_info.road_attr[index].angle} ${way_pt.x} ${
+          way_pt.y
+        })`
+      );
+      if (!is_reverse) {
+        g.setAttribute("style", "cursor:pointer");
+        g.addEventListener("click", handleChoose, false);
+      }
+      g.appendChild(svg);
+      states.cvs?.appendChild(g);
+    }
+
+    function create_road_sign_copy() {
       let road = 0;
       var way_count = 0; //每条路单行三条道
       for (var i = 0; i < states.cross_line_pts.length; i++) {
@@ -1660,6 +1745,7 @@ export default defineComponent({
                 (k * (pt.y - prevPt.y)) /
                   (all_count + getBikeLaneWidth(road_info, road)),
             ];
+            drawPoint(wayPt[0], wayPt[1], "red");
             var path = document.createElementNS(states.ns, "path");
             path.setAttribute("id", `road_sign_${i}`);
             path.setAttribute(
@@ -1717,7 +1803,6 @@ export default defineComponent({
      */
     // 方向选择
     function on_sel_dirs_change() {
-      // update_panel();
       render();
     }
 
@@ -1730,12 +1815,21 @@ export default defineComponent({
 
     //页面属性变化
     function on_prop_change() {
+      //黄斜线和绿化带可设宽度，其余默认
       if (
         ["黄斜线", "绿化带"].indexOf(
           road_info.canalize_info[states.cur_road_dir].median_strip.type
         ) === -1
       ) {
         road_info.canalize_info[states.cur_road_dir].median_strip.width = 0.5;
+      }
+      //入口道路数量为0时，展宽也为0
+      if (!road_info.canalize_info[states.cur_road_dir].enter.num) {
+        road_info.canalize_info[states.cur_road_dir].enter.extend_num = 0;
+      }
+      //出口道路数量为0时，展宽也为0
+      if (!road_info.canalize_info[states.cur_road_dir].exit.num) {
+        road_info.canalize_info[states.cur_road_dir].exit.extend_num = 0;
       }
       render();
     }
