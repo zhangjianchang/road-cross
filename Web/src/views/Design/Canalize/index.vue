@@ -247,7 +247,7 @@
                 <a-form-item label="进口车道">
                   <a-input-number
                     v-model:value="canalize_info[cur_road_dir].enter.num"
-                    @change="on_prop_change"
+                    @change="on_prop_change('enter_num')"
                     :min="0"
                     :max="6"
                     :step="1"
@@ -319,7 +319,7 @@
                   <div class="span-unit">米</div>
                 </a-form-item>
               </a-col>
-              <a-col :span="12">
+              <!-- <a-col :span="12">
                 <a-form-item label="外侧渐变段长">
                   <a-input-number
                     v-model:value="canalize_info[cur_road_dir].enter.out_curv"
@@ -363,7 +363,7 @@
                   />
                   <div class="span-unit">米</div>
                 </a-form-item>
-              </a-col>
+              </a-col> -->
             </a-row>
           </a-form>
         </div>
@@ -375,7 +375,7 @@
                 <a-form-item label="出口车道">
                   <a-input-number
                     v-model:value="canalize_info[cur_road_dir].exit.num"
-                    @change="on_prop_change"
+                    @change="on_prop_change('exit_num')"
                     :min="0"
                     :max="6"
                     :step="1"
@@ -447,7 +447,7 @@
                   <div class="span-unit">米</div>
                 </a-form-item>
               </a-col>
-              <a-col :span="12">
+              <!-- <a-col :span="12">
                 <a-form-item label="渐变段长">
                   <a-input-number
                     v-model:value="canalize_info[cur_road_dir].exit.out_curv"
@@ -461,7 +461,7 @@
                   />
                   <div class="span-unit">米</div>
                 </a-form-item>
-              </a-col>
+              </a-col> -->
             </a-row>
           </a-form>
         </div>
@@ -670,7 +670,12 @@
           :key="road.key"
           @click="handleConfirmSign(road.key)"
         >
-          <path :d="road.path" fill="#ffffff" :title="road.name"></path>
+          <path
+            :d="road.path"
+            fill="#ffffff"
+            :title="road.name"
+            id="notDelete"
+          ></path>
         </svg>
       </div>
     </a-modal>
@@ -678,24 +683,19 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, inject, onMounted, reactive, ref, toRefs } from "vue";
+import { defineComponent, onMounted, reactive, toRefs } from "vue";
 import {
   canalizeTypeOption,
-  getDirectionIndex,
   getRoadDefaultSign,
   medianStripTypeOption,
   roadSigns,
   setIsolationStyle,
-  getBikeLaneWidth,
+  getCrossLenByTwoRoad,
 } from "./index";
 import Container from "../../../components/Container/index.vue";
 import { notification } from "ant-design-vue";
 import { DragOutlined } from "@ant-design/icons-vue";
-import {
-  getQByPathCurv,
-  intersect_line_point,
-  line_pt3,
-} from "../../../utils/common";
+import { intersect_line_point, line_pt3 } from "../../../utils/common";
 import { road_info } from "..";
 
 export default defineComponent({
@@ -721,6 +721,7 @@ export default defineComponent({
       offset: 0.5, // 偏移量
       length: 80, // 路长125m
       cross_len: 20, // 交叉口长度m（距离原点），TODO：当右转路夹角很小时，该长度变长
+      cross_len_new: 20, // 根据真实情况会对原始cross_len做后移调整
       stop_line_length: 30, //长实线长度
 
       speed: 40, //路段速度
@@ -781,6 +782,11 @@ export default defineComponent({
         straight: 0, // 直行等待
         through: "否", // no wait，当>0时，穿越到方向1-n
         thr_type: "无", // 穿越方式：无，分隔贯通，隔离桩，斑马线
+      },
+
+      road_sign: {
+        enter: [],
+        exit: [],
       },
     };
 
@@ -867,6 +873,11 @@ export default defineComponent({
         pos: { x: 0, y: 0 },
         color: "#000",
       },
+
+      road_sign: {
+        enter: [],
+        exit: [],
+      },
     };
 
     /**
@@ -899,6 +910,7 @@ export default defineComponent({
         var angle = parseFloat(dir[i]); // 角度
         rc.angle = angle;
         rc.name = "方向" + (i + 1);
+        create_sign(rc);
         road_info.canalize_info.push(rc);
       }
     }
@@ -912,6 +924,7 @@ export default defineComponent({
           rc = road_info.canalize_info[i]; //存在则取原有数据
         } else {
           rc = JSON.parse(JSON.stringify(RoadCross)); // 不存在则取模板对象
+          create_sign(rc);
         }
         var angle = parseFloat(dir[i]); // 角度
         rc.angle = angle;
@@ -921,12 +934,29 @@ export default defineComponent({
       Object.assign(road_info.canalize_info, canalize_info_list);
     }
 
+    function create_sign(rc: any) {
+      rc.road_sign.enter.length = 0;
+      rc.road_sign.exit.length = 0;
+      //左边路标
+      for (var j = 0; j < rc.enter.num; j++) {
+        const rs = getRoadDefaultSign(j, false, j === rc.enter.num - 1);
+        rc.road_sign.enter.push(rs);
+      }
+      //左边路标
+      for (var j = 0; j < rc.exit.num; j++) {
+        const rs = getRoadDefaultSign(j, true, false);
+        rc.road_sign.exit.push(rs);
+      }
+    }
+
     // 创建用于渲染（绘制）的数据结构
     function create_draw() {
       arr_rc_draw = []; // 清空
       var temp = JSON.stringify(Draw); // Draw模板
       for (var i = 0; i < road_info.canalize_info.length; i++) {
         var rc = road_info.canalize_info[i]; // road cross对象
+        const addLen = getCrossLenByTwoRoad(i);
+        rc.cross_len_new = rc.cross_len + addLen;
         var dw = JSON.parse(temp); // road cross对应的绘制对象
 
         dw.dir.angle = rc.angle;
@@ -957,24 +987,26 @@ export default defineComponent({
             rc.enter.bike_lane.has * rc.enter.bike_lane.width +
             rc.median_strip.width) *
           dw.ratio; // 不带margin
-        d = (rc.cross_len - rc.walk.zebra_len) * dw.ratio;
+        d = (rc.cross_len_new - rc.walk.zebra_len) * dw.ratio;
         pt = cal_point(dw, d, dr, len);
         sd.walk1 = pt;
         pt = cal_point(dw, d, dr, len2);
         sd2.walk1 = pt;
-        d = rc.cross_len * dw.ratio;
+        d = rc.cross_len_new * dw.ratio;
         pt = cal_point(dw, d, dr, len);
         sd.walk2 = pt;
         pt = cal_point(dw, d, dr, len2);
         sd2.walk2 = pt;
 
         // 展宽
-        d = (rc.cross_len + rc.enter.extend_len) * dw.ratio;
+        d = (rc.cross_len_new + rc.enter.extend_len) * dw.ratio;
         pt = cal_point(dw, d, dr, len);
         sd.ext1 = pt;
         pt = cal_point(dw, d, dr, len2);
         sd2.ext1 = pt;
-        d = (rc.cross_len + rc.enter.extend_len + rc.enter.in_curv) * dw.ratio;
+        d =
+          (rc.cross_len_new + rc.enter.extend_len + rc.enter.in_curv) *
+          dw.ratio;
         len =
           (rc.enter.num * rc.enter.lane_width -
             rc.enter.extend_num * rc.enter.extend_width +
@@ -1022,12 +1054,13 @@ export default defineComponent({
         sd2.far = pt;
 
         // 展宽
-        d = (rc.cross_len + rc.exit.extend_len + rc.exit.in_curv) * dw.ratio;
+        d =
+          (rc.cross_len_new + rc.exit.extend_len + rc.exit.in_curv) * dw.ratio;
         pt = cal_point(dw, d, dr, len);
         sd.ext2 = pt;
         pt = cal_point(dw, d, dr, len2);
         sd2.ext2 = pt;
-        d = (rc.cross_len + rc.exit.extend_len) * dw.ratio;
+        d = (rc.cross_len_new + rc.exit.extend_len) * dw.ratio;
         len =
           (rc.exit.num * rc.exit.lane_width +
             rc.median_strip.width +
@@ -1045,12 +1078,12 @@ export default defineComponent({
         sd2.ext1 = pt;
 
         // 人行道
-        d = rc.cross_len * dw.ratio;
+        d = rc.cross_len_new * dw.ratio;
         pt = cal_point(dw, d, dr, len);
         sd.walk2 = pt;
         pt = cal_point(dw, d, dr, len2);
         sd2.walk2 = pt;
-        d = (rc.cross_len - rc.walk.zebra_len) * dw.ratio;
+        d = (rc.cross_len_new - rc.walk.zebra_len) * dw.ratio;
         pt = cal_point(dw, d, dr, len);
         sd.walk1 = pt;
         pt = cal_point(dw, d, dr, len2);
@@ -1109,7 +1142,7 @@ export default defineComponent({
         );
 
         // 文字：方向n
-        d = (rc.cross_len + rc.length * 0.3) * dw.ratio;
+        d = (rc.cross_len_new + rc.length * 0.3) * dw.ratio;
         len =
           (rc.enter.num * rc.enter.lane_width -
             rc.median_strip.width +
@@ -1118,6 +1151,16 @@ export default defineComponent({
           dw.ratio;
         pt = cal_point(dw, d, -dr, len + 20);
         dw.txt.pos = pt;
+
+        //右边路标
+        rc.road_sign.enter;
+        for (var j = 0; j < rc.enter.num; j++) {
+          dw.road_sign.enter[j] = rc.road_sign.enter[j];
+        }
+        //左边路标
+        for (var j = 0; j < rc.exit.num; j++) {
+          dw.road_sign.exit[j] = rc.road_sign.exit[j];
+        }
 
         arr_rc_draw.push(dw);
       }
@@ -1151,9 +1194,11 @@ export default defineComponent({
       states.ns = "http://www.w3.org/2000/svg";
       states.cvs = _ge("canvas");
       states.cross_line_pts.length = 0;
-      document.querySelectorAll("path").forEach((e) => {
-        //清空所有路径
-        e.remove();
+      document.querySelectorAll("path").forEach((e: any) => {
+        if (e.id !== "notDelete") {
+          //清空所有路径，保留弹窗内路标
+          e.remove();
+        }
       });
       document.querySelectorAll("text").forEach((e) => {
         //清空所有文字
@@ -1219,7 +1264,6 @@ export default defineComponent({
 
         //var pt = dw.origin;
         //d_str += "M" + pt.x + "," + pt.y + " ";
-        //todo walk1 人行道外侧 walk2 人行道里侧，当另一条道路过宽时修改相邻道路这两个数值
         var sd = dw.enter_side;
         var pt = sd.walk1;
         d_str += "M" + pt.x + "," + pt.y + " ";
@@ -1245,8 +1289,9 @@ export default defineComponent({
         d_str += "L" + pt.x + "," + pt.y + " ";
 
         road.setAttribute("d", d_str);
-        road.setAttribute("id", "main_road_" + (i + 1));
+        road.setAttribute("id", i.toString());
         road.setAttribute("fill", "rgba(162,162,162, 1)");
+        road.addEventListener("click", handleMainRoad, false);
 
         states.cvs?.appendChild(road);
 
@@ -1313,7 +1358,7 @@ export default defineComponent({
             : 0) *
           rc.median_strip.width *
           dw.ratio;
-        var d = rc.cross_len * dw.ratio;
+        var d = rc.cross_len_new * dw.ratio;
         var dr = Math.PI * 0.5;
         pt = cal_point(dw, d, dr, len);
         var ewkb_pt = { x: pt.x, y: pt.y }; // 进口人行道横白条靠近隔离带的点：enter walk bar point
@@ -1321,7 +1366,7 @@ export default defineComponent({
         d = rc.length * dw.ratio;
         pt = cal_point(dw, d, dr, len);
         d_str += "L" + pt.x + "," + pt.y + " ";
-        d = rc.cross_len * dw.ratio;
+        d = rc.cross_len_new * dw.ratio;
         pt = cal_point(dw, d, -dr, len);
         d_str += "M" + pt.x + "," + pt.y + " ";
         d = rc.length * dw.ratio;
@@ -1353,11 +1398,13 @@ export default defineComponent({
         for (var j = 1; j < rc.enter.num; j++) {
           // 靠近人行道的白线
           len = (rc.median_strip.width + rc.enter.lane_width * j) * dw.ratio;
-          d = rc.cross_len * dw.ratio;
+          d = rc.cross_len_new * dw.ratio;
           dr = Math.PI * 0.5;
           pt = cal_point(dw, d, dr, len);
           d_str = "M" + pt.x + "," + pt.y + " ";
-          d = (rc.stop_line_length + 10) * dw.ratio;
+          d =
+            (rc.stop_line_length + 10 + (rc.cross_len_new - rc.cross_len)) *
+            dw.ratio;
           pt = cal_point(dw, d, dr, len);
           d_str += "L" + pt.x + "," + pt.y + " ";
 
@@ -1368,10 +1415,10 @@ export default defineComponent({
           states.cvs?.appendChild(line);
 
           // 展宽前
-          d = (rc.cross_len + rc.enter.extend_len - 13) * dw.ratio;
+          d = (rc.cross_len_new + rc.enter.extend_len - 13) * dw.ratio;
           pt = cal_point(dw, d, dr, len);
           d_str = "M" + pt.x + "," + pt.y + " ";
-          d = (rc.cross_len + rc.enter.extend_len - 3) * dw.ratio;
+          d = (rc.cross_len_new + rc.enter.extend_len - 3) * dw.ratio;
           pt = cal_point(dw, d, dr, len);
           d_str += "L" + pt.x + "," + pt.y + " ";
 
@@ -1389,12 +1436,12 @@ export default defineComponent({
           // 展宽后
           len = (rc.median_strip.width + rc.enter.lane_width * j) * dw.ratio;
           d =
-            (rc.cross_len + rc.enter.extend_len + rc.enter.in_curv + 3) *
+            (rc.cross_len_new + rc.enter.extend_len + rc.enter.in_curv + 3) *
             dw.ratio;
           pt = cal_point(dw, d, dr, len);
           d_str = "M" + pt.x + "," + pt.y + " ";
           d =
-            (rc.cross_len + rc.enter.extend_len + rc.enter.in_curv + 13) *
+            (rc.cross_len_new + rc.enter.extend_len + rc.enter.in_curv + 13) *
             dw.ratio;
           pt = cal_point(dw, d, dr, len);
           d_str += "L" + pt.x + "," + pt.y + " ";
@@ -1408,12 +1455,12 @@ export default defineComponent({
           // 展宽后第2部分
           len = (rc.median_strip.width + rc.enter.lane_width * j) * dw.ratio;
           d =
-            (rc.cross_len + rc.enter.extend_len + rc.enter.in_curv + 20) *
+            (rc.cross_len_new + rc.enter.extend_len + rc.enter.in_curv + 20) *
             dw.ratio;
           pt = cal_point(dw, d, dr, len);
           d_str = "M" + pt.x + "," + pt.y + " ";
           d =
-            (rc.cross_len + rc.enter.extend_len + rc.enter.in_curv + 30) *
+            (rc.cross_len_new + rc.enter.extend_len + rc.enter.in_curv + 30) *
             dw.ratio;
           pt = cal_point(dw, d, dr, len);
           d_str += "L" + pt.x + "," + pt.y + " ";
@@ -1431,11 +1478,11 @@ export default defineComponent({
           var num = rc.exit.extend_len / 15;
           for (var n = 0; n < num; n++) {
             len = (rc.median_strip.width + rc.exit.lane_width * j) * dw.ratio;
-            d = (rc.cross_len + 16 * n) * dw.ratio;
+            d = (rc.cross_len_new + 16 * n) * dw.ratio;
             dr = -Math.PI * 0.5;
             pt = cal_point(dw, d, dr, len);
             d_str = "M" + pt.x + "," + pt.y + " ";
-            d = (rc.cross_len + 16 * n + 9) * dw.ratio;
+            d = (rc.cross_len_new + 16 * n + 9) * dw.ratio;
             pt = cal_point(dw, d, dr, len);
             d_str += "L" + pt.x + "," + pt.y + " ";
 
@@ -1497,12 +1544,12 @@ export default defineComponent({
           dr = -Math.PI * 0.5;
           len = (rc.median_strip.width + rc.exit.lane_width * j) * dw.ratio;
           d =
-            (rc.cross_len + rc.exit.extend_len + rc.exit.in_curv + 3) *
+            (rc.cross_len_new + rc.exit.extend_len + rc.exit.in_curv + 3) *
             dw.ratio;
           pt = cal_point(dw, d, dr, len);
           d_str = "M" + pt.x + "," + pt.y + " ";
           d =
-            (rc.cross_len + rc.exit.extend_len + rc.exit.in_curv + 13) *
+            (rc.cross_len_new + rc.exit.extend_len + rc.exit.in_curv + 13) *
             dw.ratio;
           pt = cal_point(dw, d, dr, len);
           d_str += "L" + pt.x + "," + pt.y + " ";
@@ -1516,12 +1563,12 @@ export default defineComponent({
           // 展宽后第2部分
           len = (rc.median_strip.width + rc.exit.lane_width * j) * dw.ratio;
           d =
-            (rc.cross_len + rc.exit.extend_len + rc.exit.in_curv + 20) *
+            (rc.cross_len_new + rc.exit.extend_len + rc.exit.in_curv + 20) *
             dw.ratio;
           pt = cal_point(dw, d, dr, len);
           d_str = "M" + pt.x + "," + pt.y + " ";
           d =
-            (rc.cross_len + rc.exit.extend_len + rc.exit.in_curv + 30) *
+            (rc.cross_len_new + rc.exit.extend_len + rc.exit.in_curv + 30) *
             dw.ratio;
           pt = cal_point(dw, d, dr, len);
           d_str += "L" + pt.x + "," + pt.y + " ";
@@ -1581,10 +1628,10 @@ export default defineComponent({
           const k2 = (rc.enter.lane_width - 3.5) * 0.8;
           len =
             (rc.median_strip.width + rc.enter.lane_width * k + k2) * dw.ratio;
-          d = rc.cross_len * dw.ratio;
+          d = rc.cross_len_new * dw.ratio;
           dr = Math.PI * 0.5;
           pt = cal_point(dw, d, dr, len);
-          create_road_sign(pt, i, j, j === rc.enter.num - 1);
+          create_road_sign(pt, i, j, dw.road_sign.enter[j]);
         }
 
         // 出口路标
@@ -1595,10 +1642,10 @@ export default defineComponent({
           const k2 = -(rc.exit.lane_width - 3.5) * 0.8;
           len =
             (rc.median_strip.width + rc.exit.lane_width * k + k2) * dw.ratio;
-          d = rc.cross_len * dw.ratio;
+          d = rc.cross_len_new * dw.ratio;
           dr = -Math.PI * 0.5;
           pt = cal_point(dw, d, dr, len);
-          create_road_sign(pt, i, 0, false, true);
+          create_road_sign(pt, i, j, dw.road_sign.exit[j - 1], true);
         }
       }
 
@@ -1669,23 +1716,19 @@ export default defineComponent({
      * 绘制路标
      * @param way_pt 绘制坐标原点
      * @param index 整条道路index
-     * @param right_idx 右边车道index
-     * @param is_last 是否是入口最后一个车道
+     * @param road_sign 路标
      * @param is_reverse 是否反转(即是否出口车道)
      */
     function create_road_sign(
       way_pt: { x: number; y: number },
       index: number,
-      right_idx: number,
-      is_last = false,
+      way_index: number,
+      road_sign: string,
       is_reverse = false
     ) {
       var path = document.createElementNS(states.ns, "path");
-      path.setAttribute("id", `road_sign_${index}`);
-      path.setAttribute(
-        "d",
-        getRoadDefaultSign(right_idx, is_reverse, is_last)
-      );
+      path.setAttribute("id", `${index};${way_index}`);
+      path.setAttribute("d", road_sign);
       path.setAttribute("fill", "#ffffff");
       path.setAttribute("width", "100");
       path.setAttribute("height", "100");
@@ -1712,74 +1755,11 @@ export default defineComponent({
       states.cvs?.appendChild(g);
     }
 
-    function create_road_sign_copy() {
-      let road = 0;
-      var way_count = 0; //每条路单行三条道
-      for (var i = 0; i < states.cross_line_pts.length; i++) {
-        let all_count =
-          road_info.canalize_info[road].enter.num +
-          road_info.canalize_info[road].exit.num; //每条路全部车道数量
-        way_count = road_info.canalize_info[road].exit.num; //出口车道数量
-        var pt = states.cross_line_pts[i];
-        if (i > 0 && i % 2 !== 0) {
-          var prevPt = states.cross_line_pts[i - 1];
-          //几条道路（默认双向六条）
-          for (let way_idx = 0; way_idx < all_count; way_idx++) {
-            var is_reverse = way_idx < way_count; //出口
-            var right_idx = way_idx - way_count;
-            var is_last = all_count === way_idx + 1;
-            //左右侧道路离中心距离微调
-            var k =
-              (way_idx +
-                (road_info.canalize_info[road].enter.bike_lane.width / 3.5) *
-                  road_info.canalize_info[road].enter.bike_lane.has +
-                (road_info.canalize_info[road].exit.bike_lane.width / 3.5) *
-                  road_info.canalize_info[road].exit.bike_lane.has) *
-              0.97;
-            //(x1+k(x2-x1)/n,y1+k(y2-y1)/n)线段n等分公式
-            var wayPt = [
-              prevPt.x +
-                (k * (pt.x - prevPt.x)) /
-                  (all_count + getBikeLaneWidth(road_info, road)),
-              prevPt.y +
-                (k * (pt.y - prevPt.y)) /
-                  (all_count + getBikeLaneWidth(road_info, road)),
-            ];
-            drawPoint(wayPt[0], wayPt[1], "red");
-            var path = document.createElementNS(states.ns, "path");
-            path.setAttribute("id", `road_sign_${i}`);
-            path.setAttribute(
-              "d",
-              getRoadDefaultSign(right_idx, is_reverse, is_last)
-            );
-            path.setAttribute("fill", "#ffffff");
-            path.setAttribute("width", "100");
-            path.setAttribute("height", "100");
-
-            var svg = document.createElementNS(states.ns, "svg");
-            svg.appendChild(path);
-            svg.setAttribute("viewBox", "0 0 1024 1024");
-            svg.setAttribute("height", "40");
-            svg.setAttribute("width", "18");
-            svg.setAttribute("x", wayPt[0].toString());
-            svg.setAttribute("y", wayPt[1].toString());
-            var g = document.createElementNS(states.ns, "g");
-            g.setAttribute(
-              "transform",
-              `rotate(${270 - road_info.road_attr[road].angle} ${wayPt[0]} ${
-                wayPt[1]
-              })`
-            );
-            g.setAttribute("style", "cursor:pointer");
-            if (way_idx >= way_count) {
-              g.addEventListener("click", handleChoose, false);
-            }
-            g.appendChild(svg);
-            states.cvs?.appendChild(g);
-          }
-          road++;
-        }
-      }
+    //选中某条道路
+    function handleMainRoad(e: any) {
+      const event = window.event || e;
+      states.cur_road_dir = Number(event.target.id);
+      render();
     }
 
     //选中路标
@@ -1791,10 +1771,15 @@ export default defineComponent({
 
     //设置路标
     function handleConfirmSign(rowKey: string) {
-      states.currentSign.setAttribute(
-        "d",
-        roadSigns.find((s) => s.key === rowKey)?.path
-      );
+      const index = states.currentSign.id.split(";");
+      const road_index = Number(index[0]);
+      const way_index = Number(index[1]);
+      const road_sign = roadSigns.find((s) => s.key === rowKey)?.path;
+      //设置界面图标
+      states.currentSign.setAttribute("d", road_sign);
+      //设置数据对应图标
+      road_info.canalize_info[road_index].road_sign.enter[way_index] =
+        road_sign;
       states.modalVisible = false;
     }
 
@@ -1814,7 +1799,7 @@ export default defineComponent({
     }
 
     //页面属性变化
-    function on_prop_change() {
+    function on_prop_change(filed = "") {
       //黄斜线和绿化带可设宽度，其余默认
       if (
         ["黄斜线", "绿化带"].indexOf(
@@ -1830,6 +1815,10 @@ export default defineComponent({
       //出口道路数量为0时，展宽也为0
       if (!road_info.canalize_info[states.cur_road_dir].exit.num) {
         road_info.canalize_info[states.cur_road_dir].exit.extend_num = 0;
+      }
+      //路口数量变更时重绘路标
+      if (filed === "enter_num" || filed === "exit_num") {
+        create_sign(road_info.canalize_info[states.cur_road_dir]);
       }
       render();
     }

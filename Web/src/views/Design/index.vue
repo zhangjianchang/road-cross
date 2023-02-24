@@ -90,8 +90,6 @@ export default defineComponent({
     //子页面
     const basicRef = ref();
     roadStates.currentUrl = MenuListEnum.Basic;
-    //强刷路由
-    const routerRefresh = inject("routerRefresh") as any;
 
     const handleChangeMenu = (item: any) => {
       if (item.url != MenuListEnum.Basic && road_info.road_attr.length < 2) {
@@ -155,7 +153,6 @@ export default defineComponent({
       }
       localStorage.setItem("road_list", JSON.stringify(roadStates.road_list));
       message.success("保存成功");
-      routerRefresh();
     };
 
     onMounted(() => {

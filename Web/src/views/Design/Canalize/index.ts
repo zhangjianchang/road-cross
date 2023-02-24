@@ -1,4 +1,7 @@
-export const roadSigns = [
+import { reactive } from "vue";
+import { road_info } from "..";
+
+export const roadSigns = reactive([
   {
     key: "uturn",
     name: "掉头",
@@ -75,7 +78,7 @@ export const roadSigns = [
     name: "逆行",
     path: "m465.999916,1.936573l2.000937,575.397813l-94.666839,-1.333336l138.666919,446.667481l137.333584,-445.334145l-85.333489,-1.333336l0,-576.00105",
   },
-];
+]);
 
 export const canalizeTypeOption = [
   { label: "否", value: "否" },
@@ -129,20 +132,6 @@ export function getDirectionIndex(direction: string) {
 }
 
 /**
- * 获取非机动车宽度
- * @param road_info 路口信息
- * @param index 道路索引
- */
-export function getBikeLaneWidth(road_info: any, index: number) {
-  return (
-    (road_info.canalize_info[index].enter.bike_lane.width / 3.5) *
-      road_info.canalize_info[index].enter.bike_lane.has +
-    (road_info.canalize_info[index].exit.bike_lane.width / 3.5) *
-      road_info.canalize_info[index].exit.bike_lane.has
-  );
-}
-
-/**
  *设置隔离带样式
  * @param path 路径对象
  * @param div_type 分割类型
@@ -172,4 +161,42 @@ export function setIsolationStyle(
   } else {
     path.setAttribute("stroke", "rgb(255,255,255)");
   }
+}
+
+//获取cross向后偏移距离
+export function getCrossLenByTwoRoad(index: number) {
+  //和下一条路相比需要后移的数量
+  const is_last = index === road_info.basic_info.count - 1;
+  const next_index = is_last ? 0 : index + 1;
+  let angle1 =
+    Number(road_info.road_attr[next_index].angle) -
+    Number(road_info.road_attr[index].angle);
+  angle1 = is_last ? angle1 + 360 : angle1;
+
+  //和上一条路相比需要后移的数量
+  const is_first = index === 0;
+  const prev_index = is_first ? road_info.basic_info.count - 1 : index - 1;
+  let angle2 =
+    Number(road_info.road_attr[index].angle) -
+    Number(road_info.road_attr[prev_index].angle);
+  angle2 = is_first ? angle2 + 360 : angle2;
+
+  //取夹角更小的
+  const angle = angle1 < angle2 ? angle1 : angle2;
+
+  //路宽*数量作为系数依据
+  const enter1 = road_info.canalize_info[index].enter;
+  const exit1 = road_info.canalize_info[next_index].exit;
+  const c1 = enter1.num * enter1.lane_width + exit1.num * exit1.lane_width;
+
+  const enter2 = road_info.canalize_info[prev_index].enter;
+  const exit2 = road_info.canalize_info[index].exit;
+  const c2 = enter2.num * enter2.lane_width + exit2.num * exit2.lane_width;
+
+  const c = c1 > c2 ? c1 : c2;
+  //系数计算
+  const k = 0.04 * c;
+
+  let len = angle >= 60 ? (k > 0.9 ? 0.4 * c : 0) : (70 - angle) * k;
+  return len;
 }

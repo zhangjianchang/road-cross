@@ -270,3 +270,42 @@ export function line_pt3(
     y: y,
   };
 }
+
+//根据两条直线(pt1,pt2)求之间的夹角
+export function getAngleBetweenLines(
+  pt11: { x: any; y: number },
+  pt12: { x: any; y: number },
+  pt21: { x: any; y: number },
+  pt22: { x: any; y: number }
+) {
+  // 将SVG坐标系转换为笛卡尔坐标系
+  const ax = pt11.x;
+  const ay = -pt11.y;
+  const bx = pt12.x;
+  const by = -pt12.y;
+  const cx = pt21.x;
+  const cy = -pt21.y;
+  const dx = pt22.x;
+  const dy = -pt22.y;
+
+  // 计算向量AB和向量CD
+  const ABx = bx - ax;
+  const ABy = by - ay;
+  const CDx = dx - cx;
+  const CDy = dy - cy;
+
+  // 计算AB和CD的长度
+  const ABLength = Math.sqrt(ABx * ABx + ABy * ABy);
+  const CDLength = Math.sqrt(CDx * CDx + CDy * CDy);
+
+  // 计算向量AB和向量CD的点积
+  const dot = ABx * CDx + ABy * CDy;
+
+  // 计算AB和CD之间的夹角（以弧度表示）
+  const angle = Math.acos(dot / (ABLength * CDLength));
+
+  // 将弧度转换为角度
+  const degree = angle * (180 / Math.PI);
+
+  return degree;
+}
