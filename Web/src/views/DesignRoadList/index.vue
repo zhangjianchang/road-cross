@@ -4,6 +4,7 @@
       :dataSource="list"
       :columns="designColumns"
       :scroll="{ x: '100%' }"
+      bordered
     >
       <template #name="{ record }">
         {{ record.basic_info.name }}
@@ -22,6 +23,14 @@
         >
           编辑
         </a-button>
+        <a-popconfirm
+          title="确认删除?"
+          ok-text="是"
+          cancel-text="否"
+          @confirm="handleDelete(record.basic_info.id)"
+        >
+          <a-button type="danger" size="small" class="ml-5"> 删除 </a-button>
+        </a-popconfirm>
       </template>
       <template #title>
         <a-button type="primary" @click="handleCreate">
@@ -64,6 +73,11 @@ export default defineComponent({
       goRouterByParam(PageEnum.DesignEdit, { id });
     };
 
+    const handleDelete = (id: string) => {
+      states.list = states.list.filter((l) => l.basic_info.id !== id);
+      localStorage.setItem("road_list", JSON.stringify(states.list));
+    };
+
     onMounted(() => {
       initMyDesignRoadList();
     });
@@ -72,6 +86,7 @@ export default defineComponent({
       designColumns,
       handleCreate,
       handleEdit,
+      handleDelete,
     };
   },
 });
