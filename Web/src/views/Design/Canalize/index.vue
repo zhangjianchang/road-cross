@@ -319,6 +319,21 @@
                   <div class="span-unit">米</div>
                 </a-form-item>
               </a-col>
+              <a-col :span="12">
+                <a-form-item label="内侧偏移">
+                  <a-input-number
+                    v-model:value="canalize_info[cur_road_dir].enter.offset"
+                    @change="on_prop_change"
+                    :disabled="!canalize_info[cur_road_dir].enter.num"
+                    :min="0"
+                    :max="4"
+                    :step="0.5"
+                    size="small"
+                    class="form-width"
+                  />
+                  <div class="span-unit">米</div>
+                </a-form-item>
+              </a-col>
               <!-- <a-col :span="12">
                 <a-form-item label="外侧渐变段长">
                   <a-input-number
@@ -327,21 +342,6 @@
                     :disabled="!canalize_info[cur_road_dir].enter.num"
                     :min="0"
                     :max="50"
-                    :step="1"
-                    size="small"
-                    class="form-width"
-                  />
-                  <div class="span-unit">米</div>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="内侧偏移">
-                  <a-input-number
-                    v-model:value="canalize_info[cur_road_dir].enter.offset"
-                    @change="on_prop_change"
-                    :disabled="!canalize_info[cur_road_dir].enter.num"
-                    :min="0"
-                    :max="10"
                     :step="1"
                     size="small"
                     class="form-width"
@@ -1000,6 +1000,7 @@ export default defineComponent({
 
         // 展宽
         d = (rc.cross_len_new + rc.enter.extend_len) * dw.ratio;
+        console.log("边缘展宽", d.toString());
         pt = cal_point(dw, d, dr, len);
         sd.ext1 = pt;
         pt = cal_point(dw, d, dr, len2);
@@ -1363,9 +1364,22 @@ export default defineComponent({
         pt = cal_point(dw, d, dr, len);
         var ewkb_pt = { x: pt.x, y: pt.y }; // 进口人行道横白条靠近隔离带的点：enter walk bar point
         d_str = "M" + pt.x + "," + pt.y + " ";
-        d = rc.length * dw.ratio;
+        d = (rc.cross_len_new + rc.enter.extend_len) * dw.ratio;
+
         pt = cal_point(dw, d, dr, len);
         d_str += "L" + pt.x + "," + pt.y + " ";
+        drawPoint(pt.x, pt.y, "blue");
+        d =
+          (rc.cross_len_new + rc.enter.extend_len + rc.enter.in_curv) *
+          dw.ratio;
+        var offset = len + road_info.canalize_info[i].enter.offset * dw.ratio;
+        pt = cal_point(dw, d, dr, offset);
+        d_str += "L" + pt.x + "," + pt.y + " ";
+        drawPoint(pt.x, pt.y, "red");
+        d = rc.length * dw.ratio;
+        pt = cal_point(dw, d, dr, offset);
+        d_str += "L" + pt.x + "," + pt.y + " ";
+
         d = rc.cross_len_new * dw.ratio;
         pt = cal_point(dw, d, -dr, len);
         d_str += "M" + pt.x + "," + pt.y + " ";

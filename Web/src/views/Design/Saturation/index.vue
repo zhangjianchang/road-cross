@@ -74,7 +74,6 @@ import Container from "../../../components/Container/index.vue";
 import { DragOutlined } from "@ant-design/icons-vue";
 import { getAngle, getQByPathCurv } from "../../../utils/common";
 import { RoadInfo, road_info } from "..";
-import { Stats } from "fs";
 
 export default defineComponent({
   components: { Container, DragOutlined },
@@ -90,6 +89,7 @@ export default defineComponent({
       road_sign_pts: [] as any[], //路标
       total_color: "#fff", //中心总颜色
       total_saturation: "0.00", //中心总数值
+      ratio: 4, //比例尺
     });
 
     const initRoads = () => {
@@ -180,51 +180,36 @@ export default defineComponent({
 
     //画路标
     function drawRoadSign() {
-      road_info.saturation_info = [];
-      //路标
-      let roadIndex = 0;
-      for (var i = 0; i < states.cross_pts.length; i++) {
-        let all_count = 5; //路分为5份
-        var pt = states.cross_pts[i];
-        var prevPt = states.cross_pts[i - 1];
-        if (i > 0 && i % 2 !== 0) {
-          road_info.saturation_info.push([]);
-          for (let way_idx = 1; way_idx < all_count - 1; way_idx++) {
-            var is_last = all_count === way_idx + 2;
-            var signIndex = way_idx - 1;
-            //左侧道路、右侧道路离中心距离微调
-            var k = way_idx;
-            //(x1+k(x2-x1)/n,y1+k(y2-y1)/n)线段n等分公式
-            var wayPt = [
-              prevPt[0] + (k * (pt[0] - prevPt[0])) / all_count,
-              prevPt[1] + (k * (pt[1] - prevPt[1])) / all_count,
-            ];
+      for (let i = 0; i < road_info.basic_info.count; i++) {
+        //每条道路增加一个分析
+        road_info.saturation_info.push([]);
 
-            //外层
-            const g = {
-              transform: `rotate(${
-                270 - road_info.road_attr[roadIndex].angle
-              } ${wayPt[0]},${wayPt[1]}) translate(${wayPt[0]},${
-                wayPt[1]
-              }) scale(0.04)`,
-              id: `g${i}${way_idx}`,
-            };
-            //路标
-            const sign = {
-              d: getRoadDefaultSign(signIndex, is_last),
-            };
-            let saturation = getRatio(roadIndex, signIndex).toFixed(2);
-            let background = getBackground(saturation);
-            //圆角矩形背景
-            const rect = {
-              saturation,
-              background,
-            };
-            states.road_sign_pts.push({ g, sign, rect });
-          }
-          roadIndex++;
+        var rc = road_info.canalize_info[i];
+        console.log(rc);
+        const dw = {
+          dir: { radian: (Math.PI / 180) * rc.angle },
+          origin: { x: states.cx },
+          road_sign: { enter: [] as any[] },
+        };
+        // 入口路标
+        rc.road_sign.enter;
+        for (var j = 0; j < rc.enter.num; j++) {
+          dw.road_sign.enter[j] = rc.road_sign.enter[j];
+        }
+
+        //绘制
+        for (var j = 0; j < rc.enter.num; j++) {
+          //增加偏移系数k，微调路标位置
+          const k = j == 0 ? 0 : 7 * j;
+          //增加偏移系数k2，调整路宽时调整路标位置
+          const d = 100;
+          const dr = Math.PI * 0.5;
+          const len = k * states.ratio;
+          const pt = cal_point(dw, d, dr, len);
+          create_road_sign(pt, i, j, dw.road_sign.enter[j]);
         }
       }
+
       let total_saturation = 0;
       states.road_sign_pts.forEach((r) => {
         total_saturation += Number(r.rect.saturation);
@@ -272,6 +257,39 @@ export default defineComponent({
       return trVC;
     }
 
+    /**
+     * 绘制路标
+     * @param way_pt 绘制坐标原点
+     * @param index 整条道路index
+     * @param way_index 道路进口index
+     * @param road_sign 路标
+     */
+    function create_road_sign(
+      way_pt: { x: number; y: number },
+      index: number,
+      way_index: number,
+      road_sign: string
+    ) {
+      const g = {
+        transform: `rotate(${270 - road_info.road_attr[index].angle} ${
+          way_pt.x
+        },${way_pt.y}) translate(${way_pt.x},${way_pt.y}) scale(0.04)`,
+        id: `g${index}${way_index}`,
+      };
+      //路标
+      const sign = {
+        d: road_sign,
+      };
+      let saturation = getRatio(index, way_index).toFixed(2);
+      let background = getBackground(saturation);
+      //圆角矩形背景
+      const rect = {
+        saturation,
+        background,
+      };
+      states.road_sign_pts.push({ g, sign, rect });
+    }
+
     //当前方向对应的绿灯时间
     const get_t = (roadIndex: number) => {
       let t = 0;
@@ -307,11 +325,32 @@ export default defineComponent({
 
     //当前道路某条车道的车流量
     const getCurrentWayFlow = (roadIndex: number, wayIdx: number) => {
-      console.log(road_info.flow_info.flow_detail);
       const current =
         road_info.flow_info.flow_detail[roadIndex].turn[wayIdx].number;
       return current;
     };
+
+    // 路口Draw对象dw；距离基点d，弧度增量dr，长度len，返回新点
+    function cal_point(
+      dw: { dir: { radian: any }; origin: { x: number } },
+      d: number,
+      dr: number,
+      len: number
+    ) {
+      // 计算
+      var np = { x: 0, y: 0 }; // new point
+
+      var tx, ty; // 临时点坐标
+      var r = dw.dir.radian;
+      // 基线上终点
+      tx = Math.cos(r) * d + dw.origin.x;
+      ty = -Math.sin(r) * d + dw.origin.x;
+      // 垂直基线，交点在tx，ty，长度len的点
+      np.x = len * Math.cos(r + dr) + tx;
+      np.y = -len * Math.sin(r + dr) + ty;
+
+      return np;
+    }
 
     onMounted(() => {
       initRoads();
