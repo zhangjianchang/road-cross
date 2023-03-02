@@ -1,14 +1,42 @@
 .header {
-  height: 50px;
+  max-height: 110px;
   line-height: 50px;
   padding-left: 10px;
   background-color: #ffffff;
   width: 100%;
   border-radius: 3px;
 
-  &-logo {
-    display: inline-block;
-    width: 100px;
+  &-plan1 {
+    display: inline;
+  }
+
+  &-plan2 {
+    border-top: 1px solid #ecf2fe;
+    margin-top: 8px;
+    padding: 8px 0px;
+
+    .flex {
+      display: flex;
+    }
+
+    .title {
+      line-height: 32px;
+    }
+
+    .copy-btn {
+      cursor: pointer;
+      color: #4f48ad;
+    }
+
+    .minus-btn {
+      cursor: pointer;
+      color: #ff0000;
+    }
+
+    .plus-btn {
+      cursor: pointer;
+      color: #4f48ad;
+    }
   }
 }
 
@@ -71,6 +99,14 @@
   display: inline-block;
   font-size: 12px;
   text-align: right;
+}
+
+.large-form-width2 {
+  width: 200px !important;
+}
+
+.large-form-width {
+  width: 150px !important;
 }
 
 .form-width {

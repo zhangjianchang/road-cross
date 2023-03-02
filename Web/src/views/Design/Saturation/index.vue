@@ -185,7 +185,7 @@ export default defineComponent({
         road_info.saturation_info.push([]);
 
         var rc = road_info.canalize_info[i];
-        console.log(rc);
+
         const dw = {
           dir: { radian: (Math.PI / 180) * rc.angle },
           origin: { x: states.cx },
@@ -200,13 +200,13 @@ export default defineComponent({
         //绘制
         for (var j = 0; j < rc.enter.num; j++) {
           //增加偏移系数k，微调路标位置
-          const k = j == 0 ? 0 : 7 * j;
+          const k = (j - 1) * 7;
           //增加偏移系数k2，调整路宽时调整路标位置
-          const d = 100;
+          const d = 120;
           const dr = Math.PI * 0.5;
           const len = k * states.ratio;
           const pt = cal_point(dw, d, dr, len);
-          create_road_sign(pt, i, j, dw.road_sign.enter[j]);
+          create_road_sign(pt, i, j, dw.road_sign.enter[j].path);
         }
       }
 
@@ -230,7 +230,8 @@ export default defineComponent({
 
     //roadIndex路，wayIndex
     function getRatio(roadIndex: number, wayIndex: number) {
-      //以三条车道为例
+      const rc = road_info.canalize_info[roadIndex];
+
       const T = road_info.signal_info.period;
       const t = get_t(roadIndex);
       const cart = road_info.flow_info.line_info[roadIndex].truck_ratio / 100;
@@ -309,7 +310,7 @@ export default defineComponent({
       const flow_detail = road_info.flow_info.flow_detail[roadIndex];
       var total = getCurrentRoadTotalFlow(roadIndex);
       //todo 暂定，后续需改为方向
-      var left = flow_detail.turn[2].number;
+      var left = flow_detail.turn[1].number;
       var Bl = left / total;
       return Bl;
     };

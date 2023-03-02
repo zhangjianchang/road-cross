@@ -218,6 +218,7 @@
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 700 700"
                   class="road-sign"
+                  v-if="col !== '0'"
                 >
                   <path
                     :id="'direction'"
@@ -227,6 +228,28 @@
                     stroke-width="100"
                     :marker-end="'url(#arrow)'"
                   ></path>
+                </svg>
+                <svg
+                  v-else
+                  viewBox="0 0 700 700"
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="road-sign"
+                >
+                  <g
+                    :transform="`rotate(${270 - road_attr[index].angle} ${
+                      road_attr[index].coordinate[0]
+                    },${road_attr[index].coordinate[1]}) translate(${
+                      road_attr[index].coordinate[0]
+                    },${road_attr[index].coordinate[1]})`"
+                  >
+                    <path
+                      :id="'direction'"
+                      :d="flow_info.flow_detail[index].turn[Number(col)].d"
+                      fill="#4f48ad"
+                      stroke="none"
+                      stroke-width="100"
+                    ></path>
+                  </g>
                 </svg>
                 <div>
                   <a-input-number
@@ -295,6 +318,7 @@ import {
   getLineWidth,
   getK,
   colorSchemes,
+  uturn_path,
 } from ".";
 import _ from "lodash";
 import { road_info } from "..";
@@ -466,7 +490,10 @@ export default defineComponent({
       //转向属性
       const turn_detail = {
         number: i === j ? 0 : 450,
-        d: `M${road.coordinate[0]} ${road.coordinate[1]} L${states.cx} ${states.cy} L${nextRoad.coordinate[0]} ${nextRoad.coordinate[1]}`,
+        d:
+          i === j
+            ? uturn_path
+            : `M${road.coordinate[0]} ${road.coordinate[1]} L${states.cx} ${states.cy} L${nextRoad.coordinate[0]} ${nextRoad.coordinate[1]}`,
         tag: `${i}#${j}`, //标记从哪个车道到哪个车道
         order: j - i <= 0 ? j - i + roadCount : j - i, //排序（为了把掉头车道放在第一个）
       } as any;

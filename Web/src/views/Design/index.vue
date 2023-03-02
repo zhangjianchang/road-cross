@@ -7,6 +7,96 @@
         style="width: 530px"
       />
       <a-button type="primary" class="ml-5" @click="onSave"> 保存 </a-button>
+      <div class="header-plan1">
+        <a-select
+          v-if="currentUrl !== MenuListEnum.Canalize"
+          class="large-form-width ml-5"
+          placeholder="请选择渠化方案"
+        >
+          <a-select-option
+            v-for="(_, index) in road_attr"
+            :key="index"
+            :value="index"
+          >
+            方向{{ index + 1 }}
+          </a-select-option>
+        </a-select>
+        <a-select class="large-form-width ml-5" placeholder="请选择流量方案">
+          <a-select-option
+            v-for="(_, index) in road_attr"
+            :key="index"
+            :value="index"
+          >
+            方向{{ index + 1 }}
+          </a-select-option>
+        </a-select>
+        <a-select class="large-form-width ml-5" placeholder="请选择信号方案">
+          <a-select-option
+            v-for="(_, index) in road_attr"
+            :key="index"
+            :value="index"
+          >
+            方向{{ index + 1 }}
+          </a-select-option>
+        </a-select>
+      </div>
+
+      <div
+        class="header-plan2"
+        v-if="
+          currentUrl === MenuListEnum.Canalize ||
+          currentUrl === MenuListEnum.Flow ||
+          currentUrl === MenuListEnum.Signal
+        "
+      >
+        <!-- 渠化方案： -->
+        <div class="flex" v-if="currentUrl === MenuListEnum.Canalize">
+          <span class="title">渠化方案：</span>
+          <a-input class="large-form-width2" placeholder="请输入渠化方案">
+            <template #addonBefore>
+              <copy-outlined class="copy-btn" title="复制" />
+            </template>
+            <template #addonAfter>
+              <delete-outlined class="minus-btn" title="删除" />
+            </template>
+          </a-input>
+          <a-button class="ml-2" type="default" title="添加">
+            <template #icon><plus-outlined /></template>
+          </a-button>
+        </div>
+
+        <!-- 流量方案： -->
+        <div class="flex" v-else-if="currentUrl === MenuListEnum.Flow">
+          <span class="title">流量方案：</span>
+          <a-input class="large-form-width2" placeholder="请输入流量方案">
+            <template #addonBefore>
+              <copy-outlined class="copy-btn" title="复制" />
+            </template>
+            <template #addonAfter>
+              <delete-outlined class="minus-btn" title="删除" />
+            </template>
+          </a-input>
+          <a-button class="ml-2" type="default" title="添加">
+            <template #icon><plus-outlined /></template>
+          </a-button>
+        </div>
+
+        <!-- 信号方案： -->
+        <div class="flex" v-else-if="currentUrl === MenuListEnum.Signal">
+          <span class="title">信号方案：</span>
+          <a-input class="large-form-width2" placeholder="请输入信号方案">
+            <template #addonBefore>
+              <copy-outlined class="copy-btn" title="复制" />
+            </template>
+            <template #addonAfter>
+              <delete-outlined class="minus-btn" title="删除" />
+            </template>
+          </a-input>
+          <a-button class="ml-2" type="default" title="添加">
+            <template #icon><plus-outlined /></template>
+          </a-button>
+        </div>
+      </div>
     </div>
     <div class="content">
       <div class="content-menu">
@@ -63,6 +153,11 @@ import { useRoute } from "vue-router";
 import moment from "moment";
 import { goRouterByParam } from "../../utils/common";
 import { PageEnum } from "../../router/data";
+import {
+  CopyOutlined,
+  DeleteOutlined,
+  PlusOutlined,
+} from "@ant-design/icons-vue";
 
 export default defineComponent({
   components: {
@@ -76,6 +171,9 @@ export default defineComponent({
     QueueAnalysis,
     DelayAnalysis,
     ServiceLevel,
+    CopyOutlined,
+    DeleteOutlined,
+    PlusOutlined,
   },
   setup() {
     const route = useRoute();
