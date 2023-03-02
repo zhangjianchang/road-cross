@@ -237,6 +237,7 @@ export default defineComponent({
         road_info.road_attr = road_info.road_attr.filter(
           (r) => r.id !== states.dragId
         );
+        setRoadDir([], true);
         return;
       }
       states.dragging = true;
@@ -305,15 +306,22 @@ export default defineComponent({
       }, 30);
     }
 
-    function setRoadDir(coordinate: number[]) {
-      let angle = getAngle(states.cx, states.cy, coordinate[0], coordinate[1]);
-      road_info.road_attr.map((c) => {
-        if (c.id === states.dragId) {
-          c.position = `X:${coordinate[0]}\n\n Y:${coordinate[1]}`;
-          c.coordinate = coordinate;
-          c.angle = angle;
-        }
-      });
+    function setRoadDir(coordinate: number[], is_delete = false) {
+      if (!is_delete) {
+        let angle = getAngle(
+          states.cx,
+          states.cy,
+          coordinate[0],
+          coordinate[1]
+        );
+        road_info.road_attr.map((c) => {
+          if (c.id === states.dragId) {
+            c.position = `X:${coordinate[0]}\n\n Y:${coordinate[1]}`;
+            c.coordinate = coordinate;
+            c.angle = angle;
+          }
+        });
+      }
       road_info.road_attr.sort(function (a, b) {
         return a.angle - b.angle;
       });

@@ -691,6 +691,7 @@ import {
   roadSigns,
   setIsolationStyle,
   getCrossLenByTwoRoad,
+  roadSignKey,
 } from "./index";
 import Container from "../../../components/Container/index.vue";
 import { notification } from "ant-design-vue";
@@ -723,6 +724,13 @@ export default defineComponent({
       cross_len: 20, // 交叉口长度m（距离原点），TODO：当右转路夹角很小时，该长度变长
       cross_len_new: 20, // 根据真实情况会对原始cross_len做后移调整
       stop_line_length: 30, //长实线长度
+
+      road_direction: {
+        uturn: 0, //掉头
+        left: 1, //专左
+        straight: 1.5, //直行
+        right: 0.5, //右转
+      },
 
       speed: 40, //路段速度
 
@@ -1645,7 +1653,7 @@ export default defineComponent({
           d = rc.cross_len_new * dw.ratio;
           dr = Math.PI * 0.5;
           pt = cal_point(dw, d, dr, len);
-          create_road_sign(pt, i, j, dw.road_sign.enter[j]);
+          create_road_sign(pt, i, j, dw.road_sign.enter[j].path);
         }
 
         // 出口路标
@@ -1659,7 +1667,7 @@ export default defineComponent({
           d = rc.cross_len_new * dw.ratio;
           dr = -Math.PI * 0.5;
           pt = cal_point(dw, d, dr, len);
-          create_road_sign(pt, i, j, dw.road_sign.exit[j - 1], true);
+          create_road_sign(pt, i, j, dw.road_sign.exit[j - 1].path, true);
         }
       }
 
@@ -1789,12 +1797,84 @@ export default defineComponent({
       const road_index = Number(index[0]);
       const way_index = Number(index[1]);
       const road_sign = roadSigns.find((s) => s.key === rowKey)?.path;
+
+      const rc = road_info.canalize_info[road_index];
+
       //设置界面图标
       states.currentSign.setAttribute("d", road_sign);
       //设置数据对应图标
-      road_info.canalize_info[road_index].road_sign.enter[way_index] =
-        road_sign;
+      rc.road_sign.enter[way_index] = { key: rowKey, path: road_sign };
+      // 设置路标后需要调整当前道路对应的数量
+      setRoadDirection();
+
       states.modalVisible = false;
+    }
+
+    function setRoadDirection() {
+      road_info.canalize_info.forEach((rc) => {
+        //掉头车道
+        const uturn = rc.road_sign.enter.filter(
+          (rs: any) => rs.key === roadSignKey.uturn
+        ).length;
+        //左转加掉头
+        const left_uturn = rc.road_sign.enter.filter(
+          (rs: any) => rs.key === roadSignKey.left_uturn
+        ).length;
+        //直行加掉头
+        const straight_uturn = rc.road_sign.enter.filter(
+          (rs: any) => rs.key === roadSignKey.straight_uturn
+        ).length;
+        //左转
+        const left = rc.road_sign.enter.filter(
+          (rs: any) => rs.key === roadSignKey.left
+        ).length;
+        //左转加右转
+        const left_right = rc.road_sign.enter.filter(
+          (rs: any) => rs.key === roadSignKey.left_right
+        ).length;
+        //左转加直行加右转
+        const all_direction = rc.road_sign.enter.filter(
+          (rs: any) => rs.key === roadSignKey.all_direction
+        ).length;
+        //直行
+        const straight = rc.road_sign.enter.filter(
+          (rs: any) => rs.key === roadSignKey.straight
+        ).length;
+        //直行加左转
+        const straight_left = rc.road_sign.enter.filter(
+          (rs: any) => rs.key === roadSignKey.straight_left
+        ).length;
+        //直行加右转
+        const straight_right = rc.road_sign.enter.filter(
+          (rs: any) => rs.key === roadSignKey.straight_right
+        ).length;
+        //右转
+        const right = rc.road_sign.enter.filter(
+          (rs: any) => rs.key === roadSignKey.right
+        ).length;
+
+        rc.road_direction = {
+          uturn: uturn + 0.5 * left_uturn + 0.5 * straight_uturn,
+          left:
+            left +
+            0.5 * left_uturn +
+            0.5 * straight_left +
+            0.5 * left_right +
+            0.33 * all_direction,
+          straight:
+            straight +
+            0.5 * straight_uturn +
+            0.5 * straight_left +
+            0.5 * straight_right +
+            0.33 * all_direction,
+          right:
+            right +
+            0.5 * straight_right +
+            0.5 * left_right +
+            0.33 * all_direction,
+        };
+      });
+      console.log(road_info.canalize_info);
     }
 
     /**
@@ -1833,6 +1913,7 @@ export default defineComponent({
       //路口数量变更时重绘路标
       if (filed === "enter_num" || filed === "exit_num") {
         create_sign(road_info.canalize_info[states.cur_road_dir]);
+        setRoadDirection();
       }
       render();
     }

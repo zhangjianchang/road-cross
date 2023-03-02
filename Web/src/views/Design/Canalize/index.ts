@@ -80,6 +80,19 @@ export const roadSigns = reactive([
   },
 ]);
 
+export enum roadSignKey {
+  uturn = "uturn",
+  left_uturn = "left_uturn",
+  left = "left",
+  straight_uturn = "straight_uturn",
+  straight_left = "straight_left",
+  straight = "straight",
+  straight_right = "straight_right",
+  right = "right",
+  left_right = "left_right",
+  all_direction = "all_direction",
+}
+
 export const canalizeTypeOption = [
   { label: "否", value: "否" },
   { label: "划线渠化-无单独出口", value: "划线渠化-无单独出口" },
@@ -101,7 +114,7 @@ export function getRoadDefaultSign(
   wayIndex: number,
   is_reverse: boolean,
   is_last: boolean
-): string {
+): { key: string; path: string } {
   let roadSignKey = "";
   if (is_reverse) {
     //反向车道
@@ -122,9 +135,9 @@ export function getRoadDefaultSign(
   }
   let roadSignPath = roadSigns.find((s) => s.key === roadSignKey)?.path;
   if (roadSignPath) {
-    return roadSignPath;
+    return { key: roadSignKey, path: roadSignPath };
   }
-  return "";
+  return { key: "", path: "" };
 }
 
 export function getDirectionIndex(direction: string) {

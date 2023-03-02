@@ -30,6 +30,7 @@ export const flowColumnsPart = [
     dataIndex: "road_name",
     width: 30,
     align: "center",
+    slots: { customRender: "road_name" },
   },
 ];
 

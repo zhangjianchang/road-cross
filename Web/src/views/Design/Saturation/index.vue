@@ -235,12 +235,12 @@ export default defineComponent({
       const t = get_t(roadIndex);
       const cart = road_info.flow_info.line_info[roadIndex].truck_ratio / 100;
       const Bl = getBl(roadIndex);
-      var v = getCurrentWayFlow(roadIndex, wayIndex);
       const c_trCs = tr_Cs(T, t, cart); //直行通行能力
       const c_trCsr = tr_Csr(c_trCs); //直右通行能力
       const celr = getCelr(c_trCs + c_trCsr, Bl);
       const c_trCl = tr_Cl(celr, Bl); //专左通行能力
-      var trVC = 0; //饱和度
+      let v = getCurrentWayFlow(roadIndex, wayIndex);
+      let trVC = 0; //饱和度
       if (wayIndex === 0) {
         //专左
         trVC = tr_VC(v, c_trCl);
@@ -254,6 +254,7 @@ export default defineComponent({
         trVC = tr_VC(v, c_trCsr);
         road_info.saturation_info[roadIndex].push({ vc: trVC, c: c_trCsr });
       }
+      console.log(wayIndex, trVC);
       return trVC;
     }
 
@@ -325,8 +326,7 @@ export default defineComponent({
 
     //当前道路某条车道的车流量
     const getCurrentWayFlow = (roadIndex: number, wayIdx: number) => {
-      const current =
-        road_info.flow_info.flow_detail[roadIndex].turn[wayIdx].number;
+      const current = road_info.flow_info.saturation[roadIndex][wayIdx].number;
       return current;
     };
 

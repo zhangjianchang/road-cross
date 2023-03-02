@@ -144,7 +144,7 @@
           </a-form>
         </div>
         <div class="header mt-2">车道属性</div>
-        <div class="content mt-2">
+        <div class="content mt-2" v-if="is_init">
           <a-table
             :dataSource="flow_info.line_info"
             :columns="lineColumns"
@@ -190,7 +190,7 @@
           </a-table>
         </div>
         <div class="header mt-5">进口道转向流量</div>
-        <div class="content mt-2">
+        <div class="content mt-2" v-if="is_init">
           <a-table
             :dataSource="flow_info.flow_detail"
             :columns="flow_info.flowColumns"
@@ -203,6 +203,11 @@
             "
             size="small"
           >
+            <!-- 路名 -->
+            <template #road_name="{ index }">
+              {{ canalize_info[index].name }}
+            </template>
+            <!-- 转向 -->
             <template
               v-for="col in flowDataIndex"
               #[col]="{ index }"
