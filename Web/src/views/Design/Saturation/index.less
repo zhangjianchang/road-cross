@@ -1,5 +1,13 @@
 .basic-main {
   width: 100%;
+  display: flex;
+}
+
+.main-canvas {
+  width: 876px;
+  height: 700px;
+  float: left;
+  background-color: #ffffff;
 }
 
 #canvas {
@@ -10,12 +18,38 @@
   background-color: #ffffff;
 }
 
+.report {
+  padding: 12px 24px;
+}
+
 .menu {
   width: 530px;
   height: 700px;
   float: right;
   background-color: #ffffff;
   margin-left: 10px;
+  padding: 24px;
+
+  &-header {
+    display: flex;
+    margin: 6px 0;
+    padding: 4px;
+    background-color: #f0f8ff;
+  }
+
+  &-title {
+    font-size: 16px;
+    color: #ff4d4f;
+    width: calc(100% - 20px);
+  }
+
+  &-content {
+    font-size: 12px;
+  }
+}
+
+.switch {
+  text-align: right;
 }
 
 .func {

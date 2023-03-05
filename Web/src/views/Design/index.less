@@ -1,5 +1,6 @@
 .header {
   max-height: 110px;
+  min-height: 60px;
   line-height: 50px;
   padding-left: 10px;
   background-color: #ffffff;
@@ -7,20 +8,12 @@
   border-radius: 3px;
 
   &-plan1 {
-    display: inline;
+    display: inline-flex;
   }
 
-  &-plan2 {
-    border-top: 1px solid #ecf2fe;
-    margin-top: 8px;
-    padding: 8px 0px;
-
+  &-plan1 {
     .flex {
       display: flex;
-    }
-
-    .title {
-      line-height: 32px;
     }
 
     .copy-btn {
@@ -37,6 +30,16 @@
       cursor: pointer;
       color: #4f48ad;
     }
+
+    .form-actitve {
+      :deep(.ant-input) {
+        background-color: rgb(255, 255, 153);
+      }
+    }
+  }
+
+  &-plan2 {
+    border-top: 1px solid #ecf2fe;
   }
 }
 
@@ -151,5 +154,21 @@
   }
   &-F {
     background-color: rgb(255, 50, 0);
+  }
+}
+
+.mt-8 {
+  margin-top: 8px;
+}
+
+.add-line-btn {
+  width: 100%;
+  color: #1c46b5;
+  background: #fff;
+  border-color: #98bdfa;
+  border-style: dashed;
+  height: 32px;
+  &:hover {
+    color: #98bdfa;
   }
 }

@@ -1,5 +1,5 @@
 import { reactive } from "vue";
-import { road_info } from "..";
+import { plans } from "..";
 
 export const roadSigns = reactive([
   {
@@ -109,6 +109,187 @@ export const medianStripTypeOption = [
   { label: "黄斜线", value: "黄斜线" },
   { label: "绿化带", value: "绿化带" },
 ];
+
+const states = {
+  cx: 350,
+  cy: 350,
+};
+
+//定义每条道路
+export const RoadCross = {
+  name: "方向1",
+
+  angle: 0, // 方向角度
+  origin: { x: 0, y: 0 }, // 原点，绘图中心，单位
+  offset: 0.5, // 偏移量
+  length: 80, // 路长125m
+  cross_len: 20, // 交叉口长度m（距离原点），TODO：当右转路夹角很小时，该长度变长
+  cross_len_new: 20, // 根据真实情况会对原始cross_len做后移调整
+  stop_line_length: 30, //长实线长度
+
+  road_direction: {
+    uturn: 0, //掉头
+    left: 1, //专左
+    straight: 1.5, //直行
+    right: 0.5, //右转
+  },
+
+  speed: 40, //路段速度
+
+  walk: { has: 1, zebra_len: 5 }, // 人行道
+  margin: 1, // 路边
+
+  canalize: {
+    //渠化属性
+    type: "否", //右转渠化
+    right_count: 1, //右转车道
+  },
+
+  enter: {
+    // 进口
+    num: 3, // 进口车道数
+    lane_width: 3.5, //车道宽度，米
+    extend_num: 0, // 展宽数量
+    extend_len: 40, // 展宽段长
+    extend_width: 3, // 展宽车道宽度
+    in_curv: 12, // 内侧渐变段长
+    out_curv: 6, // 外侧渐变段长
+    offset: 0, // 内侧偏移
+    bike_lane: {
+      // 非机动车道
+      has: 0, // 有否1/0
+      width: 2, // 车道宽度，米
+      div_type: "划线", // 分割形式与宽度：划线-0.25m，护栏-1m，绿化带-1m
+    },
+    right_curv: 1.0, // 右转曲度[0, 1]
+  },
+  exit: {
+    // 出口
+    num: 3, // 出口车道数
+    lane_width: 3.5, //车道宽度
+    extend_num: 0, // 展宽数量
+    extend_len: 40, // 展宽段长
+    extend_width: 3, // 展宽车道宽度
+    in_curv: 12, // 内侧渐变段长
+    out_curv: 6, // 外侧渐变段长
+    bike_lane: {
+      // 非机动车道
+      has: 0, // 有否1/0
+      width: 2, // 车道宽度，米
+      div_type: "划线", // 分割形式与宽度：划线-0.25m，护栏-1m，绿化带-1m
+    },
+  },
+
+  median_strip: {
+    type: "双黄线", // 分割形式：双黄线，单黄线，护栏，鱼肚线，黄斜线，绿化带
+    width: 0.5, // 分割带宽：双黄线3像素，单黄线1像素，护栏4像素，鱼肚线4像素，
+    safe_land: 0, // 安全岛
+    turn: "否", // 提前掉头：否，停车线位置，停车线上游
+  },
+
+  wait: {
+    left: 0, // 左转待转
+    straight: 0, // 直行等待
+    through: "否", // no wait，当>0时，穿越到方向1-n
+    thr_type: "无", // 穿越方式：无，分隔贯通，隔离桩，斑马线
+  },
+
+  road_sign: {
+    enter: [],
+    exit: [],
+  },
+};
+
+export const Draw = {
+  // 绘制相关的属性
+  dir: {
+    // 方向
+    angle: 0,
+    radian: 0,
+  },
+  ratio: 4, // m到canvas的系数
+
+  origin: { x: states.cx, y: states.cy }, // 原点，length和cross_len都是基于原点的
+  base_line: { x1: states.cx, y1: states.cy, x2: 0, y2: 0 }, // 基线
+  length: 300,
+
+  enter_side: {
+    // 外边形状：带margin
+    walk1: { x: 0, y: 0 },
+    walk2: { x: 0, y: 0 },
+    ext1: { x: 0, y: 0 },
+    ext2: { x: 0, y: 0 },
+    far: { x: 0, y: 0 },
+  },
+  enter_side2: {
+    // 不带margin
+    walk1: { x: 0, y: 0 },
+    walk2: { x: 0, y: 0 },
+    ext1: { x: 0, y: 0 },
+    ext2: { x: 0, y: 0 },
+    far: { x: 0, y: 0 },
+  },
+  enter_bike_div: {
+    // 入口非机动车道分隔外边
+    walk1: { x: 0, y: 0 },
+    walk2: { x: 0, y: 0 },
+    ext1: { x: 0, y: 0 },
+    ext2: { x: 0, y: 0 },
+    far: { x: 0, y: 0 },
+  },
+  enter_bike_div2: {
+    // 入口非机动车道分隔内边
+    walk1: { x: 0, y: 0 },
+    walk2: { x: 0, y: 0 },
+    ext1: { x: 0, y: 0 },
+    ext2: { x: 0, y: 0 },
+    far: { x: 0, y: 0 },
+  },
+
+  exit_side: {
+    // 外边形状：带margin
+    walk1: { x: 0, y: 0 },
+    walk2: { x: 0, y: 0 },
+    ext1: { x: 0, y: 0 },
+    ext2: { x: 0, y: 0 },
+    far: { x: 0, y: 0 },
+  },
+  exit_side2: {
+    // 不带margin
+    walk1: { x: 0, y: 0 },
+    walk2: { x: 0, y: 0 },
+    ext1: { x: 0, y: 0 },
+    ext2: { x: 0, y: 0 },
+    far: { x: 0, y: 0 },
+  },
+  exit_bike_div: {
+    // 出口非机动车道分隔外边
+    walk1: { x: 0, y: 0 },
+    walk2: { x: 0, y: 0 },
+    ext1: { x: 0, y: 0 },
+    ext2: { x: 0, y: 0 },
+    far: { x: 0, y: 0 },
+  },
+  exit_bike_div2: {
+    // 出口非机动车道分隔内边
+    walk1: { x: 0, y: 0 },
+    walk2: { x: 0, y: 0 },
+    ext1: { x: 0, y: 0 },
+    ext2: { x: 0, y: 0 },
+    far: { x: 0, y: 0 },
+  },
+
+  txt: {
+    pos: { x: 0, y: 0 },
+    color: "#000",
+  },
+
+  road_sign: {
+    enter: [],
+    exit: [],
+  },
+};
+
 //根据车道获取默认路标 k系数，>=1正向路，否则反向路
 export function getRoadDefaultSign(
   wayIndex: number,
@@ -177,9 +358,9 @@ export function setIsolationStyle(
 }
 
 //获取cross向后偏移距离
-export function getCrossLenByTwoRoad(index: number) {
+export function getCrossLenByTwoRoad(road_info: any, index: number) {
   //和下一条路相比需要后移的数量
-  const is_last = index === road_info.basic_info.count - 1;
+  const is_last = index === plans.road_count - 1;
   const next_index = is_last ? 0 : index + 1;
   let angle1 =
     Number(road_info.road_attr[next_index].angle) -
@@ -188,7 +369,7 @@ export function getCrossLenByTwoRoad(index: number) {
 
   //和上一条路相比需要后移的数量
   const is_first = index === 0;
-  const prev_index = is_first ? road_info.basic_info.count - 1 : index - 1;
+  const prev_index = is_first ? plans.road_count - 1 : index - 1;
   let angle2 =
     Number(road_info.road_attr[index].angle) -
     Number(road_info.road_attr[prev_index].angle);

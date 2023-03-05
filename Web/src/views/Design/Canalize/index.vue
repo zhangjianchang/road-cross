@@ -265,7 +265,7 @@
                     :disabled="!canalize_info[cur_road_dir].enter.num"
                     :min="3.5"
                     :max="5.5"
-                    :step="1"
+                    :step="0.25"
                     size="small"
                     class="form-width"
                   />
@@ -297,7 +297,7 @@
                     :disabled="!canalize_info[cur_road_dir].enter.num"
                     :min="0"
                     :max="6"
-                    :step="1"
+                    :step="0.25"
                     size="small"
                     class="form-width"
                   />
@@ -393,7 +393,7 @@
                     :disabled="!canalize_info[cur_road_dir].exit.num"
                     :min="3.5"
                     :max="5.5"
-                    :step="1"
+                    :step="0.25"
                     size="small"
                     class="form-width"
                   />
@@ -424,8 +424,8 @@
                     @change="on_prop_change"
                     :disabled="!canalize_info[cur_road_dir].exit.num"
                     :min="0"
-                    :max="10"
-                    :step="1"
+                    :max="4"
+                    :step="0.25"
                     size="small"
                     class="form-width"
                   />
@@ -503,7 +503,7 @@
                     @change="on_prop_change"
                     :min="0.5"
                     :max="2"
-                    :step="0.5"
+                    :step="0.25"
                     size="small"
                     class="form-width"
                   />
@@ -590,7 +590,7 @@
                     :disabled="!canalize_info[cur_road_dir].enter.bike_lane.has"
                     :min="1"
                     :max="4"
-                    :step="1"
+                    :step="0.25"
                     size="small"
                     class="form-width"
                   />
@@ -607,7 +607,7 @@
                     :disabled="!canalize_info[cur_road_dir].exit.bike_lane.has"
                     :min="1"
                     :max="4"
-                    :step="1"
+                    :step="0.25"
                     size="small"
                     class="form-width"
                   />
@@ -692,16 +692,25 @@ import {
   setIsolationStyle,
   getCrossLenByTwoRoad,
   roadSignKey,
+  RoadCross,
+  Draw,
 } from "./index";
 import Container from "../../../components/Container/index.vue";
-import { notification } from "ant-design-vue";
 import { DragOutlined } from "@ant-design/icons-vue";
 import { intersect_line_point, line_pt3 } from "../../../utils/common";
-import { road_info } from "..";
+import { plans, roadStates } from "..";
+import { road_model } from "../data";
 
 export default defineComponent({
   components: { Container, DragOutlined },
   setup() {
+    //道路信息
+    const road_info = reactive(
+      plans.canalize_plans[roadStates.current_canalize].flow_plans[
+        roadStates.current_flow
+      ].signal_plans[roadStates.current_signal].road_info
+    );
+
     const states = reactive({
       ns: "",
       cvs: null as HTMLElement | null,
@@ -713,195 +722,28 @@ export default defineComponent({
       modalVisible: false, //车道弹窗
     });
 
-    //定义每条道路
-    var RoadCross = {
-      name: "方向1",
-
-      angle: 0, // 方向角度
-      origin: { x: 0, y: 0 }, // 原点，绘图中心，单位
-      offset: 0.5, // 偏移量
-      length: 80, // 路长125m
-      cross_len: 20, // 交叉口长度m（距离原点），TODO：当右转路夹角很小时，该长度变长
-      cross_len_new: 20, // 根据真实情况会对原始cross_len做后移调整
-      stop_line_length: 30, //长实线长度
-
-      road_direction: {
-        uturn: 0, //掉头
-        left: 1, //专左
-        straight: 1.5, //直行
-        right: 0.5, //右转
-      },
-
-      speed: 40, //路段速度
-
-      walk: { has: 1, zebra_len: 5 }, // 人行道
-      margin: 1, // 路边
-
-      canalize: {
-        //渠化属性
-        type: "否", //右转渠化
-        right_count: 1, //右转车道
-      },
-
-      enter: {
-        // 进口
-        num: 3, // 进口车道数
-        lane_width: 3.5, //车道宽度，米
-        extend_num: 0, // 展宽数量
-        extend_len: 40, // 展宽段长
-        extend_width: 3, // 展宽车道宽度
-        in_curv: 12, // 内侧渐变段长
-        out_curv: 6, // 外侧渐变段长
-        offset: 0, // 内侧偏移
-        bike_lane: {
-          // 非机动车道
-          has: 0, // 有否1/0
-          width: 2, // 车道宽度，米
-          div_type: "划线", // 分割形式与宽度：划线-0.25m，护栏-1m，绿化带-1m
-        },
-        right_curv: 1.0, // 右转曲度[0, 1]
-      },
-      exit: {
-        // 出口
-        num: 3, // 出口车道数
-        lane_width: 3.5, //车道宽度
-        extend_num: 0, // 展宽数量
-        extend_len: 40, // 展宽段长
-        extend_width: 3, // 展宽车道宽度
-        in_curv: 12, // 内侧渐变段长
-        out_curv: 6, // 外侧渐变段长
-        bike_lane: {
-          // 非机动车道
-          has: 0, // 有否1/0
-          width: 2, // 车道宽度，米
-          div_type: "划线", // 分割形式与宽度：划线-0.25m，护栏-1m，绿化带-1m
-        },
-      },
-
-      median_strip: {
-        type: "双黄线", // 分割形式：双黄线，单黄线，护栏，鱼肚线，黄斜线，绿化带
-        width: 0.5, // 分割带宽：双黄线3像素，单黄线1像素，护栏4像素，鱼肚线4像素，
-        safe_land: 0, // 安全岛
-        turn: "否", // 提前掉头：否，停车线位置，停车线上游
-      },
-
-      wait: {
-        left: 0, // 左转待转
-        straight: 0, // 直行等待
-        through: "否", // no wait，当>0时，穿越到方向1-n
-        thr_type: "无", // 穿越方式：无，分隔贯通，隔离桩，斑马线
-      },
-
-      road_sign: {
-        enter: [],
-        exit: [],
-      },
-    };
-
-    var Draw = {
-      // 绘制相关的属性
-      dir: {
-        // 方向
-        angle: 0,
-        radian: 0,
-      },
-      ratio: 4, // m到canvas的系数
-
-      origin: { x: states.cx, y: states.cy }, // 原点，length和cross_len都是基于原点的
-      base_line: { x1: states.cx, y1: states.cy, x2: 0, y2: 0 }, // 基线
-      length: 300,
-
-      enter_side: {
-        // 外边形状：带margin
-        walk1: { x: 0, y: 0 },
-        walk2: { x: 0, y: 0 },
-        ext1: { x: 0, y: 0 },
-        ext2: { x: 0, y: 0 },
-        far: { x: 0, y: 0 },
-      },
-      enter_side2: {
-        // 不带margin
-        walk1: { x: 0, y: 0 },
-        walk2: { x: 0, y: 0 },
-        ext1: { x: 0, y: 0 },
-        ext2: { x: 0, y: 0 },
-        far: { x: 0, y: 0 },
-      },
-      enter_bike_div: {
-        // 入口非机动车道分隔外边
-        walk1: { x: 0, y: 0 },
-        walk2: { x: 0, y: 0 },
-        ext1: { x: 0, y: 0 },
-        ext2: { x: 0, y: 0 },
-        far: { x: 0, y: 0 },
-      },
-      enter_bike_div2: {
-        // 入口非机动车道分隔内边
-        walk1: { x: 0, y: 0 },
-        walk2: { x: 0, y: 0 },
-        ext1: { x: 0, y: 0 },
-        ext2: { x: 0, y: 0 },
-        far: { x: 0, y: 0 },
-      },
-
-      exit_side: {
-        // 外边形状：带margin
-        walk1: { x: 0, y: 0 },
-        walk2: { x: 0, y: 0 },
-        ext1: { x: 0, y: 0 },
-        ext2: { x: 0, y: 0 },
-        far: { x: 0, y: 0 },
-      },
-      exit_side2: {
-        // 不带margin
-        walk1: { x: 0, y: 0 },
-        walk2: { x: 0, y: 0 },
-        ext1: { x: 0, y: 0 },
-        ext2: { x: 0, y: 0 },
-        far: { x: 0, y: 0 },
-      },
-      exit_bike_div: {
-        // 出口非机动车道分隔外边
-        walk1: { x: 0, y: 0 },
-        walk2: { x: 0, y: 0 },
-        ext1: { x: 0, y: 0 },
-        ext2: { x: 0, y: 0 },
-        far: { x: 0, y: 0 },
-      },
-      exit_bike_div2: {
-        // 出口非机动车道分隔内边
-        walk1: { x: 0, y: 0 },
-        walk2: { x: 0, y: 0 },
-        ext1: { x: 0, y: 0 },
-        ext2: { x: 0, y: 0 },
-        far: { x: 0, y: 0 },
-      },
-
-      txt: {
-        pos: { x: 0, y: 0 },
-        color: "#000",
-      },
-
-      road_sign: {
-        enter: [],
-        exit: [],
-      },
-    };
-
     /**
      * 新代码
      */
     // var arr_road_cross: any[] = []; // 路交叉口全局数组
     var arr_rc_draw: any[] = []; // 路交叉口绘制数组（与上面一一对应）
 
-    function onLoad() {
+    function onLoad(rf: any) {
+      Object.assign(road_info, rf);
       create_road_cross(); // 创建路口数据结构
-      render(); // 渲染图形
+      onLoadChange(rf); // 渲染图形
       // setTimeout(initZoomPan, 500);
     }
 
-    function onEditLoad() {
+    function onLoadEdit(rf: any) {
+      Object.assign(road_info, rf);
       update_road_corss(); //更新路口角度
+      onLoadChange(rf); // 渲染图形
+    }
+
+    function onLoadChange(rf: any) {
+      Object.assign(road_info, rf);
+      removeAll(); //先清空，再绘制
       render(); // 渲染图形
     }
 
@@ -921,6 +763,13 @@ export default defineComponent({
         create_sign(rc);
         road_info.canalize_info.push(rc);
       }
+      console.log(111, JSON.parse(JSON.stringify(road_info)));
+      console.log(
+        222,
+        JSON.parse(
+          JSON.stringify(plans.canalize_plans[roadStates.current_canalize])
+        )
+      );
     }
 
     function update_road_corss() {
@@ -963,7 +812,7 @@ export default defineComponent({
       var temp = JSON.stringify(Draw); // Draw模板
       for (var i = 0; i < road_info.canalize_info.length; i++) {
         var rc = road_info.canalize_info[i]; // road cross对象
-        const addLen = getCrossLenByTwoRoad(i);
+        const addLen = getCrossLenByTwoRoad(road_info, i);
         rc.cross_len_new = rc.cross_len + addLen;
         var dw = JSON.parse(temp); // road cross对应的绘制对象
 
@@ -1008,7 +857,6 @@ export default defineComponent({
 
         // 展宽
         d = (rc.cross_len_new + rc.enter.extend_len) * dw.ratio;
-        console.log("边缘展宽", d.toString());
         pt = cal_point(dw, d, dr, len);
         sd.ext1 = pt;
         pt = cal_point(dw, d, dr, len2);
@@ -1203,20 +1051,6 @@ export default defineComponent({
       states.ns = "http://www.w3.org/2000/svg";
       states.cvs = _ge("canvas");
       states.cross_line_pts.length = 0;
-      document.querySelectorAll("path").forEach((e: any) => {
-        if (e.id !== "notDelete") {
-          //清空所有路径，保留弹窗内路标
-          e.remove();
-        }
-      });
-      document.querySelectorAll("text").forEach((e) => {
-        //清空所有文字
-        e.remove();
-      });
-      document.querySelectorAll("g").forEach((e) => {
-        //清空所有路标
-        e.remove();
-      });
 
       // cross的背景
       var d_str = "";
@@ -1262,6 +1096,7 @@ export default defineComponent({
       cross.setAttribute("d", d_str);
       // cross.setAttribute("stroke", "rgb(162,162,162)");
       cross.setAttribute("fill", "rgba(162,162,162, 1)");
+      cross.setAttribute("deleteTag", "1");
       states.cvs?.appendChild(cross);
 
       for (var i = 0; i < /*1*/ arr_rc_draw.length; i++) {
@@ -1298,6 +1133,7 @@ export default defineComponent({
         d_str += "L" + pt.x + "," + pt.y + " ";
 
         road.setAttribute("d", d_str);
+        road.setAttribute("deleteTag", "1");
         road.setAttribute("id", i.toString());
         road.setAttribute("fill", "rgba(162,162,162, 1)");
         road.addEventListener("click", handleMainRoad, false);
@@ -1334,6 +1170,7 @@ export default defineComponent({
 
         var side = document.createElementNS(states.ns, "path"); // 创建SVG元素——路边
         side.setAttribute("d", d_str);
+        side.setAttribute("deleteTag", "1");
         side.setAttribute("stroke", "rgb(255,255,255)");
         side.setAttribute("stroke-width", "2");
         side.setAttribute("fill", "none");
@@ -1402,6 +1239,7 @@ export default defineComponent({
           sep.setAttribute("stroke-width", "2");
           sep.setAttribute("fill", "none");
           setIsolationStyle(sep, rc.median_strip.type);
+          sep.setAttribute("deleteTag", "1");
           states.cvs?.appendChild(sep);
         }
         // 进口人行道横白条
@@ -1414,6 +1252,7 @@ export default defineComponent({
         bar.setAttribute("d", d_str);
         bar.setAttribute("stroke", "rgb(255,255,255)");
         bar.setAttribute("stroke-width", "2");
+        bar.setAttribute("deleteTag", "1");
         states.cvs?.appendChild(bar);
 
         // 进口车道白线
@@ -1434,6 +1273,7 @@ export default defineComponent({
           line.setAttribute("d", d_str);
           line.setAttribute("stroke", "rgb(255,255,255)");
           line.setAttribute("stroke-width", "2");
+          line.setAttribute("deleteTag", "1");
           states.cvs?.appendChild(line);
 
           // 展宽前
@@ -1448,6 +1288,7 @@ export default defineComponent({
           line.setAttribute("d", d_str);
           line.setAttribute("stroke", "rgb(255,255,255)");
           line.setAttribute("stroke-width", "2");
+          line.setAttribute("deleteTag", "1");
           states.cvs?.appendChild(line);
 
           // 展宽后
@@ -1472,6 +1313,7 @@ export default defineComponent({
           line.setAttribute("d", d_str);
           line.setAttribute("stroke", "rgb(255,255,255)");
           line.setAttribute("stroke-width", "2");
+          line.setAttribute("deleteTag", "1");
           states.cvs?.appendChild(line);
 
           // 展宽后第2部分
@@ -1491,6 +1333,7 @@ export default defineComponent({
           line.setAttribute("d", d_str);
           line.setAttribute("stroke", "rgb(255,255,255)");
           line.setAttribute("stroke-width", "2");
+          line.setAttribute("deleteTag", "1");
           states.cvs?.appendChild(line);
         }
 
@@ -1512,6 +1355,7 @@ export default defineComponent({
             line.setAttribute("d", d_str);
             line.setAttribute("stroke", "rgb(255,255,255)");
             line.setAttribute("stroke-width", "2");
+            line.setAttribute("deleteTag", "1");
             states.cvs?.appendChild(line);
           }
         }
@@ -1556,6 +1400,7 @@ export default defineComponent({
               "transform",
               "translate(" + pt.x + "," + pt.y + ")"
             );
+            line.setAttribute("deleteTag", "1");
             states.cvs?.appendChild(line);
           }
         }
@@ -1580,6 +1425,7 @@ export default defineComponent({
           line.setAttribute("d", d_str);
           line.setAttribute("stroke", "rgb(255,255,255)");
           line.setAttribute("stroke-width", "2");
+          line.setAttribute("deleteTag", "1");
           states.cvs?.appendChild(line);
 
           // 展宽后第2部分
@@ -1599,6 +1445,7 @@ export default defineComponent({
           line.setAttribute("d", d_str);
           line.setAttribute("stroke", "rgb(255,255,255)");
           line.setAttribute("stroke-width", "2");
+          line.setAttribute("deleteTag", "1");
           states.cvs?.appendChild(line);
         }
 
@@ -1619,6 +1466,7 @@ export default defineComponent({
           bkdiv.setAttribute("stroke-width", "2");
           bkdiv.setAttribute("fill", "none");
           setIsolationStyle(bkdiv, rc.enter.bike_lane.div_type);
+          bkdiv.setAttribute("deleteTag", "1");
           states.cvs?.appendChild(bkdiv);
         }
 
@@ -1639,6 +1487,7 @@ export default defineComponent({
           bkdiv.setAttribute("stroke-width", "2");
           bkdiv.setAttribute("fill", "none");
           setIsolationStyle(bkdiv, rc.exit.bike_lane.div_type);
+          bkdiv.setAttribute("deleteTag", "1");
           states.cvs?.appendChild(bkdiv);
         }
 
@@ -1707,6 +1556,7 @@ export default defineComponent({
         cross.setAttribute("stroke", "rgb(255,255,255)");
         cross.setAttribute("stroke-width", "2");
         cross.setAttribute("fill", "none");
+        cross.setAttribute("deleteTag", "1");
 
         states.cvs?.appendChild(cross);
 
@@ -1729,9 +1579,28 @@ export default defineComponent({
             ")"
         );
         //txt.setAttribute("stroke-width", "200");
-
+        txt.setAttribute("deleteTag", "1");
         states.cvs?.appendChild(txt);
       }
+    }
+
+    //清空所有svg信息，重新绘制
+    function removeAll() {
+      document.querySelectorAll("path").forEach((e: any) => {
+        const is_delete = e.getAttribute("deleteTag") === "1";
+        if (e.id !== "notDelete" && is_delete) {
+          //清空所有路径(保留弹窗内路标和不需要删除的元素)
+          e.remove();
+        }
+      });
+      document.querySelectorAll("text").forEach((e) => {
+        //清空所有文字
+        e.remove();
+      });
+      document.querySelectorAll("g").forEach((e) => {
+        //清空所有路标
+        e.remove();
+      });
     }
 
     /**
@@ -1754,6 +1623,7 @@ export default defineComponent({
       path.setAttribute("fill", "#ffffff");
       path.setAttribute("width", "100");
       path.setAttribute("height", "100");
+      path.setAttribute("deleteTag", "1");
 
       var svg = document.createElementNS(states.ns, "svg");
       svg.appendChild(path);
@@ -1781,7 +1651,7 @@ export default defineComponent({
     function handleMainRoad(e: any) {
       const event = window.event || e;
       states.cur_road_dir = Number(event.target.id);
-      render();
+      onLoadChange(road_info);
     }
 
     //选中路标
@@ -1802,6 +1672,7 @@ export default defineComponent({
 
       //设置界面图标
       states.currentSign.setAttribute("d", road_sign);
+      states.currentSign.setAttribute("deleteTag", "1");
       //设置数据对应图标
       rc.road_sign.enter[way_index] = { key: rowKey, path: road_sign };
       // 设置路标后需要调整当前道路对应的数量
@@ -1874,7 +1745,6 @@ export default defineComponent({
             0.33 * all_direction,
         };
       });
-      console.log(road_info.canalize_info);
     }
 
     /**
@@ -1882,14 +1752,14 @@ export default defineComponent({
      */
     // 方向选择
     function on_sel_dirs_change() {
-      render();
+      onLoadChange(road_info);
     }
 
     //设置机动车道
     function on_bike_lane_set(is_set: number) {
       road_info.canalize_info[states.cur_road_dir].enter.bike_lane.has = is_set;
       road_info.canalize_info[states.cur_road_dir].exit.bike_lane.has = is_set;
-      render();
+      onLoadChange(road_info);
     }
 
     //页面属性变化
@@ -1915,7 +1785,7 @@ export default defineComponent({
         create_sign(road_info.canalize_info[states.cur_road_dir]);
         setRoadDirection();
       }
-      render();
+      onLoadChange(road_info);
     }
 
     // function initZoomPan() {
@@ -2004,12 +1874,15 @@ export default defineComponent({
     // }
 
     onMounted(() => {
+      const rf =
+        plans.canalize_plans[roadStates.current_canalize].flow_plans[0]
+          .signal_plans[0].road_info;
       //已有数据，渲染
       if (road_info.canalize_info.length > 0) {
-        onEditLoad();
+        onLoadEdit(rf);
       } else {
         //否则全量初始化
-        onLoad();
+        onLoad(rf);
       }
     });
 
@@ -2038,6 +1911,9 @@ export default defineComponent({
       handleConfirmSign,
       canalizeTypeOption,
       medianStripTypeOption,
+      onLoad,
+      onLoadEdit,
+      onLoadChange,
     };
   },
 });

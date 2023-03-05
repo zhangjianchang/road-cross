@@ -74,11 +74,18 @@ import {
 import Container from "../../../components/Container/index.vue";
 import { DragOutlined } from "@ant-design/icons-vue";
 import { getAngle, getQByPathCurv } from "../../../utils/common";
-import { RoadInfo, road_info } from "..";
+import { plans, roadStates } from "..";
 
 export default defineComponent({
   components: { Container, DragOutlined },
   setup() {
+    //道路信息
+    const road_info = reactive(
+      plans.canalize_plans[roadStates.current_canalize].flow_plans[
+        roadStates.current_flow
+      ].signal_plans[roadStates.current_signal].road_info
+    );
+
     const states = reactive({
       ns: "",
       cvs: null as HTMLElement | null,

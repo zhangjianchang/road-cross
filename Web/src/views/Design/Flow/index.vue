@@ -321,11 +321,18 @@ import {
   uturn_path,
 } from ".";
 import _ from "lodash";
-import { road_info } from "..";
+import { plans, roadStates } from "..";
 
 export default defineComponent({
   components: { Container },
   setup() {
+    //道路信息
+    const road_info = reactive(
+      plans.canalize_plans[roadStates.current_canalize].flow_plans[
+        roadStates.current_flow
+      ].signal_plans[roadStates.current_signal].road_info
+    );
+
     const states = reactive({
       ns: "",
       cvs: null as HTMLElement | null,
@@ -429,16 +436,8 @@ export default defineComponent({
 
     //填充表格
     async function initRoadInfo() {
-      if (!states.is_init) {
-        //道路有更换的时候重新绘制
-        // if (road_info.road_attr.length !== road_info.basic_info.count) {
-        initFlowDetail();
-        // }
-        //表格中方向绘制
-        // initDirections();
-      }
-      //标记已经初始化过了
-      states.is_init = true;
+      if (!states.is_init) initFlowDetail();
+      states.is_init = true; //标记已经初始化过了
     }
 
     function initFlowDetail() {

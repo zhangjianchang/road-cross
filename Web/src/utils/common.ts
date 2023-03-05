@@ -13,7 +13,7 @@ export function goRouterByParam(
     });
     window.open(href, openType);
     //路由跳转后都强刷页面
-    location.reload();
+    // location.reload();
   } catch {}
 }
 

@@ -1,83 +1,206 @@
 <template>
   <div class="basic-main">
-    <div class="func">
-      功能区
-      <div class="gradient"></div>
-      <div class="gradient-text">
-        <div>1</div>
-        <div class="dec">饱和度</div>
-        <div>0</div>
+    <div class="main-canvas" v-show="!showAnalysis">
+      <div class="func">
+        <div class="gradient"></div>
+        <div class="gradient-text">
+          <div>1</div>
+          <div class="dec">饱和度</div>
+          <div>0</div>
+        </div>
+      </div>
+      <!-- 图示 -->
+      <svg id="canvas">
+        <text v-for="(_, index) in road_attr" :key="index" x="330">
+          <textPath :xlink:href="'#road_' + (index + 1)">
+            方向{{ index + 1 }}
+          </textPath>
+        </text>
+        <!-- 路标 -->
+        <g
+          v-for="road in road_sign_pts"
+          :key="road.g"
+          :transform="road.g.transform"
+          class="road-sign"
+          :id="road.g.id"
+        >
+          <rect
+            x="200"
+            y="-100"
+            rx="100"
+            ry="100"
+            width="640"
+            height="1200"
+            :fill="road.rect.background"
+            stroke="#ddd"
+            stroke-width="2"
+          />
+          <path :d="road.sign.d" fill="#fff"></path>
+          <text x="250" y="1400" fill="#000" style="font-size: 260px">
+            {{ road.rect.saturation }}
+          </text>
+        </g>
+        <circle
+          cx="350"
+          cy="350"
+          r="30"
+          :fill="total_color"
+          stroke="#ddd"
+          stroke-width="1"
+          id="total_saturation"
+        />
+        <text x="335" y="355" fill="#fff" stroke-width="2">
+          {{ total_saturation }}
+        </text>
+      </svg>
+    </div>
+    <div v-show="showAnalysis" class="main-canvas">
+      <div class="report" id="report">报表显示区域</div>
+    </div>
+    <!-- 参数 -->
+    <div class="menu">
+      <div class="switch mb-5">
+        <a-switch
+          v-model:checked="showAnalysis"
+          checked-children="显示对比分析"
+          un-checked-children="隐藏对比分析"
+        />
+      </div>
+      <div v-for="(analysis, index) in analysisList" :key="index">
+        <div class="menu-header">
+          <div class="menu-title">方案{{ index + 1 }}</div>
+          <div class="opration">
+            <DeleteOutlined
+              @click="handleDelete(index)"
+              title="删除"
+              style="color: #ff4d4f"
+            />
+          </div>
+        </div>
+        <div class="menu-content">
+          <a-form :label-col="labelCol" :wrapper-col="wrapperCol">
+            <a-row>
+              <a-col :span="24" class="mb-2">
+                <a-form-item label="名称">
+                  <a-input v-model:value="analysis.name" />
+                </a-form-item>
+              </a-col>
+              <a-col :span="24" class="mb-2">
+                <a-form-item label="渠化">
+                  <a-select
+                    placeholder="请选择渠化方案"
+                    v-model:value="analysis.canalize_plan"
+                  >
+                    <a-select-option
+                      v-for="(item, index) in plans.canalize_plans"
+                      :key="index"
+                      :value="index"
+                    >
+                      {{ item.name }}
+                    </a-select-option>
+                  </a-select>
+                </a-form-item>
+              </a-col>
+              <a-col :span="24" class="mb-2">
+                <a-form-item label="流量">
+                  <a-select
+                    placeholder="请选择流量方案"
+                    v-model:value="analysis.flow_plan"
+                  >
+                    <a-select-option
+                      v-for="(item, index) in plans.canalize_plans[
+                        analysis.canalize_plan
+                      ].flow_plans"
+                      :key="index"
+                      :value="index"
+                    >
+                      {{ item.name }}
+                    </a-select-option>
+                  </a-select>
+                </a-form-item>
+              </a-col>
+              <a-col :span="24" class="mb-2">
+                <a-form-item label="信号">
+                  <a-select
+                    placeholder="请选择信号方案"
+                    v-model:value="analysis.signal_plan"
+                  >
+                    <a-select-option
+                      v-for="(item, index) in plans.canalize_plans[
+                        analysis.canalize_plan
+                      ].flow_plans[analysis.flow_plan].signal_plans"
+                      :key="index"
+                      :value="index"
+                    >
+                      {{ item.name }}
+                    </a-select-option>
+                  </a-select>
+                </a-form-item>
+              </a-col>
+            </a-row>
+          </a-form>
+        </div>
+      </div>
+      <div class="mt-5">
+        <a-button class="add-line-btn" @click="handleAddNew">
+          <template #icon><PlusOutlined /></template>
+          增加对比方案
+        </a-button>
       </div>
     </div>
-    <!-- 图示 -->
-    <svg id="canvas">
-      <text v-for="(_, index) in road_attr" :key="index" x="330">
-        <textPath :xlink:href="'#road_' + (index + 1)">
-          方向{{ index + 1 }}
-        </textPath>
-      </text>
-      <!-- 路标 -->
-      <g
-        v-for="road in road_sign_pts"
-        :key="road.g"
-        :transform="road.g.transform"
-        class="road-sign"
-        :id="road.g.id"
-      >
-        <rect
-          x="200"
-          y="-100"
-          rx="100"
-          ry="100"
-          width="640"
-          height="1200"
-          :fill="road.rect.background"
-          stroke="#ddd"
-          stroke-width="2"
-        />
-        <path :d="road.sign.d" fill="#fff"></path>
-        <text x="250" y="1400" fill="#000" style="font-size: 260px">
-          {{ road.rect.saturation }}
-        </text>
-      </g>
-      <circle
-        cx="350"
-        cy="350"
-        r="30"
-        :fill="total_color"
-        stroke="#ddd"
-        stroke-width="1"
-        id="total_saturation"
-      />
-      <text x="335" y="355" fill="#fff" stroke-width="2">
-        {{ total_saturation }}
-      </text>
-    </svg>
-
-    <!-- 参数 -->
-    <div class="menu">对比分析</div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, inject, onMounted, reactive, toRefs } from "vue";
 import {
-  getBackground,
-  getCelr,
-  getRoadDefaultSign,
-  tr_Cl,
-  tr_Cs,
-  tr_Csr,
-  tr_VC,
-} from "./index";
+  defineComponent,
+  inject,
+  onMounted,
+  onUnmounted,
+  reactive,
+  shallowRef,
+  toRefs,
+} from "vue";
+import { getBackground, getCelr, tr_Cl, tr_Cs, tr_Csr, tr_VC } from "./index";
 import Container from "../../../components/Container/index.vue";
-import { DragOutlined } from "@ant-design/icons-vue";
-import { getAngle, getQByPathCurv } from "../../../utils/common";
-import { RoadInfo, road_info } from "..";
+import {
+  DragOutlined,
+  PlusOutlined,
+  DeleteOutlined,
+} from "@ant-design/icons-vue";
+import { getQByPathCurv } from "../../../utils/common";
+import { plans, roadStates } from "..";
+import { openNotfication } from "../../../utils/message";
+import * as echarts from "echarts/core";
+import {
+  TooltipComponent,
+  LegendComponent,
+  GridComponent,
+} from "echarts/components";
+import { LineChart } from "echarts/charts";
+import { CanvasRenderer } from "echarts/renderers";
+import { UniversalTransition } from "echarts/features";
+
+//按需引入echars内容
+echarts.use([
+  TooltipComponent,
+  LegendComponent,
+  GridComponent,
+  LineChart,
+  CanvasRenderer,
+  UniversalTransition,
+]);
 
 export default defineComponent({
-  components: { Container, DragOutlined },
+  components: { Container, DragOutlined, PlusOutlined, DeleteOutlined },
   setup() {
+    //道路信息
+    const road_info = reactive(
+      plans.canalize_plans[roadStates.current_canalize].flow_plans[
+        roadStates.current_flow
+      ].signal_plans[roadStates.current_signal].road_info
+    );
+
     const states = reactive({
       ns: "",
       cvs: null as HTMLElement | null,
@@ -90,6 +213,15 @@ export default defineComponent({
       total_color: "#fff", //中心总颜色
       total_saturation: "0.00", //中心总数值
       ratio: 4, //比例尺
+      showAnalysis: false,
+      analysisList: [
+        {
+          name: "方案1",
+          canalize_plan: 0,
+          flow_plan: 0,
+          signal_plan: 0,
+        },
+      ],
     });
 
     const initRoads = () => {
@@ -180,7 +312,7 @@ export default defineComponent({
 
     //画路标
     function drawRoadSign() {
-      for (let i = 0; i < road_info.basic_info.count; i++) {
+      for (let i = 0; i < plans.road_count; i++) {
         //每条道路增加一个分析
         road_info.saturation_info.push([]);
 
@@ -200,7 +332,7 @@ export default defineComponent({
         //绘制
         for (var j = 0; j < rc.enter.num; j++) {
           //增加偏移系数k，微调路标位置
-          const k = (j - 1) * 7;
+          const k = (j - 1) * 8;
           //增加偏移系数k2，调整路宽时调整路标位置
           const d = 120;
           const dr = Math.PI * 0.5;
@@ -353,19 +485,119 @@ export default defineComponent({
       return np;
     }
 
+    /**页面操作事件 start*/
+    const handleAddNew = () => {
+      if (states.analysisList.length === 3) {
+        openNotfication("warning", "最多提供三个对比方案");
+        return;
+      }
+      const analysis = {
+        name: "方案" + (states.analysisList.length + 1),
+        canalize_plan: 0,
+        flow_plan: 0,
+        signal_plan: 0,
+      };
+      states.analysisList.push(analysis);
+    };
+
+    const handleDelete = (index: number) => {
+      if (states.analysisList.length === 1) {
+        openNotfication("warning", "至少保留一个方案");
+        return;
+      }
+      states.analysisList = states.analysisList.filter(
+        (_, idx) => idx !== index
+      );
+    };
+    /**页面操作事件 end*/
+
+    /**报表相关 start*/
+    const LineChart = shallowRef();
+    const initEcharts = () => {
+      LineChart.value = echarts.init(
+        document.getElementById("report") as HTMLElement
+      );
+      // 指定图表的配置项和数据
+      let option = {
+        tooltip: {
+          trigger: "axis",
+        },
+        legend: {
+          data: ["企业数量", "工位数量"],
+        },
+        grid: {
+          left: "3%",
+          right: "4%",
+          bottom: "3%",
+          containLabel: true,
+        },
+        xAxis: {
+          type: "category",
+          boundaryGap: false,
+          data: ["衬衫", "羊毛衫", "雪纺衫", "裤子", "高跟鞋", "袜子"],
+        },
+        // Y标尺固定
+        yAxis: {
+          type: "value",
+          scale: true,
+          // // boundaryGap: [0.2, 0.2],
+          // // 动态设置Y轴的刻度值 只取整数
+          min: (value: Record<string, number>) => {
+            return Math.floor(value.min / 100) * 100;
+          },
+          max: (value: Record<string, number>) => {
+            return Math.ceil(value.max / 100) * 100;
+          },
+        },
+        series: [
+          {
+            name: "企业数量",
+            type: "line",
+            stack: "Total",
+            data: 10,
+          },
+          {
+            name: "工位数量",
+            type: "line",
+            stack: "Total",
+            data: 20,
+          },
+        ],
+      };
+      // 使用刚指定的配置项和数据显示图表。
+      LineChart.value.setOption(option);
+
+      window.addEventListener("resize", () => {
+        LineChart.value.resize();
+      });
+    };
+    /**报表相关 end*/
+
     onMounted(() => {
       initRoads();
+      initEcharts();
+    });
+
+    onUnmounted(() => {
+      LineChart.value.dispose();
     });
 
     return {
       ...toRefs(states),
       ...toRefs(road_info),
+      ...toRefs(roadStates),
+      plans,
+      labelCol: { span: 2 },
+      wrapperCol: { span: 22 },
+      handleAddNew,
+      handleDelete,
     };
   },
 });
 </script>
 <style scoped lang="less">
 @import url("./index.less");
+@import url("../index.less");
 
 .road-sign {
   width: 32px;
@@ -376,5 +608,3 @@ export default defineComponent({
   cursor: pointer;
 }
 </style>
-
-function getCelr() { throw new Error("Function not implemented."); }

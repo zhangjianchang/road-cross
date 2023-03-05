@@ -1,20 +1,12 @@
 <template>
   <div class="basic-main">
     <div class="drag">
-      <a-tooltip>
-        <template #title>
-          {{ deleting ? "取消删除模式" : "切换删除模式，点击线段即可删除" }}
-        </template>
-        <close-outlined
-          :style="{ fontSize: '24px', color: deleting ? '#4f48ad' : '' }"
-          @click="deleting = !deleting"
-        />
-      </a-tooltip>
+      <!-- 功能区 -->
     </div>
     <!-- 图示 -->
     <svg
       id="canvas"
-      :style="{ cursor: dragging ? 'move' : '' }"
+      :style="{ cursor: deleting ? '' : dragging ? 'move' : '' }"
       @click="(event) => onClick(event)"
       @mousemove="(e) => onMouseMove(e)"
       @mouseup="(e) => onMouseUp(e)"
@@ -101,14 +93,19 @@ import {
   ExclamationCircleOutlined,
 } from "@ant-design/icons-vue";
 import { getAngle } from "../../../utils/common";
-import { roadStates, road_info, road_model } from "..";
-import { buildUUID } from "../../../utils/uuid";
+import { plans, roadStates } from "..";
 import { useRoute } from "vue-router";
-import { object } from "vue-types";
 
 export default defineComponent({
   components: { Container, CloseOutlined },
   setup() {
+    //道路信息
+    const road_info = reactive(
+      plans.canalize_plans[roadStates.current_canalize].flow_plans[
+        roadStates.current_flow
+      ].signal_plans[roadStates.current_signal].road_info
+    );
+
     const route = useRoute();
     const id = (route.params.id ?? "").toString();
 
@@ -121,6 +118,7 @@ export default defineComponent({
       deleting: false, //当前模式属于拖拽还是建点
       //拖动相关
       currentLine: null as any,
+      isContextMenu: false,
       dragging: false,
       dragId: "",
       index: 0, //标记线段id，永远叠加
@@ -222,24 +220,30 @@ export default defineComponent({
       line.setAttribute("marker-end", `url(#arrow${states.index})`);
       line.setAttribute("tag", `arrow${states.index}`);
       //事件
+      line.addEventListener("contextmenu", onContextMenu, false);
       line.addEventListener("mousedown", onMouseDown, false);
       states.cvs?.appendChild(line);
     }
 
-    //鼠标按下
-    function onMouseDown(e: any) {
+    //右键事件
+    function onContextMenu(e: any) {
       const event = window.event || e;
       states.currentLine = event.target;
       states.dragId = states.currentLine.id;
-      //删除模式
-      if (states.deleting) {
-        e.target.remove();
-        road_info.road_attr = road_info.road_attr.filter(
-          (r) => r.id !== states.dragId
-        );
-        setRoadDir([], true);
-        return;
-      }
+      road_info.road_attr = road_info.road_attr.filter(
+        (r) => r.id !== states.dragId
+      );
+      setRoadDir([], true);
+      e.target.remove();
+      e.preventDefault();
+    }
+
+    //鼠标按下
+    function onMouseDown(e: any) {
+      if (e.button === 2) return; //右键直接返回
+      const event = window.event || e;
+      states.currentLine = event.target;
+      states.dragId = states.currentLine.id;
       states.dragging = true;
       //加深颜色
       states.currentLine.setAttribute("stroke", "rgb(48 44 102)");
@@ -251,7 +255,7 @@ export default defineComponent({
     //拖动鼠标
     function onMouseMove(e: any) {
       const event = e || window.event;
-      if (!states.dragging) {
+      if (!states.dragging || states.deleting) {
         return;
       }
       let nx = event.offsetX;
@@ -322,10 +326,13 @@ export default defineComponent({
           }
         });
       }
-      road_info.road_attr.sort(function (a, b) {
+      road_info.road_attr.sort(function (
+        a: { angle: number },
+        b: { angle: number }
+      ) {
         return a.angle - b.angle;
       });
-      road_info.basic_info.count = road_info.road_attr.length;
+      plans.road_count = road_info.road_attr.length;
     }
 
     //根据当前点位获取在圆上的点

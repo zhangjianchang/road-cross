@@ -1,4 +1,5 @@
 import { reactive } from "vue";
+import { plans_model } from "./data";
 
 export enum MenuListEnum {
   Basic = "Basic", //基础信息
@@ -37,43 +38,15 @@ export interface RoadInfo {
 export const roadStates = reactive({
   road_list: [] as any[], //TODO缓存方案，后期删
   currentUrl: "Basic",
+  showSelect: {
+    showCanalize: false,
+    showFlow: false,
+    showSignal: false,
+  },
+  current_canalize: 0, //当前渠化方案
+  current_flow: 0, //当前流量方案
+  current_signal: 0, //当前信号方案
 });
 
-export const road_model = {
-  //基础信息
-  basic_info: {
-    id: "", //自动生成
-    name: "", //道路名称
-    createDate: "", //创建时间 TODO后续删除取服务器时间
-    updateDate: "", //修改时间 TODO后续删除取服务器时间
-    count: 0,
-  },
-  //交叉路口信息
-  road_attr: [] as any[],
-  //渠化信息
-  canalize_info: [] as any[],
-  //流量信息
-  flow_info: reactive({
-    colorScheme: 0, //颜色
-    thickness: 5, //粗细
-    width: 100, //长度
-    space: 24, //间距
-    font_size1: 14, //字号1
-    font_size2: 16, //字号2
-    line_info: [] as any[], //车道属性
-    flow_detail: [] as any[], //进口道转向流量
-    saturation: [] as any,
-    flowColumns: [] as any[],
-  }),
-  //信号信息
-  signal_info: {
-    phase: 2, //默认2个相位
-    period: 0, //默认周期共80s
-    is_show_legend: false,
-    phase_list: [] as any[],
-  },
-  //饱和度
-  saturation_info: [] as any[],
-};
-
-export const road_info = reactive(road_model);
+//所有方案
+export const plans = reactive(plans_model);

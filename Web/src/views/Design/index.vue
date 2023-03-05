@@ -2,65 +2,49 @@
   <Container>
     <div class="header">
       <a-input
-        v-model:value="basic_info.name"
+        v-model:value="plans.road_name"
         placeholder="请输入交叉口名称"
         style="width: 530px"
       />
       <a-button type="primary" class="ml-5" @click="onSave"> 保存 </a-button>
-      <div class="header-plan1">
-        <a-select
-          v-if="currentUrl !== MenuListEnum.Canalize"
-          class="large-form-width ml-5"
-          placeholder="请选择渠化方案"
-        >
-          <a-select-option
-            v-for="(_, index) in road_attr"
-            :key="index"
-            :value="index"
-          >
-            方向{{ index + 1 }}
-          </a-select-option>
-        </a-select>
-        <a-select class="large-form-width ml-5" placeholder="请选择流量方案">
-          <a-select-option
-            v-for="(_, index) in road_attr"
-            :key="index"
-            :value="index"
-          >
-            方向{{ index + 1 }}
-          </a-select-option>
-        </a-select>
-        <a-select class="large-form-width ml-5" placeholder="请选择信号方案">
-          <a-select-option
-            v-for="(_, index) in road_attr"
-            :key="index"
-            :value="index"
-          >
-            方向{{ index + 1 }}
-          </a-select-option>
-        </a-select>
-      </div>
-
-      <div
-        class="header-plan2"
-        v-if="
-          currentUrl === MenuListEnum.Canalize ||
-          currentUrl === MenuListEnum.Flow ||
-          currentUrl === MenuListEnum.Signal
-        "
-      >
+      <div class="header-plan1 ml-5">
         <!-- 渠化方案： -->
         <div class="flex" v-if="currentUrl === MenuListEnum.Canalize">
           <span class="title">渠化方案：</span>
-          <a-input class="large-form-width2" placeholder="请输入渠化方案">
-            <template #addonBefore>
-              <copy-outlined class="copy-btn" title="复制" />
-            </template>
-            <template #addonAfter>
-              <delete-outlined class="minus-btn" title="删除" />
-            </template>
-          </a-input>
-          <a-button class="ml-2" type="default" title="添加">
+          <div
+            class="mr-2 mt-8"
+            v-for="(item, index) in plans.canalize_plans"
+            :key="index"
+          >
+            <a-input
+              class="large-form-width2"
+              :class="index === current_canalize ? 'form-actitve' : ''"
+              placeholder="请输入渠化方案"
+              v-model:value="item.name"
+              @focus="changeCanalize(index)"
+            >
+              <template #addonBefore>
+                <copy-outlined
+                  class="copy-btn"
+                  title="复制"
+                  @click="handleAddC(true)"
+                />
+              </template>
+              <template #addonAfter>
+                <delete-outlined
+                  class="minus-btn"
+                  title="删除"
+                  @click="handleDeleteC(index)"
+                />
+              </template>
+            </a-input>
+          </div>
+          <a-button
+            class="mt-8"
+            type="default"
+            title="添加"
+            @click="handleAddC(false)"
+          >
             <template #icon><plus-outlined /></template>
           </a-button>
         </div>
@@ -68,15 +52,34 @@
         <!-- 流量方案： -->
         <div class="flex" v-else-if="currentUrl === MenuListEnum.Flow">
           <span class="title">流量方案：</span>
-          <a-input class="large-form-width2" placeholder="请输入流量方案">
-            <template #addonBefore>
-              <copy-outlined class="copy-btn" title="复制" />
-            </template>
-            <template #addonAfter>
-              <delete-outlined class="minus-btn" title="删除" />
-            </template>
-          </a-input>
-          <a-button class="ml-2" type="default" title="添加">
+          <div
+            class="mr-2 mt-8"
+            v-for="item in plans.canalize_plans[current_canalize].flow_plans"
+            :key="item.index"
+          >
+            <a-input
+              class="large-form-width2"
+              placeholder="请输入流量方案"
+              v-model:value="item.name"
+            >
+              <template #addonBefore>
+                <copy-outlined
+                  class="copy-btn"
+                  title="复制"
+                  @click="handleAddF(true)"
+                />
+              </template>
+              <template #addonAfter>
+                <delete-outlined class="minus-btn" title="删除" />
+              </template>
+            </a-input>
+          </div>
+          <a-button
+            class="mt-8"
+            type="default"
+            title="添加"
+            @click="handleAddF(false)"
+          >
             <template #icon><plus-outlined /></template>
           </a-button>
         </div>
@@ -84,18 +87,86 @@
         <!-- 信号方案： -->
         <div class="flex" v-else-if="currentUrl === MenuListEnum.Signal">
           <span class="title">信号方案：</span>
-          <a-input class="large-form-width2" placeholder="请输入信号方案">
-            <template #addonBefore>
-              <copy-outlined class="copy-btn" title="复制" />
-            </template>
-            <template #addonAfter>
-              <delete-outlined class="minus-btn" title="删除" />
-            </template>
-          </a-input>
-          <a-button class="ml-2" type="default" title="添加">
+          <div
+            class="mr-2 mt-8"
+            v-for="item in plans.canalize_plans[current_canalize].flow_plans[
+              current_flow
+            ].signal_plans"
+            :key="item.index"
+          >
+            <a-input
+              class="large-form-width2"
+              placeholder="请输入信号方案"
+              v-model:value="item.name"
+            >
+              <template #addonBefore>
+                <copy-outlined
+                  class="copy-btn"
+                  title="复制"
+                  @click="handleAddS(true)"
+                />
+              </template>
+              <template #addonAfter>
+                <delete-outlined class="minus-btn" title="删除" />
+              </template>
+            </a-input>
+          </div>
+          <a-button
+            class="mt-8"
+            type="default"
+            title="添加"
+            @click="handleAddS(false)"
+          >
             <template #icon><plus-outlined /></template>
           </a-button>
         </div>
+      </div>
+
+      <div class="header-plan2" v-if="showSelect.showCanalize">
+        <a-select
+          v-if="showSelect.showCanalize"
+          class="large-form-width ml-5"
+          placeholder="请选择渠化方案"
+          v-model:value="current_canalize"
+        >
+          <a-select-option
+            v-for="(item, index) in plans.canalize_plans"
+            :key="index"
+            :value="index"
+          >
+            {{ item.name }}
+          </a-select-option>
+        </a-select>
+        <a-select
+          v-if="showSelect.showFlow"
+          class="large-form-width ml-5"
+          placeholder="请选择流量方案"
+          v-model:value="current_flow"
+        >
+          <a-select-option
+            v-for="(item, index) in plans.canalize_plans[current_canalize]
+              .flow_plans"
+            :key="index"
+            :value="index"
+          >
+            {{ item.name }}
+          </a-select-option>
+        </a-select>
+        <a-select
+          v-if="showSelect.showSignal"
+          class="large-form-width ml-5"
+          placeholder="请选择信号方案"
+          v-model:value="current_signal"
+        >
+          <a-select-option
+            v-for="(item, index) in plans.canalize_plans[current_canalize]
+              .flow_plans[current_flow].signal_plans"
+            :key="index"
+            :value="index"
+          >
+            {{ item.name }}
+          </a-select-option>
+        </a-select>
       </div>
     </div>
     <div class="content">
@@ -114,11 +185,17 @@
         <!-- 方向 -->
         <Basic v-if="currentUrl === MenuListEnum.Basic" ref="basicRef" />
         <!-- 渠化 -->
-        <Canalize v-else-if="currentUrl === MenuListEnum.Canalize" />
+        <Canalize
+          v-else-if="currentUrl === MenuListEnum.Canalize"
+          ref="canalizeRef"
+        />
         <!-- 流量 -->
-        <Flow v-else-if="currentUrl === MenuListEnum.Flow" />
+        <Flow v-else-if="currentUrl === MenuListEnum.Flow" ref="flowRef" />
         <!-- 信号 -->
-        <Signal v-else-if="currentUrl === MenuListEnum.Signal" />
+        <Signal
+          v-else-if="currentUrl === MenuListEnum.Signal"
+          ref="signalRef"
+        />
         <!-- 断面 -->
         <Section v-else-if="currentUrl === MenuListEnum.Section" />
         <!-- 饱和度 -->
@@ -135,9 +212,17 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, inject, onMounted, reactive, ref, toRefs } from "vue";
-import { MenuListEnum, menuList, road_info, roadStates } from "./index";
-import { message, notification } from "ant-design-vue";
+import {
+  defineComponent,
+  inject,
+  onMounted,
+  provide,
+  reactive,
+  ref,
+  toRefs,
+} from "vue";
+import { MenuListEnum, menuList, roadStates, plans } from "./index";
+import { message } from "ant-design-vue";
 import Container from "../../components/Container/index.vue";
 import Basic from "./Basic/index.vue"; //基础
 import Canalize from "./Canalize/index.vue"; //渠化
@@ -158,6 +243,9 @@ import {
   DeleteOutlined,
   PlusOutlined,
 } from "@ant-design/icons-vue";
+import _ from "lodash";
+import { plans_model, road_model } from "./data";
+import { openNotfication } from "../../utils/message";
 
 export default defineComponent({
   components: {
@@ -185,17 +273,25 @@ export default defineComponent({
       goRouterByParam(PageEnum.Login);
     }
 
+    //全局道路信息
+    const road_info = reactive(
+      plans.canalize_plans[roadStates.current_canalize].flow_plans[
+        roadStates.current_flow
+      ].signal_plans[roadStates.current_signal].road_info
+    );
+    provide("road_info", road_info); //提供给子组件使用
+
     //子页面
     const basicRef = ref();
+    const canalizeRef = ref();
+    const flowRef = ref();
+    const signalRef = ref();
     roadStates.currentUrl = MenuListEnum.Basic;
 
+    //切换菜单
     const handleChangeMenu = (item: any) => {
       if (item.url != MenuListEnum.Basic && road_info.road_attr.length < 2) {
-        notification["warning"]({
-          message: "错误提醒",
-          description: "相交道路不能少于两条",
-          duration: 10,
-        });
+        openNotfication("warning", "相交道路不能少于两条");
         return;
       }
       if (
@@ -203,39 +299,151 @@ export default defineComponent({
         item.url != MenuListEnum.Canalize &&
         road_info.canalize_info.length === 0
       ) {
-        notification["warning"]({
-          message: "错误提醒",
-          description: "请先初始化渠化信息",
-          duration: 10,
-        });
+        openNotfication("warning", "请先初始化渠化信息");
+
         return;
       }
       roadStates.currentUrl = item.url;
+      changeShowSelect();
     };
 
-    const onSave = () => {
-      if (!road_info.basic_info.name) {
-        notification["warning"]({
-          message: "错误提醒",
-          description: "请输入交叉口名称",
-          duration: 10,
-        });
+    //切换菜单时下拉组件的显示隐藏
+    const changeShowSelect = () => {
+      if (
+        roadStates.currentUrl === MenuListEnum.Basic ||
+        roadStates.currentUrl === MenuListEnum.Canalize
+      ) {
+        roadStates.showSelect.showCanalize = false;
+        roadStates.showSelect.showFlow = false;
+        roadStates.showSelect.showSignal = false;
+      } else if (roadStates.currentUrl === MenuListEnum.Flow) {
+        roadStates.showSelect.showCanalize = true;
+        roadStates.showSelect.showFlow = false;
+        roadStates.showSelect.showSignal = false;
+      } else if (roadStates.currentUrl === MenuListEnum.Signal) {
+        roadStates.showSelect.showCanalize = true;
+        roadStates.showSelect.showFlow = true;
+        roadStates.showSelect.showSignal = false;
+      } else {
+        roadStates.showSelect.showCanalize = true;
+        roadStates.showSelect.showFlow = true;
+        roadStates.showSelect.showSignal = true;
+      }
+    };
+
+    //添加渠化方案
+    const handleAddC = (is_copy = false) => {
+      if (plans.canalize_plans.length === 3) {
+        openNotfication("warning", "最多可增加三种渠化方案");
         return;
       }
-      if (!road_info.basic_info.count) {
-        notification["warning"]({
-          message: "错误提醒",
-          description: "请绘制道路后再进行保存",
-          duration: 10,
-        });
+      const index = plans.canalize_plans.length;
+      const canalize_plan = _.cloneDeep(plans_model.canalize_plans[0]);
+      canalize_plan.index = index;
+      canalize_plan.name = "渠化方案" + (index + 1);
+      setRoadInfo(is_copy, canalize_plan.flow_plans[0].signal_plans[0]);
+      plans.canalize_plans.push(canalize_plan);
+
+      //手动触发初始化
+      changeCanalize(index, !is_copy);
+    };
+    //删除渠化方案
+    const handleDeleteC = (index: number) => {
+      if (plans.canalize_plans.length === 1) {
+        openNotfication("warning", "至少保留一条渠化方案");
+        return;
+      }
+      plans.canalize_plans = plans.canalize_plans.filter(
+        (_, idx) => index != idx
+      );
+      roadStates.current_canalize =
+        roadStates.current_canalize > plans.canalize_plans.length - 1
+          ? plans.canalize_plans.length - 1
+          : roadStates.current_canalize;
+    };
+    //添加流量
+    const handleAddF = (is_copy = false) => {
+      const flow_plans =
+        plans.canalize_plans[roadStates.current_canalize].flow_plans;
+      if (flow_plans.length === 3) {
+        openNotfication("warning", "最多可增加三种流量方案");
+        return;
+      }
+      const flow_plan = _.cloneDeep(
+        plans_model.canalize_plans[0].flow_plans[0]
+      );
+      flow_plan.name = "流量方案" + (flow_plans.length + 1);
+      setRoadInfo(is_copy, flow_plan.signal_plans[0]);
+      flow_plans.push(flow_plan);
+    };
+    //添加信号
+    const handleAddS = (is_copy = false) => {
+      const signal_plans =
+        plans.canalize_plans[roadStates.current_canalize].flow_plans[
+          roadStates.current_flow
+        ].signal_plans;
+      if (signal_plans.length === 3) {
+        openNotfication("warning", "最多可增加三种信号方案");
+        return;
+      }
+      const signal_plan = _.cloneDeep(
+        plans_model.canalize_plans[0].flow_plans[0].signal_plans[0]
+      );
+      signal_plan.name = "信号方案" + (signal_plans.length + 1);
+      setRoadInfo(is_copy, signal_plan);
+      signal_plans.push(signal_plan);
+    };
+
+    //设置全局路口信息
+    const setRoadInfo = (is_copy: boolean, signal_plan: any) => {
+      if (is_copy) {
+        signal_plan.road_info = _.cloneDeep(road_info);
+      } else {
+        // 其实默认值已经赋值了
+        const rf = _.cloneDeep(road_model);
+        rf.road_attr = signal_plan.road_info.road_attr;
+        rf.basic_info = signal_plan.road_info.basic_info;
+        signal_plan.road_info = rf;
+      }
+    };
+
+    const changeCanalize = (index: number, is_add = false) => {
+      roadStates.current_canalize = index;
+      roadStates.current_flow = 0;
+      roadStates.current_signal = 0;
+
+      if (is_add) {
+        canalizeRef.value.onLoad(road_info);
+      } else {
+        canalizeRef.value.onLoadChange(road_info);
+      }
+      console.log("这回可以了吧", plans);
+    };
+    const changeFlow = (index: number) => {
+      roadStates.current_flow = index;
+      roadStates.current_signal = 0;
+    };
+    const changeSignal = (index: number) => {
+      roadStates.current_signal = index;
+    };
+
+    //保存
+    const onSave = () => {
+      if (!plans.road_name) {
+        openNotfication("warning", "请输入交叉口名称");
+        return;
+      }
+      if (!plans.road_count) {
+        openNotfication("warning", "请绘制道路后再进行保存");
         return;
       }
       if (id) {
+        //TODO 重构
         road_info.basic_info.updateDate = moment().format(
           "YYYY-MM-DD HH:mm:ss"
         );
         roadStates.road_list.map((item: any) => {
-          if (item.basic_info.id === road_info.basic_info.id) {
+          if (item.id === plans.id) {
             item = road_info;
           }
         });
@@ -247,7 +455,7 @@ export default defineComponent({
           "YYYY-MM-DD HH:mm:ss"
         );
         roadStates.road_list.push(road_info);
-        goRouterByParam(PageEnum.DesignEdit, { id: road_info.basic_info.id });
+        goRouterByParam(PageEnum.DesignEdit, { id: plans.id });
       }
       localStorage.setItem("road_list", JSON.stringify(roadStates.road_list));
       message.success("保存成功");
@@ -266,7 +474,7 @@ export default defineComponent({
           }
         });
       } else {
-        road_info.basic_info.id = buildUUID();
+        // plans.id = buildUUID();
       }
       basicRef.value.init();
       /*TODO: 缓存中的方案，后期改接口*/
@@ -275,10 +483,21 @@ export default defineComponent({
     return {
       ...toRefs(roadStates),
       ...toRefs(road_info),
+      plans,
       basicRef,
+      canalizeRef,
+      flowRef,
+      signalRef,
       MenuListEnum,
       menuList,
       handleChangeMenu,
+      handleAddC,
+      handleDeleteC,
+      handleAddF,
+      handleAddS,
+      changeCanalize,
+      changeFlow,
+      changeSignal,
       onSave,
     };
   },
