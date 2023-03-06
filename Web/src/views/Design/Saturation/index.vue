@@ -55,7 +55,7 @@
       </svg>
     </div>
     <div v-show="showAnalysis" class="main-canvas">
-      <div class="report" id="report">报表显示区域</div>
+      <div class="report" id="report"></div>
     </div>
     <!-- 参数 -->
     <div class="menu">
@@ -64,6 +64,7 @@
           v-model:checked="showAnalysis"
           checked-children="显示对比分析"
           un-checked-children="隐藏对比分析"
+          @change="handleChangeAnalysis"
         />
       </div>
       <div v-for="(analysis, index) in analysisList" :key="index">
@@ -150,6 +151,7 @@
     </div>
   </div>
 </template>
+0
 
 <script lang="ts">
 import {
@@ -171,25 +173,7 @@ import {
 import { getQByPathCurv } from "../../../utils/common";
 import { plans, roadStates } from "..";
 import { openNotfication } from "../../../utils/message";
-import * as echarts from "echarts/core";
-import {
-  TooltipComponent,
-  LegendComponent,
-  GridComponent,
-} from "echarts/components";
-import { LineChart } from "echarts/charts";
-import { CanvasRenderer } from "echarts/renderers";
-import { UniversalTransition } from "echarts/features";
-
-//按需引入echars内容
-echarts.use([
-  TooltipComponent,
-  LegendComponent,
-  GridComponent,
-  LineChart,
-  CanvasRenderer,
-  UniversalTransition,
-]);
+import * as echarts from "echarts";
 
 export default defineComponent({
   components: { Container, DragOutlined, PlusOutlined, DeleteOutlined },
@@ -222,6 +206,22 @@ export default defineComponent({
           signal_plan: 0,
         },
       ],
+      analysisOptions: {
+        xAxis: {
+          type: "category",
+          data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+        },
+        yAxis: {
+          type: "value",
+        },
+        series: [
+          {
+            data: [820, 932, 901, 934, 1290, 1330, 1320],
+            type: "line",
+            smooth: true,
+          },
+        ],
+      },
     });
 
     const initRoads = () => {
@@ -509,77 +509,124 @@ export default defineComponent({
         (_, idx) => idx !== index
       );
     };
+
+    const handleChangeAnalysis = () => {
+      initEcharts();
+    };
     /**页面操作事件 end*/
 
     /**报表相关 start*/
-    const LineChart = shallowRef();
-    const initEcharts = () => {
-      LineChart.value = echarts.init(
-        document.getElementById("report") as HTMLElement
-      );
-      // 指定图表的配置项和数据
-      let option = {
+    // 声明定义一下echart
+    let echart = echarts;
+    function initEcharts() {
+      let chart = echart.init(document.getElementById("report")!);
+      // 把配置和数据放这里
+      chart.setOption({
         tooltip: {
           trigger: "axis",
+          axisPointer: {
+            type: "cross",
+            crossStyle: {
+              color: "#999",
+            },
+          },
+        },
+        toolbox: {
+          feature: {
+            // magicType: { show: true, type: ["line", "bar"] },
+            // restore: { show: true },
+            saveAsImage: { title: "下载", show: true },
+          },
         },
         legend: {
-          data: ["企业数量", "工位数量"],
+          data: ["Evaporation", "Precipitation", "Temperature"],
         },
-        grid: {
-          left: "3%",
-          right: "4%",
-          bottom: "3%",
-          containLabel: true,
-        },
-        xAxis: {
-          type: "category",
-          boundaryGap: false,
-          data: ["衬衫", "羊毛衫", "雪纺衫", "裤子", "高跟鞋", "袜子"],
-        },
-        // Y标尺固定
-        yAxis: {
-          type: "value",
-          scale: true,
-          // // boundaryGap: [0.2, 0.2],
-          // // 动态设置Y轴的刻度值 只取整数
-          min: (value: Record<string, number>) => {
-            return Math.floor(value.min / 100) * 100;
-          },
-          max: (value: Record<string, number>) => {
-            return Math.ceil(value.max / 100) * 100;
-          },
-        },
-        series: [
+        xAxis: [
           {
-            name: "企业数量",
-            type: "line",
-            stack: "Total",
-            data: 10,
-          },
-          {
-            name: "工位数量",
-            type: "line",
-            stack: "Total",
-            data: 20,
+            type: "category",
+            data: ["掉头", "左转", "直右", "右转"],
+            axisPointer: {
+              type: "shadow",
+            },
           },
         ],
-      };
-      // 使用刚指定的配置项和数据显示图表。
-      LineChart.value.setOption(option);
-
-      window.addEventListener("resize", () => {
-        LineChart.value.resize();
+        yAxis: [
+          {
+            type: "value",
+            name: "Precipitation",
+            min: 0,
+            max: 250,
+            interval: 50,
+            axisLabel: {
+              formatter: "{value} ml",
+            },
+          },
+          {
+            type: "value",
+            name: "Temperature",
+            min: 0,
+            max: 25,
+            interval: 5,
+            axisLabel: {
+              formatter: "{value} °C",
+            },
+          },
+        ],
+        series: [
+          {
+            name: "Evaporation",
+            type: "bar",
+            tooltip: {
+              valueFormatter: function (value) {
+                return (value as number) + " ml";
+              },
+            },
+            data: [
+              2.0, 4.9, 7.0, 23.2, 25.6, 76.7, 135.6, 162.2, 32.6, 20.0, 6.4,
+              3.3,
+            ],
+          },
+          {
+            name: "Precipitation",
+            type: "bar",
+            tooltip: {
+              valueFormatter: function (value) {
+                return (value as number) + " ml";
+              },
+            },
+            data: [
+              2.6, 5.9, 9.0, 26.4, 28.7, 70.7, 175.6, 182.2, 48.7, 18.8, 6.0,
+              2.3,
+            ],
+          },
+          {
+            name: "Temperature",
+            type: "line",
+            yAxisIndex: 1,
+            tooltip: {
+              valueFormatter: function (value) {
+                return (value as number) + " °C";
+              },
+            },
+            data: [
+              2.0, 2.2, 3.3, 4.5, 6.3, 10.2, 20.3, 23.4, 23.0, 16.5, 12.0, 6.2,
+            ],
+          },
+        ],
       });
-    };
+      // window.onresize = function () {
+      //   //自适应大小
+      //   chart.resize();
+      // };
+    }
     /**报表相关 end*/
 
     onMounted(() => {
       initRoads();
-      initEcharts();
     });
 
     onUnmounted(() => {
-      LineChart.value.dispose();
+      echart.dispose;
     });
 
     return {
@@ -591,6 +638,7 @@ export default defineComponent({
       wrapperCol: { span: 22 },
       handleAddNew,
       handleDelete,
+      handleChangeAnalysis,
     };
   },
 });

@@ -6,6 +6,6 @@ import Antd from "ant-design-vue";
 import "ant-design-vue/dist/antd.css";
 import axios from "axios";
 import VueAxios from "vue-axios";
-import 'tailwindcss/tailwind.css'
+import "tailwindcss/tailwind.css";
 
 createApp(App).use(router).use(Antd).use(VueAxios, axios).mount("#app");
