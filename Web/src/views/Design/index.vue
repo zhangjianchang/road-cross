@@ -1,172 +1,160 @@
 <template>
   <Container>
     <div class="header">
-      <a-input
-        v-model:value="plans.road_name"
-        placeholder="请输入交叉口名称"
-        style="width: 530px"
-      />
-      <a-button type="primary" class="ml-5" @click="onSave"> 保存 </a-button>
-      <div class="header-plan1 ml-5">
-        <!-- 渠化方案： -->
-        <div class="flex" v-if="currentUrl === MenuListEnum.Canalize">
-          <span class="title">渠化方案：</span>
-          <div
-            class="mr-2 mt-8"
-            v-for="(item, index) in plans.canalize_plans"
-            :key="index"
-          >
-            <a-input
-              class="large-form-width2"
-              :class="index === current_canalize ? 'form-actitve' : ''"
-              placeholder="请输入渠化方案"
-              v-model:value="item.name"
-              @focus="changeCanalize(index)"
-            >
-              <template #addonBefore>
-                <copy-outlined
-                  class="copy-btn"
-                  title="复制"
-                  @click="handleAddC(true)"
-                />
-              </template>
-              <template #addonAfter>
-                <delete-outlined
-                  class="minus-btn"
-                  title="删除"
-                  @click="handleDeleteC(index)"
-                />
-              </template>
-            </a-input>
-          </div>
-          <a-button
-            class="mt-8"
-            type="default"
-            title="添加"
-            @click="handleAddC(false)"
-          >
-            <template #icon><plus-outlined /></template>
-          </a-button>
-        </div>
-
-        <!-- 流量方案： -->
-        <div class="flex" v-else-if="currentUrl === MenuListEnum.Flow">
-          <span class="title">流量方案：</span>
-          <div
-            class="mr-2 mt-8"
-            v-for="item in plans.canalize_plans[current_canalize].flow_plans"
-            :key="item.index"
-          >
-            <a-input
-              class="large-form-width2"
-              placeholder="请输入流量方案"
-              v-model:value="item.name"
-            >
-              <template #addonBefore>
-                <copy-outlined
-                  class="copy-btn"
-                  title="复制"
-                  @click="handleAddF(true)"
-                />
-              </template>
-              <template #addonAfter>
-                <delete-outlined class="minus-btn" title="删除" />
-              </template>
-            </a-input>
-          </div>
-          <a-button
-            class="mt-8"
-            type="default"
-            title="添加"
-            @click="handleAddF(false)"
-          >
-            <template #icon><plus-outlined /></template>
-          </a-button>
-        </div>
-
-        <!-- 信号方案： -->
-        <div class="flex" v-else-if="currentUrl === MenuListEnum.Signal">
-          <span class="title">信号方案：</span>
-          <div
-            class="mr-2 mt-8"
-            v-for="item in plans.canalize_plans[current_canalize].flow_plans[
-              current_flow
-            ].signal_plans"
-            :key="item.index"
-          >
-            <a-input
-              class="large-form-width2"
-              placeholder="请输入信号方案"
-              v-model:value="item.name"
-            >
-              <template #addonBefore>
-                <copy-outlined
-                  class="copy-btn"
-                  title="复制"
-                  @click="handleAddS(true)"
-                />
-              </template>
-              <template #addonAfter>
-                <delete-outlined class="minus-btn" title="删除" />
-              </template>
-            </a-input>
-          </div>
-          <a-button
-            class="mt-8"
-            type="default"
-            title="添加"
-            @click="handleAddS(false)"
-          >
-            <template #icon><plus-outlined /></template>
-          </a-button>
-        </div>
+      <div class="header-name">
+        <a-input
+          v-model:value="plans.road_name"
+          placeholder="请输入交叉口名称"
+          style="width: 530px"
+        />
+        <a-button type="primary" class="ml-5" @click="onSave"> 保存 </a-button>
       </div>
+      <div class="header-plan" v-if="currentUrl !== MenuListEnum.Basic">
+        <div class="header-plan2">
+          <a-select
+            v-if="showSelect.showCanalize"
+            class="large-form-width"
+            placeholder="请选择渠化方案"
+            v-model:value="current_canalize"
+          >
+            <a-select-option
+              v-for="(item, index) in plans.canalize_plans"
+              :key="index"
+              :value="index"
+            >
+              {{ item.name }}
+            </a-select-option>
+          </a-select>
+          <a-select
+            v-if="showSelect.showFlow"
+            class="large-form-width ml-5"
+            placeholder="请选择流量方案"
+            v-model:value="current_flow"
+          >
+            <a-select-option
+              v-for="(item, index) in plans.canalize_plans[current_canalize]
+                .flow_plans"
+              :key="index"
+              :value="index"
+            >
+              {{ item.name }}
+            </a-select-option>
+          </a-select>
+          <a-select
+            v-if="showSelect.showSignal"
+            class="large-form-width ml-5"
+            placeholder="请选择信号方案"
+            v-model:value="current_signal"
+          >
+            <a-select-option
+              v-for="(item, index) in plans.canalize_plans[current_canalize]
+                .flow_plans[current_flow].signal_plans"
+              :key="index"
+              :value="index"
+            >
+              {{ item.name }}
+            </a-select-option>
+          </a-select>
+        </div>
+        <div class="header-plan1 ml-5">
+          <!-- 渠化方案： -->
+          <div class="flex" v-if="currentUrl === MenuListEnum.Canalize">
+            <span class="title">渠化方案：</span>
+            <div
+              class="mr-2"
+              v-for="(item, index) in plans.canalize_plans"
+              :key="index"
+            >
+              <a-input
+                class="large-form-width2"
+                :class="index === current_canalize ? 'form-actitve' : ''"
+                placeholder="请输入渠化方案"
+                v-model:value="item.name"
+                @focus="changeCanalize(index)"
+              >
+                <!-- <template #addonBefore>
+                  <copy-outlined
+                    class="copy-btn"
+                    title="复制"
+                    @click="handleAddC(true)"
+                  />
+                </template> -->
+                <template #addonAfter>
+                  <delete-outlined
+                    class="minus-btn"
+                    title="删除"
+                    @click="handleDeleteC(index)"
+                  />
+                </template>
+              </a-input>
+            </div>
+            <a-button type="default" title="添加" @click="handleAddC(false)">
+              <template #icon><plus-outlined /></template>
+            </a-button>
+          </div>
 
-      <div class="header-plan2" v-if="showSelect.showCanalize">
-        <a-select
-          v-if="showSelect.showCanalize"
-          class="large-form-width ml-5"
-          placeholder="请选择渠化方案"
-          v-model:value="current_canalize"
-        >
-          <a-select-option
-            v-for="(item, index) in plans.canalize_plans"
-            :key="index"
-            :value="index"
-          >
-            {{ item.name }}
-          </a-select-option>
-        </a-select>
-        <a-select
-          v-if="showSelect.showFlow"
-          class="large-form-width ml-5"
-          placeholder="请选择流量方案"
-          v-model:value="current_flow"
-        >
-          <a-select-option
-            v-for="(item, index) in plans.canalize_plans[current_canalize]
-              .flow_plans"
-            :key="index"
-            :value="index"
-          >
-            {{ item.name }}
-          </a-select-option>
-        </a-select>
-        <a-select
-          v-if="showSelect.showSignal"
-          class="large-form-width ml-5"
-          placeholder="请选择信号方案"
-          v-model:value="current_signal"
-        >
-          <a-select-option
-            v-for="(item, index) in plans.canalize_plans[current_canalize]
-              .flow_plans[current_flow].signal_plans"
-            :key="index"
-            :value="index"
-          >
-            {{ item.name }}
-          </a-select-option>
-        </a-select>
+          <!-- 流量方案： -->
+          <div class="flex" v-else-if="currentUrl === MenuListEnum.Flow">
+            <span class="title">流量方案：</span>
+            <div
+              class="mr-2"
+              v-for="item in plans.canalize_plans[current_canalize].flow_plans"
+              :key="item.index"
+            >
+              <a-input
+                class="large-form-width2"
+                placeholder="请输入流量方案"
+                v-model:value="item.name"
+              >
+                <template #addonBefore>
+                  <copy-outlined
+                    class="copy-btn"
+                    title="复制"
+                    @click="handleAddF(true)"
+                  />
+                </template>
+                <template #addonAfter>
+                  <delete-outlined class="minus-btn" title="删除" />
+                </template>
+              </a-input>
+            </div>
+            <a-button type="default" title="添加" @click="handleAddF(false)">
+              <template #icon><plus-outlined /></template>
+            </a-button>
+          </div>
+
+          <!-- 信号方案： -->
+          <div class="flex" v-else-if="currentUrl === MenuListEnum.Signal">
+            <span class="title">信号方案：</span>
+            <div
+              class="mr-2"
+              v-for="item in plans.canalize_plans[current_canalize].flow_plans[
+                current_flow
+              ].signal_plans"
+              :key="item.index"
+            >
+              <a-input
+                class="large-form-width2"
+                placeholder="请输入信号方案"
+                v-model:value="item.name"
+              >
+                <template #addonBefore>
+                  <copy-outlined
+                    class="copy-btn"
+                    title="复制"
+                    @click="handleAddS(true)"
+                  />
+                </template>
+                <template #addonAfter>
+                  <delete-outlined class="minus-btn" title="删除" />
+                </template>
+              </a-input>
+            </div>
+            <a-button type="default" title="添加" @click="handleAddS(false)">
+              <template #icon><plus-outlined /></template>
+            </a-button>
+          </div>
+        </div>
       </div>
     </div>
     <div class="content">
