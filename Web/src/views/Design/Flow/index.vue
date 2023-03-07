@@ -38,16 +38,17 @@
             xmlns="http://www.w3.org/2000/svg"
             d="M2,2 L10,6 L2,10 L2,6 L2,2"
             :style="'fill: ' + item.color"
+            deleteTag="1"
           />
         </marker>
       </defs>
       <!-- 文字路径 -->
       <!-- <defs>
         <path
-          v-for="text in road_texts"
-          :key="text.id"
-          :id="text.id"
-          :d="text.path"
+          v -for="text in road_texts"
+          : key="text.id"
+          : id="text.id"
+          : d="text.path"
         ></path>
       </defs> -->
     </svg>
@@ -645,6 +646,7 @@ export default defineComponent({
       line.setAttribute("stroke", color);
       line.setAttribute("stroke-width", thickness.toString());
       line.setAttribute("fill", fill);
+      line.setAttribute("deleteTag", "1");
       if (has_arrow) {
         line.setAttribute("marker-end", `url(#arrow${id_index})`);
       }
@@ -744,7 +746,9 @@ export default defineComponent({
     //清空道路svg
     const clearRoadPath = () => {
       document.querySelectorAll("path").forEach((e) => {
-        if (["direction", "direction_arrow"].indexOf(e.id) === -1) e.remove();
+        const is_delete = e.getAttribute("deleteTag") === "1";
+        if (["direction", "direction_arrow"].indexOf(e.id) === -1 && is_delete)
+          e.remove();
       });
       document.querySelectorAll("text").forEach((e) => {
         e.remove();

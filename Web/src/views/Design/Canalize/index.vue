@@ -705,11 +705,7 @@ export default defineComponent({
   components: { Container, DragOutlined },
   setup() {
     //道路信息
-    const road_info = reactive(
-      plans.canalize_plans[roadStates.current_canalize].flow_plans[
-        roadStates.current_flow
-      ].signal_plans[roadStates.current_signal].road_info
-    );
+    const road_info = reactive(JSON.parse(JSON.stringify(road_model)));
 
     const states = reactive({
       ns: "",
@@ -743,6 +739,7 @@ export default defineComponent({
 
     function onLoadChange(rf: any) {
       Object.assign(road_info, rf);
+      console.log("已加载过", JSON.parse(JSON.stringify(rf)));
       removeAll(); //先清空，再绘制
       render(); // 渲染图形
     }
@@ -763,13 +760,6 @@ export default defineComponent({
         create_sign(rc);
         road_info.canalize_info.push(rc);
       }
-      console.log(111, JSON.parse(JSON.stringify(road_info)));
-      console.log(
-        222,
-        JSON.parse(
-          JSON.stringify(plans.canalize_plans[roadStates.current_canalize])
-        )
-      );
     }
 
     function update_road_corss() {
@@ -1878,7 +1868,7 @@ export default defineComponent({
         plans.canalize_plans[roadStates.current_canalize].flow_plans[0]
           .signal_plans[0].road_info;
       //已有数据，渲染
-      if (road_info.canalize_info.length > 0) {
+      if (rf.canalize_info.length > 0) {
         onLoadEdit(rf);
       } else {
         //否则全量初始化

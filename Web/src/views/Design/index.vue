@@ -16,6 +16,7 @@
             class="large-form-width"
             placeholder="请选择渠化方案"
             v-model:value="current_canalize"
+            @change="changeCanalize(current_canalize, false, false)"
           >
             <a-select-option
               v-for="(item, index) in plans.canalize_plans"
@@ -72,13 +73,13 @@
                 v-model:value="item.name"
                 @focus="changeCanalize(index)"
               >
-                <!-- <template #addonBefore>
+                <template #addonBefore>
                   <copy-outlined
                     class="copy-btn"
                     title="复制"
                     @click="handleAddC(true)"
                   />
-                </template> -->
+                </template>
                 <template #addonAfter>
                   <delete-outlined
                     class="minus-btn"
@@ -98,8 +99,10 @@
             <span class="title">流量方案：</span>
             <div
               class="mr-2"
-              v-for="item in plans.canalize_plans[current_canalize].flow_plans"
-              :key="item.index"
+              :class="index === current_flow ? 'form-actitve' : ''"
+              v-for="(item, index) in plans.canalize_plans[current_canalize]
+                .flow_plans"
+              :key="index"
             >
               <a-input
                 class="large-form-width2"
@@ -114,7 +117,11 @@
                   />
                 </template>
                 <template #addonAfter>
-                  <delete-outlined class="minus-btn" title="删除" />
+                  <delete-outlined
+                    class="minus-btn"
+                    title="删除"
+                    @click="handleDeleteF(index)"
+                  />
                 </template>
               </a-input>
             </div>
@@ -128,9 +135,9 @@
             <span class="title">信号方案：</span>
             <div
               class="mr-2"
-              v-for="item in plans.canalize_plans[current_canalize].flow_plans[
-                current_flow
-              ].signal_plans"
+              :class="index === current_signal ? 'form-actitve' : ''"
+              v-for="(item, index) in plans.canalize_plans[current_canalize]
+                .flow_plans[current_flow].signal_plans"
               :key="item.index"
             >
               <a-input
@@ -146,7 +153,11 @@
                   />
                 </template>
                 <template #addonAfter>
-                  <delete-outlined class="minus-btn" title="删除" />
+                  <delete-outlined
+                    class="minus-btn"
+                    title="删除"
+                    @click="handleDeleteS(index)"
+                  />
                 </template>
               </a-input>
             </div>
@@ -349,6 +360,7 @@ export default defineComponent({
           ? plans.canalize_plans.length - 1
           : roadStates.current_canalize;
     };
+
     //添加流量
     const handleAddF = (is_copy = false) => {
       const flow_plans =
@@ -357,13 +369,38 @@ export default defineComponent({
         openNotfication("warning", "最多可增加三种流量方案");
         return;
       }
+      const index = flow_plans.length;
       const flow_plan = _.cloneDeep(
         plans_model.canalize_plans[0].flow_plans[0]
       );
-      flow_plan.name = "流量方案" + (flow_plans.length + 1);
+      flow_plan.name = "流量方案" + (index + 1);
       setRoadInfo(is_copy, flow_plan.signal_plans[0]);
       flow_plans.push(flow_plan);
+
+      //手动触发初始化
+      changeFlow(index, !is_copy);
     };
+    //删除流量方案
+    const handleDeleteF = (index: number) => {
+      if (
+        plans.canalize_plans[roadStates.current_canalize].flow_plans.length ===
+        1
+      ) {
+        openNotfication("warning", "至少保留一条流量方案");
+        return;
+      }
+      plans.canalize_plans[roadStates.current_canalize].flow_plans =
+        plans.canalize_plans[roadStates.current_canalize].flow_plans.filter(
+          (_, idx) => index != idx
+        );
+      const flow_plans =
+        plans.canalize_plans[roadStates.current_canalize].flow_plans;
+      roadStates.current_flow =
+        roadStates.current_flow > flow_plans.length - 1
+          ? flow_plans.length - 1
+          : roadStates.current_flow;
+    };
+
     //添加信号
     const handleAddS = (is_copy = false) => {
       const signal_plans =
@@ -381,6 +418,32 @@ export default defineComponent({
       setRoadInfo(is_copy, signal_plan);
       signal_plans.push(signal_plan);
     };
+    //删除信号方案
+    const handleDeleteS = (index: number) => {
+      if (
+        plans.canalize_plans[roadStates.current_canalize].flow_plans[
+          roadStates.current_flow
+        ].signal_plans.length === 1
+      ) {
+        openNotfication("warning", "至少保留一条信号方案");
+        return;
+      }
+      plans.canalize_plans[roadStates.current_canalize].flow_plans[
+        roadStates.current_flow
+      ].signal_plans = plans.canalize_plans[
+        roadStates.current_canalize
+      ].flow_plans[roadStates.current_flow].signal_plans.filter(
+        (_, idx) => index != idx
+      );
+      const signal_plans =
+        plans.canalize_plans[roadStates.current_canalize].flow_plans[
+          roadStates.current_flow
+        ].signal_plans;
+      roadStates.current_flow =
+        roadStates.current_flow > signal_plans.length - 1
+          ? signal_plans.length - 1
+          : roadStates.current_flow;
+    };
 
     //设置全局路口信息
     const setRoadInfo = (is_copy: boolean, signal_plan: any) => {
@@ -395,19 +458,23 @@ export default defineComponent({
       }
     };
 
-    const changeCanalize = (index: number, is_add = false) => {
+    const changeCanalize = (index: number, is_add = false, is_load = true) => {
       roadStates.current_canalize = index;
       roadStates.current_flow = 0;
       roadStates.current_signal = 0;
 
-      if (is_add) {
-        canalizeRef.value.onLoad(road_info);
-      } else {
-        canalizeRef.value.onLoadChange(road_info);
+      if (is_load) {
+        const rf =
+          plans.canalize_plans[index].flow_plans[0].signal_plans[0].road_info;
+        if (is_add) {
+          canalizeRef.value.onLoad(rf);
+        } else {
+          console.log(index, JSON.parse(JSON.stringify(rf)));
+          canalizeRef.value.onLoadChange(rf);
+        }
       }
-      console.log("这回可以了吧", plans);
     };
-    const changeFlow = (index: number) => {
+    const changeFlow = (index: number, is_copy: boolean) => {
       roadStates.current_flow = index;
       roadStates.current_signal = 0;
     };
@@ -482,7 +549,9 @@ export default defineComponent({
       handleAddC,
       handleDeleteC,
       handleAddF,
+      handleDeleteF,
       handleAddS,
+      handleDeleteS,
       changeCanalize,
       changeFlow,
       changeSignal,

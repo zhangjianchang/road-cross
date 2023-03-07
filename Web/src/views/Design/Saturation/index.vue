@@ -539,7 +539,7 @@ export default defineComponent({
           },
         },
         legend: {
-          data: ["Evaporation", "Precipitation", "Temperature"],
+          data: ["方案一", "方案二", "方案三", "平均值"],
         },
         xAxis: [
           {
@@ -553,64 +553,55 @@ export default defineComponent({
         yAxis: [
           {
             type: "value",
-            name: "Precipitation",
+            name: "饱和度",
             min: 0,
-            max: 250,
-            interval: 50,
+            max: 1.5,
+            interval: 0.3,
             axisLabel: {
-              formatter: "{value} ml",
-            },
-          },
-          {
-            type: "value",
-            name: "Temperature",
-            min: 0,
-            max: 25,
-            interval: 5,
-            axisLabel: {
-              formatter: "{value} °C",
+              formatter: "{value}",
             },
           },
         ],
         series: [
           {
-            name: "Evaporation",
+            name: "方案一",
             type: "bar",
             tooltip: {
-              valueFormatter: function (value) {
-                return (value as number) + " ml";
+              valueFormatter: function (value: number) {
+                return value;
               },
             },
-            data: [
-              2.0, 4.9, 7.0, 23.2, 25.6, 76.7, 135.6, 162.2, 32.6, 20.0, 6.4,
-              3.3,
-            ],
+            data: [2.0, 4.9, 7.0, 23.2],
           },
           {
-            name: "Precipitation",
+            name: "方案二",
             type: "bar",
             tooltip: {
-              valueFormatter: function (value) {
-                return (value as number) + " ml";
+              valueFormatter: function (value: number) {
+                return value;
               },
             },
-            data: [
-              2.6, 5.9, 9.0, 26.4, 28.7, 70.7, 175.6, 182.2, 48.7, 18.8, 6.0,
-              2.3,
-            ],
+            data: [2.6, 5.9, 9.0, 26.4],
           },
           {
-            name: "Temperature",
+            name: "方案三",
+            type: "bar",
+            tooltip: {
+              valueFormatter: function (value: number) {
+                return value;
+              },
+            },
+            data: [2.6, 5.9, 9.0, 26.4],
+          },
+          {
+            name: "平均值",
             type: "line",
-            yAxisIndex: 1,
             tooltip: {
-              valueFormatter: function (value) {
-                return (value as number) + " °C";
+              valueFormatter: function (value: number) {
+                return value;
               },
             },
-            data: [
-              2.0, 2.2, 3.3, 4.5, 6.3, 10.2, 20.3, 23.4, 23.0, 16.5, 12.0, 6.2,
-            ],
+            data: [0.6, 0.9, 0.2, 0.4],
           },
         ],
       });
