@@ -692,13 +692,18 @@ import {
   setIsolationStyle,
   getCrossLenByTwoRoad,
   roadSignKey,
-  RoadCross,
   Draw,
 } from "./index";
 import Container from "../../../components/Container/index.vue";
 import { DragOutlined } from "@ant-design/icons-vue";
 import { intersect_line_point, line_pt3 } from "../../../utils/common";
-import { plans, roadStates } from "..";
+import {
+  create_road_cross,
+  create_sign,
+  plans,
+  roadStates,
+  update_road_corss,
+} from "..";
 import { road_model } from "../data";
 
 export default defineComponent({
@@ -725,75 +730,23 @@ export default defineComponent({
     var arr_rc_draw: any[] = []; // 路交叉口绘制数组（与上面一一对应）
 
     function onLoad(rf: any) {
-      Object.assign(road_info, rf);
-      create_road_cross(); // 创建路口数据结构
+      create_road_cross(rf); // 创建路口数据结构
       onLoadChange(rf); // 渲染图形
-      // setTimeout(initZoomPan, 500);
     }
 
     function onLoadEdit(rf: any) {
-      Object.assign(road_info, rf);
-      update_road_corss(); //更新路口角度
+      update_road_corss(rf); //更新路口角度
       onLoadChange(rf); // 渲染图形
     }
 
     function onLoadChange(rf: any) {
       Object.assign(road_info, rf);
-      console.log("已加载过", JSON.parse(JSON.stringify(rf)));
       removeAll(); //先清空，再绘制
       render(); // 渲染图形
     }
 
     function _ge(id: string) {
       return document.getElementById(id);
-    }
-
-    function create_road_cross() {
-      var dir = road_info.road_attr.map((r) => r.angle);
-      road_info.canalize_info.length = 0;
-      var temp = JSON.stringify(RoadCross); // 数据结构模板
-      for (var i = 0; i < dir.length; i++) {
-        var rc = JSON.parse(temp); // road cross对象
-        var angle = parseFloat(dir[i]); // 角度
-        rc.angle = angle;
-        rc.name = "方向" + (i + 1);
-        create_sign(rc);
-        road_info.canalize_info.push(rc);
-      }
-    }
-
-    function update_road_corss() {
-      var dir = road_info.road_attr.map((r) => r.angle);
-      const canalize_info_list = [];
-      for (var i = 0; i < dir.length; i++) {
-        let rc = {} as any;
-        if (i < road_info.canalize_info.length) {
-          rc = road_info.canalize_info[i]; //存在则取原有数据
-        } else {
-          rc = JSON.parse(JSON.stringify(RoadCross)); // 不存在则取模板对象
-          create_sign(rc);
-        }
-        var angle = parseFloat(dir[i]); // 角度
-        rc.angle = angle;
-        canalize_info_list.push(rc);
-      }
-      road_info.canalize_info.length = 0;
-      Object.assign(road_info.canalize_info, canalize_info_list);
-    }
-
-    function create_sign(rc: any) {
-      rc.road_sign.enter.length = 0;
-      rc.road_sign.exit.length = 0;
-      //左边路标
-      for (var j = 0; j < rc.enter.num; j++) {
-        const rs = getRoadDefaultSign(j, false, j === rc.enter.num - 1);
-        rc.road_sign.enter.push(rs);
-      }
-      //左边路标
-      for (var j = 0; j < rc.exit.num; j++) {
-        const rs = getRoadDefaultSign(j, true, false);
-        rc.road_sign.exit.push(rs);
-      }
     }
 
     // 创建用于渲染（绘制）的数据结构
@@ -1672,7 +1625,7 @@ export default defineComponent({
     }
 
     function setRoadDirection() {
-      road_info.canalize_info.forEach((rc) => {
+      road_info.canalize_info.forEach((rc: any) => {
         //掉头车道
         const uturn = rc.road_sign.enter.filter(
           (rs: any) => rs.key === roadSignKey.uturn

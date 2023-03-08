@@ -16,7 +16,7 @@
             class="large-form-width"
             placeholder="请选择渠化方案"
             v-model:value="current_canalize"
-            @change="changeCanalize(current_canalize, false, false)"
+            @change="changeCanalize(current_canalize, false)"
           >
             <a-select-option
               v-for="(item, index) in plans.canalize_plans"
@@ -31,6 +31,7 @@
             class="large-form-width ml-5"
             placeholder="请选择流量方案"
             v-model:value="current_flow"
+            @change="changeFlow(current_flow, false)"
           >
             <a-select-option
               v-for="(item, index) in plans.canalize_plans[current_canalize]
@@ -46,6 +47,7 @@
             class="large-form-width ml-5"
             placeholder="请选择信号方案"
             v-model:value="current_signal"
+            @change="changeSignal(current_signal, false)"
           >
             <a-select-option
               v-for="(item, index) in plans.canalize_plans[current_canalize]
@@ -108,6 +110,7 @@
                 class="large-form-width2"
                 placeholder="请输入流量方案"
                 v-model:value="item.name"
+                @focus="changeFlow(index)"
               >
                 <template #addonBefore>
                   <copy-outlined
@@ -138,12 +141,13 @@
               :class="index === current_signal ? 'form-actitve' : ''"
               v-for="(item, index) in plans.canalize_plans[current_canalize]
                 .flow_plans[current_flow].signal_plans"
-              :key="item.index"
+              :key="index"
             >
               <a-input
                 class="large-form-width2"
                 placeholder="请输入信号方案"
                 v-model:value="item.name"
+                @focus="changeSignal(index)"
               >
                 <template #addonBefore>
                   <copy-outlined
@@ -220,7 +224,15 @@ import {
   ref,
   toRefs,
 } from "vue";
-import { MenuListEnum, menuList, roadStates, plans } from "./index";
+import {
+  MenuListEnum,
+  menuList,
+  roadStates,
+  plans,
+  create_road_cross,
+  create_flow_detail,
+  create_signal_info,
+} from "./index";
 import { message } from "ant-design-vue";
 import Container from "../../components/Container/index.vue";
 import Basic from "./Basic/index.vue"; //基础
@@ -344,7 +356,7 @@ export default defineComponent({
       plans.canalize_plans.push(canalize_plan);
 
       //手动触发初始化
-      changeCanalize(index, !is_copy);
+      changeCanalize(index);
     };
     //删除渠化方案
     const handleDeleteC = (index: number) => {
@@ -378,7 +390,7 @@ export default defineComponent({
       flow_plans.push(flow_plan);
 
       //手动触发初始化
-      changeFlow(index, !is_copy);
+      changeFlow(index);
     };
     //删除流量方案
     const handleDeleteF = (index: number) => {
@@ -411,12 +423,16 @@ export default defineComponent({
         openNotfication("warning", "最多可增加三种信号方案");
         return;
       }
+
+      const index = signal_plans.length;
       const signal_plan = _.cloneDeep(
         plans_model.canalize_plans[0].flow_plans[0].signal_plans[0]
       );
-      signal_plan.name = "信号方案" + (signal_plans.length + 1);
+      signal_plan.name = "信号方案" + (index + 1);
       setRoadInfo(is_copy, signal_plan);
       signal_plans.push(signal_plan);
+
+      changeSignal(index);
     };
     //删除信号方案
     const handleDeleteS = (index: number) => {
@@ -450,15 +466,24 @@ export default defineComponent({
       if (is_copy) {
         signal_plan.road_info = _.cloneDeep(road_info);
       } else {
-        // 其实默认值已经赋值了
+        //模板内容
         const rf = _.cloneDeep(road_model);
+        //基础信息
         rf.road_attr = signal_plan.road_info.road_attr;
         rf.basic_info = signal_plan.road_info.basic_info;
+        //渠化信息
+        create_road_cross(rf);
+        //流量信息
+        create_flow_detail(rf);
+        //信号信息
+        create_signal_info(rf);
+
         signal_plan.road_info = rf;
       }
     };
 
-    const changeCanalize = (index: number, is_add = false, is_load = true) => {
+    //切换或点击渠化时
+    const changeCanalize = (index: number, is_load = true) => {
       roadStates.current_canalize = index;
       roadStates.current_flow = 0;
       roadStates.current_signal = 0;
@@ -466,20 +491,32 @@ export default defineComponent({
       if (is_load) {
         const rf =
           plans.canalize_plans[index].flow_plans[0].signal_plans[0].road_info;
-        if (is_add) {
-          canalizeRef.value.onLoad(rf);
-        } else {
-          console.log(index, JSON.parse(JSON.stringify(rf)));
-          canalizeRef.value.onLoadChange(rf);
-        }
+        canalizeRef.value.onLoadChange(rf);
       }
     };
-    const changeFlow = (index: number, is_copy: boolean) => {
+    //切换或点击流量时
+    const changeFlow = (index: number, is_load = true) => {
       roadStates.current_flow = index;
       roadStates.current_signal = 0;
+
+      if (is_load) {
+        const rf =
+          plans.canalize_plans[roadStates.current_canalize].flow_plans[index]
+            .signal_plans[0].road_info;
+        flowRef.value.onChangeFlow(rf);
+      }
     };
-    const changeSignal = (index: number) => {
+    //点击或切换信号时
+    const changeSignal = (index: number, is_load = true) => {
       roadStates.current_signal = index;
+
+      if (is_load) {
+        const rf =
+          plans.canalize_plans[roadStates.current_canalize].flow_plans[
+            roadStates.current_flow
+          ].signal_plans[index].road_info;
+        signalRef.value.onChangeSignal(rf);
+      }
     };
 
     //保存

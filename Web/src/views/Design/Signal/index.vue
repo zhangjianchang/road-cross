@@ -34,8 +34,7 @@
         <path :d="road.path.d" :id="road.path.id" fill="rgb(162,162,162)" />
         <!-- 相位数据 -->
         <text x="150" y="770" class="phase-text">
-          {{ signal_info.phase_list[index].name }}:
-          {{ signal_info.phase_list[index].green }}秒
+          {{ road.text }}
         </text>
         <!-- 相位内部方向箭头 -->
         <defs>
@@ -370,17 +369,14 @@ import {
 } from ".";
 import _ from "lodash";
 import { getCurvByAngle } from "../Flow";
-import { plans, roadStates } from "..";
+import { road_model } from "../data";
+import { create_signal_info, insert_phase, plans, roadStates } from "..";
 
 export default defineComponent({
   components: { Container, DragOutlined },
   setup() {
     //道路信息
-    const road_info = reactive(
-      plans.canalize_plans[roadStates.current_canalize].flow_plans[
-        roadStates.current_flow
-      ].signal_plans[roadStates.current_signal].road_info
-    );
+    const road_info = reactive(JSON.parse(JSON.stringify(road_model)));
 
     const states = reactive({
       ns: "",
@@ -398,15 +394,16 @@ export default defineComponent({
       currentDirection: 0, //当前选中方向（相位的子集）
     });
     //加载道路
-    const initRoads = () => {
+    const initRoads = (rf: any) => {
       states.ns = "http://www.w3.org/2000/svg";
       states.cvs = document.getElementById("canvas");
-      render();
+      console.log("这里一次");
+      onChangeSignal(rf); //渲染
     };
 
-    function render() {
+    function initSignal() {
       if (road_info.signal_info.phase_list.length === 0) {
-        initPhase();
+        create_signal_info(road_info);
       } else {
         setTimeout(() => {
           for (let i = 0; i < road_info.signal_info.phase_list.length; i++) {
@@ -420,34 +417,19 @@ export default defineComponent({
           states.currentDirection = 0;
         }, 10);
       }
+    }
+
+    function onChangeSignal(rf: any) {
+      console.log("这里2次");
+      Object.assign(road_info, rf);
+      initSignal(); //初始化数据
+      render();
+    }
+
+    function render() {
       initDirections();
       drawScale();
       drawMain();
-    }
-
-    function initPhase() {
-      for (let i = 0; i < road_info.signal_info.phase; i++) {
-        insertPhase(i);
-      }
-    }
-
-    //初始化相位数据
-    function insertPhase(p: number) {
-      //数据
-      let phaseItem = _.cloneDeep(phaseModel);
-      phaseItem.index = p;
-      phaseItem.name = `第${p + 1}相位`;
-      for (let d = 0; d < road_info.road_attr.length; d++) {
-        let directions = [];
-        for (let d = 0; d < road_info.road_attr.length; d++) {
-          let directionItem = _.cloneDeep(DirectionItemModel);
-          directions.push(directionItem);
-        }
-        phaseItem.directions.push(directions);
-      }
-      road_info.signal_info.phase_list.push(phaseItem);
-      road_info.signal_info.period +=
-        phaseItem.green + phaseItem.yellow + phaseItem.red;
     }
 
     //加载各道路之间的方向
@@ -622,6 +604,8 @@ export default defineComponent({
 
     //画相位路径
     function drawMain() {
+      states.cross_pts.length = 0;
+      states.road_pts.length = 0;
       for (var a = 0; a < road_info.road_attr.length; a++) {
         var angle = road_info.road_attr[a].angle;
         var radian = (Math.PI / 180) * angle; // 角度转弧度
@@ -725,7 +709,8 @@ export default defineComponent({
       const g = {
         transform: `translate(${164 * i + 20},10) scale(0.23)`,
       };
-      states.road_pts.push({ g, path, point });
+      const text = `${road_info.signal_info.phase_list[i].name}：${road_info.signal_info.phase_list[i].green}秒`;
+      states.road_pts.push({ g, path, point, text });
     }
 
     //重新调整相位位置
@@ -746,7 +731,7 @@ export default defineComponent({
         //增加
         let s = road_info.signal_info.phase_list.length;
         for (let i = s; i < road_info.signal_info.phase; i++) {
-          insertPhase(i);
+          insert_phase(road_info, i);
           drawPhase(i);
         }
       } else {
@@ -923,8 +908,12 @@ export default defineComponent({
 
     //初始化加载
     onMounted(() => {
+      const rf =
+        plans.canalize_plans[roadStates.current_canalize].flow_plans[
+          roadStates.current_flow
+        ].signal_plans[roadStates.current_signal].road_info;
       //渲染路
-      initRoads();
+      initRoads(rf);
     });
 
     return {
@@ -941,6 +930,7 @@ export default defineComponent({
       onDirectionChange,
       onDirectionClick,
       onGClick,
+      onChangeSignal,
     };
   },
 });

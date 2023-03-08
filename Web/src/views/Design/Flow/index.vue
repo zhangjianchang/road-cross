@@ -303,9 +303,7 @@
 <script lang="ts">
 import { defineComponent, onMounted, reactive, toRefs } from "vue";
 import Container from "../../../components/Container/index.vue";
-import { notification } from "ant-design-vue";
 import {
-  getAngle,
   getMiddlePoint,
   getPoint,
   getQByPathCurv,
@@ -313,26 +311,20 @@ import {
 import {
   getCurvByAngle,
   lineColumns,
-  flowColumnsPart,
-  lineInfoModel,
   flowDataIndex,
   getLineWidth,
   getK,
   colorSchemes,
-  uturn_path,
 } from ".";
 import _ from "lodash";
-import { plans, roadStates } from "..";
+import { initEnterNum, initFlowDetail, plans, roadStates } from "..";
+import { road_model } from "../data";
 
 export default defineComponent({
   components: { Container },
   setup() {
     //道路信息
-    const road_info = reactive(
-      plans.canalize_plans[roadStates.current_canalize].flow_plans[
-        roadStates.current_flow
-      ].signal_plans[roadStates.current_signal].road_info
-    );
+    const road_info = reactive(JSON.parse(JSON.stringify(road_model)));
 
     const states = reactive({
       ns: "",
@@ -352,32 +344,25 @@ export default defineComponent({
       currentRoad: 0, //当前选中道路
     });
 
-    const initRoads = () => {
+    const initRoads = (rf: any) => {
       states.ns = "http://www.w3.org/2000/svg";
       states.cvs = document.getElementById("canvas");
-      render();
+      setRoadFlow(rf); //设置关键数据
+      onChangeFlow(rf); //渲染
     };
 
-    async function render() {
+    async function setRoadFlow(rf: any) {
       //道路数据填充
-      await initRoadInfo();
+      await initRoadInfo(rf);
       //进口车道设置
-      initEnterNum();
+      initEnterNum(rf);
+    }
+
+    function render() {
       //设置节点数据
       setRoadPoint();
       //画路
       drawMainRoad();
-    }
-
-    function initEnterNum() {
-      road_info.flow_info.saturation.length = 0;
-      road_info.canalize_info.forEach((item) => {
-        const currentSaturation = [];
-        for (let i = 0; i < item.enter.num; i++) {
-          currentSaturation.push({ number: 1650 });
-        }
-        road_info.flow_info.saturation.push(currentSaturation);
-      });
     }
 
     //设置道路关键节点
@@ -436,69 +421,10 @@ export default defineComponent({
     }
 
     //填充表格
-    async function initRoadInfo() {
-      if (!states.is_init) initFlowDetail();
+    async function initRoadInfo(rf: any) {
+      if (!states.is_init) initFlowDetail(rf);
       states.is_init = true; //标记已经初始化过了
     }
-
-    function initFlowDetail() {
-      road_info.flow_info.flowColumns.length = 0;
-      Object.assign(road_info.flow_info.flowColumns, flowColumnsPart);
-      for (let i = 0; i < road_info.road_attr.length; i++) {
-        let dataIndex = i.toString();
-        road_info.flow_info.flowColumns.push({
-          title: "转向" + (i + 1),
-          dataIndex: dataIndex,
-          width: 30,
-          slots: { customRender: dataIndex },
-          align: "center",
-        });
-        flowDataIndex.push(dataIndex);
-      }
-      //先清空
-      road_info.flow_info.line_info.length = 0;
-      road_info.flow_info.flow_detail.length = 0;
-      const roadCount = road_info.road_attr.length;
-      for (let i = 0; i < roadCount; i++) {
-        let line_info = _.cloneDeep(lineInfoModel);
-        line_info.direction = "方向" + (i + 1);
-        line_info.road_name = road_info.canalize_info[i].name;
-        road_info.flow_info.line_info.push(line_info);
-
-        let flow_detail = {} as any;
-        flow_detail.road_name = road_info.canalize_info[i].name;
-        const turn = [] as any[];
-        for (let j = 0; j < roadCount; j++) {
-          //转向属性
-          const turn_detail = getTurnDetail(i, j);
-          turn.push(turn_detail);
-        }
-        flow_detail.turn = turn;
-        //排序
-        flow_detail.turn.sort(function (a: any, b: any) {
-          return b.order - a.order;
-        });
-        road_info.flow_info.flow_detail.push(flow_detail);
-      }
-    }
-
-    //加载各道路之间的方向
-    const getTurnDetail = (i: number, j: number) => {
-      const roadCount = road_info.road_attr.length;
-      const road = road_info.road_attr[i];
-      const nextRoad = road_info.road_attr[j];
-      //转向属性
-      const turn_detail = {
-        number: i === j ? 0 : 450,
-        d:
-          i === j
-            ? uturn_path
-            : `M${road.coordinate[0]} ${road.coordinate[1]} L${states.cx} ${states.cy} L${nextRoad.coordinate[0]} ${nextRoad.coordinate[1]}`,
-        tag: `${i}#${j}`, //标记从哪个车道到哪个车道
-        order: j - i <= 0 ? j - i + roadCount : j - i, //排序（为了把掉头车道放在第一个）
-      } as any;
-      return turn_detail;
-    };
 
     //绘制道路
     function drawMainRoad() {
@@ -719,7 +645,14 @@ export default defineComponent({
       });
     }
 
-    const onChangeFlow = () => {
+    const onChangeFlow = (rf: any) => {
+      if (!rf) {
+        rf =
+          plans.canalize_plans[roadStates.current_canalize].flow_plans[
+            roadStates.current_flow
+          ].signal_plans[0].road_info;
+      }
+      Object.assign(road_info, rf);
       clearRoadPath();
       render();
     };
@@ -778,7 +711,11 @@ export default defineComponent({
     };
 
     onMounted(() => {
-      initRoads();
+      const rf =
+        plans.canalize_plans[roadStates.current_canalize].flow_plans[
+          roadStates.current_flow
+        ].signal_plans[0].road_info;
+      initRoads(rf);
     });
 
     return {
