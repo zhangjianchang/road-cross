@@ -61,3 +61,32 @@ export const plans_model = {
     },
   ],
 };
+
+// 统计报表的样式
+export const echart_tooltip = {
+  trigger: "axis",
+  axisPointer: {
+    type: "cross",
+    crossStyle: {
+      color: "#999",
+    },
+  },
+};
+
+export const echart_toolbox = {
+  feature: {
+    // magicType: { show: true, type: ["line", "bar"] },
+    // restore: { show: true },
+    saveAsImage: { title: "下载", show: true },
+  },
+};
+
+export enum DirectionsEnum {
+  uturn = "掉头",
+  left = "左转",
+  straight_left = "直左",
+  straight = "直行",
+  straight_right = "直右",
+  all_direction = "直左右",
+  right = "右转",
+}

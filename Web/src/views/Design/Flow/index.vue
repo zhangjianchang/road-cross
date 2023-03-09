@@ -163,7 +163,7 @@
                 v-model:value="canalize_info[index].name"
                 size="small"
                 class="form-width"
-                @change="onChangeFlow"
+                @blur="onChangeFlow"
               />
             </template>
             <!-- 大车比率 -->
@@ -262,7 +262,7 @@
                     :step="10"
                     size="small"
                     class="small-form-width"
-                    @change="onChangeFlow"
+                    @blur="onChangeFlow"
                   />
                 </div>
               </div>

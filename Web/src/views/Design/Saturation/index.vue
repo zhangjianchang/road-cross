@@ -60,10 +60,11 @@
     <!-- 参数 -->
     <div class="menu">
       <div class="switch mb-5">
+        <span class="switch-title"> 显示对比分析 </span>
         <a-switch
           v-model:checked="showAnalysis"
-          checked-children="显示对比分析"
-          un-checked-children="隐藏对比分析"
+          checked-children="显示"
+          un-checked-children="隐藏"
           @change="handleChangeAnalysis"
         />
       </div>
@@ -174,6 +175,7 @@ import { getQByPathCurv } from "../../../utils/common";
 import { plans, roadStates } from "..";
 import { openNotfication } from "../../../utils/message";
 import * as echarts from "echarts";
+import { DirectionsEnum, echart_toolbox, echart_tooltip } from "../data";
 
 export default defineComponent({
   components: { Container, DragOutlined, PlusOutlined, DeleteOutlined },
@@ -206,21 +208,36 @@ export default defineComponent({
           signal_plan: 0,
         },
       ],
-      analysisOptions: {
-        xAxis: {
-          type: "category",
-          data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-        },
-        yAxis: {
-          type: "value",
-        },
-        series: [
+      analysisOption: {
+        //提示的样式
+        tooltip: echart_tooltip,
+        //工具栏
+        toolbox: echart_toolbox,
+        //对比值
+        legend: { data: [] as string[] },
+        //x轴
+        xAxis: [
           {
-            data: [820, 932, 901, 934, 1290, 1330, 1320],
-            type: "line",
-            smooth: true,
+            type: "category",
+            data: [] as string[],
+            axisPointer: { type: "shadow" },
           },
         ],
+        //y轴
+        yAxis: [
+          {
+            type: "value",
+            name: "饱和度",
+            min: 0,
+            max: 1.5,
+            interval: 0.3,
+            axisLabel: {
+              formatter: "{value}",
+            },
+          },
+        ],
+        //具体显示数据
+        series: [] as any[],
       },
     });
 
@@ -492,12 +509,18 @@ export default defineComponent({
         return;
       }
       const analysis = {
-        name: "方案" + (states.analysisList.length + 1),
+        name: "",
         canalize_plan: 0,
         flow_plan: 0,
         signal_plan: 0,
       };
       states.analysisList.push(analysis);
+      //重新按序起名
+      states.analysisList.map((item, index) => {
+        item.name = "方案" + (index + 1);
+      });
+      //加载echarts
+      initEcharts();
     };
 
     const handleDelete = (index: number) => {
@@ -508,10 +531,19 @@ export default defineComponent({
       states.analysisList = states.analysisList.filter(
         (_, idx) => idx !== index
       );
+      //重新按序起名
+      states.analysisList.map((item, index) => {
+        item.name = "方案" + (index + 1);
+      });
+
+      //加载echarts
+      initEcharts();
     };
 
     const handleChangeAnalysis = () => {
-      initEcharts();
+      if (states.showAnalysis) {
+        initEcharts();
+      }
     };
     /**页面操作事件 end*/
 
@@ -519,97 +551,81 @@ export default defineComponent({
     // 声明定义一下echart
     let echart = echarts;
     function initEcharts() {
+      //先销毁
+      echart.dispose;
+      //重建
       let chart = echart.init(document.getElementById("report")!);
-      // 把配置和数据放这里
-      chart.setOption({
-        tooltip: {
-          trigger: "axis",
-          axisPointer: {
-            type: "cross",
-            crossStyle: {
-              color: "#999",
-            },
-          },
-        },
-        toolbox: {
-          feature: {
-            // magicType: { show: true, type: ["line", "bar"] },
-            // restore: { show: true },
-            saveAsImage: { title: "下载", show: true },
-          },
-        },
-        legend: {
-          data: ["方案一", "方案二", "方案三", "平均值"],
-        },
-        xAxis: [
-          {
-            type: "category",
-            data: ["掉头", "左转", "直右", "右转"],
-            axisPointer: {
-              type: "shadow",
-            },
-          },
-        ],
-        yAxis: [
-          {
-            type: "value",
-            name: "饱和度",
-            min: 0,
-            max: 1.5,
-            interval: 0.3,
-            axisLabel: {
-              formatter: "{value}",
-            },
-          },
-        ],
-        series: [
-          {
-            name: "方案一",
-            type: "bar",
-            tooltip: {
-              valueFormatter: function (value: number) {
-                return value;
-              },
-            },
-            data: [2.0, 4.9, 7.0, 23.2],
-          },
-          {
-            name: "方案二",
-            type: "bar",
-            tooltip: {
-              valueFormatter: function (value: number) {
-                return value;
-              },
-            },
-            data: [2.6, 5.9, 9.0, 26.4],
-          },
-          {
-            name: "方案三",
-            type: "bar",
-            tooltip: {
-              valueFormatter: function (value: number) {
-                return value;
-              },
-            },
-            data: [2.6, 5.9, 9.0, 26.4],
-          },
-          {
-            name: "平均值",
-            type: "line",
-            tooltip: {
-              valueFormatter: function (value: number) {
-                return value;
-              },
-            },
-            data: [0.6, 0.9, 0.2, 0.4],
-          },
-        ],
-      });
-      // window.onresize = function () {
-      //   //自适应大小
-      //   chart.resize();
-      // };
+      //填充配置和数据
+      setEchartOption();
+      chart.setOption(states.analysisOption);
     }
+    const setEchartOption = () => {
+      //legend
+      let legendData = [] as string[];
+      legendData = states.analysisList.map((item) => item.name);
+      legendData.push("平均值");
+      states.analysisOption.legend.data = legendData;
+
+      //xAxis
+      let xAxisData = [] as string[]; //方向
+      for (let i = 0; i < road_info.canalize_info.length; i++) {
+        const rd = road_info.canalize_info[i].road_direction;
+        if (rd.uturn >= 1) {
+          xAxisData.push("方向" + (i + 1) + DirectionsEnum.uturn);
+        }
+        if (rd.left >= 1) {
+          xAxisData.push("方向" + (i + 1) + DirectionsEnum.left);
+        }
+        if (rd.straight >= 1) {
+          xAxisData.push("方向" + (i + 1) + DirectionsEnum.straight);
+        }
+        if (rd.right >= 1) {
+          xAxisData.push("方向" + (i + 1) + DirectionsEnum.right);
+        }
+      }
+      states.analysisOption.xAxis[0].data = xAxisData;
+
+      //series
+      states.analysisOption.series.length = 0;
+      states.analysisList.forEach((a) => {
+        const seriesItemData = [] as number[];
+        //当前方案对应的道路信息
+        const rf =
+          plans.canalize_plans[a.canalize_plan].flow_plans[a.flow_plan]
+            .signal_plans[a.signal_plan].road_info;
+        rf.canalize_info.forEach((ci) => {
+          //对应某种方向的数值
+          //TODO 默认左转
+          seriesItemData.push(Number(Math.random().toFixed(2)));
+          //TODO 默认直右
+          seriesItemData.push(Number(Math.random().toFixed(2)));
+        });
+        const seriesItem = {
+          name: a.name,
+          type: "bar",
+          tooltip: {
+            valueFormatter: function (value: number) {
+              return value;
+            },
+          },
+          data: seriesItemData,
+        };
+        states.analysisOption.series.push(seriesItem);
+      });
+
+      // //平均值
+      // const seriesItem = {
+      //   name: "平均值",
+      //   type: "line",
+      //   tooltip: {
+      //     valueFormatter: function (value: number) {
+      //       return value;
+      //     },
+      //   },
+      //   data: [0.6, 0.3, 0.5, 0.8, 0.2, 0.5, 0.8, 0.1],
+      // };
+      // seriesData.push(seriesItem);
+    };
     /**报表相关 end*/
 
     onMounted(() => {
