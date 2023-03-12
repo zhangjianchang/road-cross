@@ -1,8 +1,30 @@
 <template>
   <div class="basic-main">
-    <div class="func">功能区</div>
+    <div class="func">
+      <!-- 功能区 -->
+    </div>
     <!-- 图示 -->
-    <svg id="canvas"></svg>
+    <svg id="canvas">
+      <!-- 填充黄斜线 -->
+      <defs>
+        <pattern
+          id="slash"
+          patternTransform="rotate(45)"
+          viewBox="0 0 10 10"
+          width="0.05"
+          height="0.05"
+        >
+          <line
+            x1="0"
+            y1="0"
+            x2="0"
+            y2="10"
+            stroke="rgb(255,165,0)"
+            stroke-width="15"
+          />
+        </pattern>
+      </defs>
+    </svg>
     <!-- 参数 -->
     <div class="menu">
       <div class="form" v-if="canalize_info.length > 0">
@@ -92,7 +114,7 @@
                 </a-form-item>
               </a-col>
               <a-col :span="12">
-                <a-form-item label="偏移量">
+                <!-- <a-form-item label="偏移量">
                   <a-input-number
                     v-model:value="canalize_info[cur_road_dir].offset"
                     @change="on_prop_change"
@@ -102,7 +124,7 @@
                     size="small"
                     class="form-width"
                   />
-                </a-form-item>
+                </a-form-item> -->
               </a-col>
               <a-col :span="12">
                 <a-form-item label="人行道">
@@ -137,6 +159,7 @@
                     v-model:value="canalize_info[cur_road_dir].wait.left"
                     size="small"
                     class="form-width"
+                    @change="on_prop_change"
                   >
                     <a-select-option :value="1"> 是 </a-select-option>
                     <a-select-option :value="0"> 否 </a-select-option>
@@ -149,13 +172,14 @@
                     v-model:value="canalize_info[cur_road_dir].wait.straight"
                     size="small"
                     class="form-width"
+                    @change="on_prop_change"
                   >
                     <a-select-option :value="1"> 是 </a-select-option>
                     <a-select-option :value="0"> 否 </a-select-option>
                   </a-select>
                 </a-form-item>
               </a-col>
-              <a-col :span="12">
+              <!-- <a-col :span="12">
                 <a-form-item label="穿越到">
                   <a-select
                     v-model:value="canalize_info[cur_road_dir].wait.through"
@@ -190,7 +214,7 @@
                     </a-select-option>
                   </a-select>
                 </a-form-item>
-              </a-col>
+              </a-col> -->
             </a-row>
           </a-form>
         </div>
@@ -200,34 +224,68 @@
             <a-row>
               <a-col :span="12">
                 <a-form-item label="渠化方式">
-                  <a-tooltip>
-                    <template #title>
-                      {{ canalize_info[cur_road_dir].canalize.type }}
-                    </template>
-                    <a-select
-                      v-model:value="canalize_info[cur_road_dir].canalize.type"
-                      size="small"
-                      class="form-width"
+                  <a-select
+                    v-model:value="canalize_info[cur_road_dir].canalize.type"
+                    size="small"
+                    class="form-width"
+                  >
+                    <a-select-option
+                      v-for="item in canalizeTypeOption"
+                      :key="item.value"
+                      :value="item.value"
+                      :title="item.label"
                     >
-                      <a-select-option
-                        v-for="item in canalizeTypeOption"
-                        :key="item.value"
-                        :value="item.value"
-                        :title="item.label"
-                      >
-                        {{ item.label }}
-                      </a-select-option>
-                    </a-select>
-                  </a-tooltip>
+                      {{ item.label }}
+                    </a-select-option>
+                  </a-select>
                 </a-form-item>
               </a-col>
               <a-col :span="12">
-                <a-form-item label="右转车道">
+                <a-form-item label="右转单独入口">
                   <a-input-number
                     v-model:value="
-                      canalize_info[cur_road_dir].canalize.right_count
+                      canalize_info[cur_road_dir].canalize.right_enter_count
                     "
                     @change="on_prop_change"
+                    :disabled="
+                      canalize_info[cur_road_dir].canalize.type === '否'
+                    "
+                    :min="0"
+                    :max="2"
+                    :step="1"
+                    size="small"
+                    class="form-width"
+                  />
+                </a-form-item>
+              </a-col>
+              <a-col :span="12">
+                <a-form-item label="出入口宽度">
+                  <a-input-number
+                    v-model:value="
+                      canalize_info[cur_road_dir].canalize.lane_width
+                    "
+                    @change="on_prop_change"
+                    :disabled="
+                      canalize_info[cur_road_dir].canalize.type !== '固体渠化'
+                    "
+                    :min="10"
+                    :max="20"
+                    :step="1"
+                    size="small"
+                    class="form-width"
+                  />
+                </a-form-item>
+              </a-col>
+              <a-col :span="12">
+                <a-form-item label="右转单独出口">
+                  <a-input-number
+                    v-model:value="
+                      canalize_info[cur_road_dir].canalize.right_exit_count
+                    "
+                    @change="on_prop_change"
+                    :disabled="
+                      canalize_info[cur_road_dir].canalize.type === '否'
+                    "
                     :min="0"
                     :max="2"
                     :step="1"
@@ -294,7 +352,10 @@
                       canalize_info[cur_road_dir].enter.extend_width
                     "
                     @change="on_prop_change"
-                    :disabled="!canalize_info[cur_road_dir].enter.num"
+                    :disabled="
+                      !canalize_info[cur_road_dir].enter.num ||
+                      !canalize_info[cur_road_dir].enter.extend_num
+                    "
                     :min="0"
                     :max="6"
                     :step="0.25"
@@ -309,8 +370,11 @@
                   <a-input-number
                     v-model:value="canalize_info[cur_road_dir].enter.extend_len"
                     @change="on_prop_change"
-                    :disabled="!canalize_info[cur_road_dir].enter.num"
-                    :min="30"
+                    :disabled="
+                      !canalize_info[cur_road_dir].enter.num ||
+                      !canalize_info[cur_road_dir].enter.extend_num
+                    "
+                    :min="20"
                     :max="40"
                     :step="5"
                     size="small"
@@ -326,8 +390,8 @@
                     @change="on_prop_change"
                     :disabled="!canalize_info[cur_road_dir].enter.num"
                     :min="0"
-                    :max="4"
-                    :step="0.5"
+                    :max="3.5"
+                    :step="0.25"
                     size="small"
                     class="form-width"
                   />
@@ -401,7 +465,7 @@
                 </a-form-item>
               </a-col>
               <a-col :span="12">
-                <a-form-item label="出口展宽">
+                <a-form-item label="展宽数量">
                   <a-input-number
                     v-model:value="canalize_info[cur_road_dir].exit.extend_num"
                     @change="on_prop_change"
@@ -422,7 +486,10 @@
                       canalize_info[cur_road_dir].exit.extend_width
                     "
                     @change="on_prop_change"
-                    :disabled="!canalize_info[cur_road_dir].exit.num"
+                    :disabled="
+                      !canalize_info[cur_road_dir].exit.num ||
+                      !canalize_info[cur_road_dir].exit.extend_num
+                    "
                     :min="0"
                     :max="4"
                     :step="0.25"
@@ -437,8 +504,11 @@
                   <a-input-number
                     v-model:value="canalize_info[cur_road_dir].exit.extend_len"
                     @change="on_prop_change"
-                    :disabled="!canalize_info[cur_road_dir].exit.num"
-                    :min="30"
+                    :disabled="
+                      !canalize_info[cur_road_dir].exit.num ||
+                      !canalize_info[cur_road_dir].exit.extend_num
+                    "
+                    :min="20"
                     :max="40"
                     :step="5"
                     size="small"
@@ -705,6 +775,7 @@ import {
   update_road_corss,
 } from "..";
 import { road_model } from "../data";
+import { openNotfication } from "../../../utils/message";
 
 export default defineComponent({
   components: { Container, DragOutlined },
@@ -812,12 +883,14 @@ export default defineComponent({
             rc.enter.extend_num * rc.enter.extend_width +
             rc.median_strip.width +
             rc.margin +
+            rc.enter.offset + //内侧偏移
             (rc.enter.bike_lane.has ? rc.enter.bike_lane.width : 0)) *
           dw.ratio;
         len2 =
           (rc.enter.num * rc.enter.lane_width -
             rc.enter.extend_num * rc.enter.extend_width +
             rc.median_strip.width +
+            rc.enter.offset + //内侧偏移
             (rc.enter.bike_lane.has ? rc.enter.bike_lane.width : 0)) *
           dw.ratio;
         pt = cal_point(dw, d, dr, len);
@@ -839,13 +912,15 @@ export default defineComponent({
           (rc.exit.num * rc.exit.lane_width -
             rc.exit.extend_num * rc.exit.extend_width +
             rc.median_strip.width +
-            rc.margin +
+            rc.margin -
+            rc.enter.offset + //内侧偏移
             (rc.exit.bike_lane.has ? rc.exit.bike_lane.width : 0)) *
           dw.ratio;
         len2 =
           (rc.exit.num * rc.exit.lane_width -
             rc.exit.extend_num * rc.exit.extend_width +
-            rc.median_strip.width +
+            rc.median_strip.width -
+            rc.enter.offset + //内侧偏移
             (rc.exit.bike_lane.has ? rc.exit.bike_lane.width : 0)) *
           dw.ratio;
         pt = cal_point(dw, d, dr, len);
@@ -1037,7 +1112,6 @@ export default defineComponent({
       }
       var cross = document.createElementNS(states.ns, "path"); // 交叉口
       cross.setAttribute("d", d_str);
-      // cross.setAttribute("stroke", "rgb(162,162,162)");
       cross.setAttribute("fill", "rgba(162,162,162, 1)");
       cross.setAttribute("deleteTag", "1");
       states.cvs?.appendChild(cross);
@@ -1048,7 +1122,6 @@ export default defineComponent({
 
         // 方向形状（轮廓与背景）
         var d_str = "";
-
         //var pt = dw.origin;
         //d_str += "M" + pt.x + "," + pt.y + " ";
         var sd = dw.enter_side;
@@ -1140,40 +1213,69 @@ export default defineComponent({
         var rc = road_info.canalize_info[i];
 
         // 隔离带——判断类别
-        //线宽
         var len =
-          (["双黄线", "黄斜线", "绿化带"].indexOf(rc.median_strip.type) > -1
+          (["双黄线", "鱼肚线", "黄斜线", "绿化带"].indexOf(
+            rc.median_strip.type
+          ) > -1
             ? 1
             : 0) *
           rc.median_strip.width *
-          dw.ratio;
+          dw.ratio; //线宽
         var d = rc.cross_len_new * dw.ratio;
         var dr = Math.PI * 0.5;
-        pt = cal_point(dw, d, dr, len);
-        var ewkb_pt = { x: pt.x, y: pt.y }; // 进口人行道横白条靠近隔离带的点：enter walk bar point
-        d_str = "M" + pt.x + "," + pt.y + " ";
+        //右侧起始点
+        var pt_s1 = cal_point(dw, d, dr, len);
+        var ewkb_pt = { x: pt_s1.x, y: pt_s1.y }; // 进口人行道横白条靠近隔离带的点：enter walk bar point
+        d_str = "M" + pt_s1.x + "," + pt_s1.y + " ";
+        //第一偏移点
         d = (rc.cross_len_new + rc.enter.extend_len) * dw.ratio;
-
-        pt = cal_point(dw, d, dr, len);
-        d_str += "L" + pt.x + "," + pt.y + " ";
-        drawPoint(pt.x, pt.y, "blue");
+        var pt1 = cal_point(dw, d, dr, len);
+        d_str += "L" + pt1.x + "," + pt1.y + " ";
+        var pt12 = { x: 0, y: 0 }; //鱼肚线中间基点
+        if (rc.median_strip.type === "鱼肚线") {
+          //鱼肚线中间点
+          d =
+            (rc.cross_len_new + rc.enter.extend_len + rc.enter.in_curv / 2) *
+            dw.ratio;
+          var len_ydx = len + 4 * dw.ratio;
+          var pt12 = cal_point(dw, d, dr, len_ydx);
+          d_str += "Q" + pt12.x + "," + pt12.y + " ";
+        }
+        //第二偏移点
         d =
           (rc.cross_len_new + rc.enter.extend_len + rc.enter.in_curv) *
           dw.ratio;
         var offset = len + road_info.canalize_info[i].enter.offset * dw.ratio;
-        pt = cal_point(dw, d, dr, offset);
-        d_str += "L" + pt.x + "," + pt.y + " ";
-        drawPoint(pt.x, pt.y, "red");
+        var pt2 = cal_point(dw, d, dr, offset);
+        if (rc.median_strip.type === "鱼肚线") {
+          d_str += pt2.x + "," + pt2.y + " ";
+        } else {
+          d_str += "L" + pt2.x + "," + pt2.y + " ";
+        }
+        //结束
         d = rc.length * dw.ratio;
-        pt = cal_point(dw, d, dr, offset);
-        d_str += "L" + pt.x + "," + pt.y + " ";
+        var pt_e1 = cal_point(dw, d, dr, offset);
+        d_str += "L" + pt_e1.x + "," + pt_e1.y + " ";
 
+        //双黄线左侧
         d = rc.cross_len_new * dw.ratio;
-        pt = cal_point(dw, d, -dr, len);
-        d_str += "M" + pt.x + "," + pt.y + " ";
+        var pt_s2 = cal_point(dw, d, -dr, len);
+        d_str += "M" + pt_s2.x + "," + pt_s2.y + " ";
+        //第一偏移点
+        d = (rc.cross_len_new + rc.enter.extend_len) * dw.ratio;
+        var pt3 = cal_point(dw, d, -dr, len);
+        d_str += "L" + pt3.x + "," + pt3.y + " ";
+        //第二偏移点
+        d =
+          (rc.cross_len_new + rc.enter.extend_len + rc.enter.in_curv) *
+          dw.ratio;
+        var offset = len - road_info.canalize_info[i].enter.offset * dw.ratio;
+        var pt4 = cal_point(dw, d, -dr, offset);
+        d_str += "L" + pt4.x + "," + pt4.y + " ";
+        //结束
         d = rc.length * dw.ratio;
-        pt = cal_point(dw, d, -dr, len);
-        d_str += "L" + pt.x + "," + pt.y + " ";
+        var pt_e2 = cal_point(dw, d, -dr, offset);
+        d_str += "L" + pt_e2.x + "," + pt_e2.y + " ";
 
         //如果没有入口或出口车道，不绘制隔离带
         if (rc.enter.num !== 0 && rc.exit.num !== 0) {
@@ -1184,7 +1286,29 @@ export default defineComponent({
           setIsolationStyle(sep, rc.median_strip.type);
           sep.setAttribute("deleteTag", "1");
           states.cvs?.appendChild(sep);
+
+          //鱼肚线填充内部为斜线
+          if (rc.median_strip.type === "鱼肚线") {
+            d_str = `M${pt1.x} ${pt1.y} Q${pt12.x} ${pt12.y} ${pt2.x} ${pt2.y} L${pt4.x} ${pt4.y} L${pt3.x} ${pt3.y} Z`;
+            var slash = document.createElementNS(states.ns, "path"); // 鱼肚
+            slash.setAttribute("d", d_str);
+            slash.setAttribute("fill", "url(#slash)");
+            slash.setAttribute("deleteTag", "1");
+            states.cvs?.appendChild(slash);
+          }
+
+          if (rc.median_strip.type === "黄斜线") {
+            d_str = `M${pt_s1.x} ${pt_s1.y} L${pt1.x} ${pt1.y} L${pt2.x} ${pt2.y} L${pt_e1.x} ${pt_e1.y} 
+            L${pt_e2.x} ${pt_e2.y} L${pt4.x} ${pt4.y} L${pt3.x} ${pt3.y} L${pt_s2.x} ${pt_s2.y} Z`;
+            console.log(d_str);
+            var slash = document.createElementNS(states.ns, "path"); // 黄斜线
+            slash.setAttribute("d", d_str);
+            slash.setAttribute("fill", "url(#slash)");
+            slash.setAttribute("deleteTag", "1");
+            states.cvs?.appendChild(slash);
+          }
         }
+
         // 进口人行道横白条
         pt = ewkb_pt;
         d_str = "M" + pt.x + "," + pt.y + " ";
@@ -1201,7 +1325,7 @@ export default defineComponent({
         // 进口车道白线
         for (var j = 1; j < rc.enter.num; j++) {
           // 靠近人行道的白线
-          len = (rc.median_strip.width + rc.enter.lane_width * j) * dw.ratio;
+          len = (rc.median_strip.width + +rc.enter.lane_width * j) * dw.ratio;
           d = rc.cross_len_new * dw.ratio;
           dr = Math.PI * 0.5;
           pt = cal_point(dw, d, dr, len);
@@ -1240,7 +1364,11 @@ export default defineComponent({
         // 进口车道展宽后白线
         for (var j = 1; j <= rc.enter.num - rc.enter.extend_num - 1; j++) {
           // 展宽后
-          len = (rc.median_strip.width + rc.enter.lane_width * j) * dw.ratio;
+          len =
+            (rc.median_strip.width +
+              rc.enter.offset + //内侧偏移
+              rc.enter.lane_width * j) *
+            dw.ratio;
           d =
             (rc.cross_len_new + rc.enter.extend_len + rc.enter.in_curv + 3) *
             dw.ratio;
@@ -1260,7 +1388,11 @@ export default defineComponent({
           states.cvs?.appendChild(line);
 
           // 展宽后第2部分
-          len = (rc.median_strip.width + rc.enter.lane_width * j) * dw.ratio;
+          len =
+            (rc.median_strip.width +
+              rc.enter.offset + //内侧偏移
+              rc.enter.lane_width * j) *
+            dw.ratio;
           d =
             (rc.cross_len_new + rc.enter.extend_len + rc.enter.in_curv + 20) *
             dw.ratio;
@@ -1352,7 +1484,11 @@ export default defineComponent({
         for (var j = 1; j <= rc.exit.num - rc.exit.extend_num - 1; j++) {
           // 展宽后
           dr = -Math.PI * 0.5;
-          len = (rc.median_strip.width + rc.exit.lane_width * j) * dw.ratio;
+          len =
+            (rc.median_strip.width -
+              rc.enter.offset + //内侧偏移
+              rc.exit.lane_width * j) *
+            dw.ratio;
           d =
             (rc.cross_len_new + rc.exit.extend_len + rc.exit.in_curv + 3) *
             dw.ratio;
@@ -1372,7 +1508,11 @@ export default defineComponent({
           states.cvs?.appendChild(line);
 
           // 展宽后第2部分
-          len = (rc.median_strip.width + rc.exit.lane_width * j) * dw.ratio;
+          len =
+            (rc.median_strip.width -
+              rc.enter.offset + //内侧偏移
+              rc.exit.lane_width * j) *
+            dw.ratio;
           d =
             (rc.cross_len_new + rc.exit.extend_len + rc.exit.in_curv + 20) *
             dw.ratio;
@@ -1465,7 +1605,7 @@ export default defineComponent({
 
       // cross的右转白线 和旋转的文字“方向n”
       for (var i = 0; i < arr_rc_draw.length; i++) {
-        rc = road_info.canalize_info[i];
+        var rc = road_info.canalize_info[i];
         var dw = arr_rc_draw[i];
         var sd = dw.enter_side2;
         var pt = sd.walk2;
@@ -1525,13 +1665,127 @@ export default defineComponent({
         txt.setAttribute("deleteTag", "1");
         states.cvs?.appendChild(txt);
       }
+
+      //左转待转，直行待转
+      for (let i = 0; i < arr_rc_draw.length; i++) {
+        var rc = road_info.canalize_info[i];
+        var dw = arr_rc_draw[i];
+        var dr = Math.PI * 0.5;
+
+        for (let j = 0; j < rc.road_sign.enter.length; j++) {
+          const road_sign = rc.road_sign.enter[j].key;
+          if (road_sign === "straight" && rc.wait.straight) {
+            var d = (rc.cross_len_new - 7) * dw.ratio;
+            // 直行待转
+            var len =
+              (rc.median_strip.width + rc.enter.lane_width * j) * dw.ratio;
+            pt1 = cal_point(dw, d, dr, len);
+
+            len =
+              (rc.median_strip.width + rc.enter.lane_width * (j + 1)) *
+              dw.ratio;
+            pt2 = cal_point(dw, d, dr, len);
+
+            d = (rc.cross_len_new - 13) * dw.ratio;
+            len = (rc.median_strip.width + rc.enter.lane_width * j) * dw.ratio;
+            pt3 = cal_point(dw, d, dr, len);
+
+            len =
+              (rc.median_strip.width + rc.enter.lane_width * (j + 1)) *
+              dw.ratio;
+            pt4 = cal_point(dw, d, dr, len);
+
+            //路标的基点
+            d = (rc.cross_len_new - 14.3) * dw.ratio;
+            len =
+              (rc.median_strip.width + rc.enter.lane_width * j - 0.5) *
+              dw.ratio;
+            var pt_sign = cal_point(dw, d, dr, len);
+
+            //左侧竖线
+            var line13 = document.createElementNS(states.ns, "path");
+            d_str = `M${pt1.x} ${pt1.y} ${pt3.x} ${pt3.y}`;
+            drawPath(line13, d_str, true);
+            //右侧竖线
+            var line24 = document.createElementNS(states.ns, "path");
+            d_str = `M${pt2.x} ${pt2.y} ${pt4.x} ${pt4.y}`;
+            drawPath(line24, d_str, true);
+            //横线
+            var line34 = document.createElementNS(states.ns, "path");
+            d_str = `M${pt3.x} ${pt3.y} ${pt4.x} ${pt4.y}`;
+            drawPath(line34, d_str, false);
+            //画图标
+            create_road_sign(
+              pt_sign,
+              i,
+              j,
+              dw.road_sign.enter[j].path,
+              false,
+              false
+            );
+          } else if (road_sign === "left" && rc.wait.left) {
+            //左转待转
+            var d = (rc.cross_len_new - 7) * dw.ratio;
+            var len =
+              (rc.median_strip.width + rc.enter.lane_width * j) * dw.ratio;
+            var pt1 = cal_point(dw, d, dr, len);
+
+            len =
+              (rc.median_strip.width + rc.enter.lane_width * (j + 1)) *
+              dw.ratio;
+            var pt2 = cal_point(dw, d, dr, len);
+
+            d = (rc.cross_len_new - 14) * dw.ratio;
+            len =
+              (rc.median_strip.width + rc.enter.lane_width * j - 1) * dw.ratio;
+            var pt3 = cal_point(dw, d, dr, len);
+
+            d = (rc.cross_len_new - 15) * dw.ratio;
+            len =
+              (rc.median_strip.width + rc.enter.lane_width * (j + 1) - 1) *
+              dw.ratio;
+            var pt4 = cal_point(dw, d, dr, len);
+
+            //路标的基点
+            d = (rc.cross_len_new - 14.3) * dw.ratio;
+            len =
+              (rc.median_strip.width + rc.enter.lane_width * j - 1.7) *
+              dw.ratio;
+            var pt_sign = cal_point(dw, d, dr, len);
+
+            //左侧竖线
+            var line13 = document.createElementNS(states.ns, "path");
+            d_str = `M${pt1.x} ${pt1.y} ${pt3.x} ${pt3.y}`;
+            drawPath(line13, d_str, true);
+            //右侧竖线
+            var line24 = document.createElementNS(states.ns, "path");
+            d_str = `M${pt2.x} ${pt2.y} ${pt4.x} ${pt4.y}`;
+            drawPath(line24, d_str, true);
+            //横线
+            var line34 = document.createElementNS(states.ns, "path");
+            d_str = `M${pt3.x} ${pt3.y} ${pt4.x} ${pt4.y}`;
+            drawPath(line34, d_str, false);
+            //画图标
+            create_road_sign(
+              pt_sign,
+              i,
+              j,
+              dw.road_sign.enter[j].path,
+              false,
+              false,
+              true
+            );
+          }
+        }
+      }
     }
 
     //清空所有svg信息，重新绘制
     function removeAll() {
       document.querySelectorAll("path").forEach((e: any) => {
-        const is_delete = e.getAttribute("deleteTag") === "1";
-        if (e.id !== "notDelete" && is_delete) {
+        const is_delete =
+          e.id !== "notDelete" && e.getAttribute("deleteTag") === "1";
+        if (is_delete) {
           //清空所有路径(保留弹窗内路标和不需要删除的元素)
           e.remove();
         }
@@ -1552,13 +1806,17 @@ export default defineComponent({
      * @param index 整条道路index
      * @param road_sign 路标
      * @param is_reverse 是否反转(即是否出口车道)
+     * @param can_click 是否可点击
+     * @param is_left_sign 是否是左转待转路标
      */
     function create_road_sign(
       way_pt: { x: number; y: number },
       index: number,
       way_index: number,
       road_sign: string,
-      is_reverse = false
+      is_reverse = false,
+      can_click = true,
+      is_left_sign = false
     ) {
       var path = document.createElementNS(states.ns, "path");
       path.setAttribute("id", `${index};${way_index}`);
@@ -1578,11 +1836,11 @@ export default defineComponent({
       var g = document.createElementNS(states.ns, "g");
       g.setAttribute(
         "transform",
-        `rotate(${270 - road_info.road_attr[index].angle} ${way_pt.x} ${
-          way_pt.y
-        })`
+        `rotate(
+          ${(is_left_sign ? 260 : 270) - road_info.road_attr[index].angle}
+          ${way_pt.x} ${way_pt.y})`
       );
-      if (!is_reverse) {
+      if (!is_reverse && can_click) {
         g.setAttribute("style", "cursor:pointer");
         g.addEventListener("click", handleChoose, false);
       }
@@ -1612,15 +1870,15 @@ export default defineComponent({
       const road_sign = roadSigns.find((s) => s.key === rowKey)?.path;
 
       const rc = road_info.canalize_info[road_index];
-
       //设置界面图标
-      states.currentSign.setAttribute("d", road_sign);
-      states.currentSign.setAttribute("deleteTag", "1");
+      // states.currentSign.setAttribute("d", road_sign);
+      // states.currentSign.setAttribute("deleteTag", "1");
       //设置数据对应图标
       rc.road_sign.enter[way_index] = { key: rowKey, path: road_sign };
       // 设置路标后需要调整当前道路对应的数量
       setRoadDirection();
-
+      //重新渲染
+      onLoadChange(road_info);
       states.modalVisible = false;
     }
 
@@ -1707,25 +1965,32 @@ export default defineComponent({
 
     //页面属性变化
     function on_prop_change(filed = "") {
+      const rc = road_info.canalize_info[states.cur_road_dir];
       //黄斜线和绿化带可设宽度，其余默认
-      if (
-        ["黄斜线", "绿化带"].indexOf(
-          road_info.canalize_info[states.cur_road_dir].median_strip.type
-        ) === -1
-      ) {
-        road_info.canalize_info[states.cur_road_dir].median_strip.width = 0.5;
+      if (["黄斜线", "绿化带"].indexOf(rc.median_strip.type) === -1) {
+        rc.median_strip.width = 0.5;
+      }
+      if (rc.median_strip.type === "鱼肚线" && rc.enter.extend_num <= 0) {
+        //有展宽时才可以设置鱼肚线
+        openNotfication("warning", "展宽数量小于等于0时不可设置鱼肚线");
+        rc.median_strip.type = "双黄线";
+      }
+      if (rc.median_strip.type === "鱼肚线" && rc.enter.offset > 0) {
+        //有展宽时才可以设置鱼肚线
+        openNotfication("warning", "内侧偏移大于0时不可设置鱼肚线");
+        rc.median_strip.type = "双黄线";
       }
       //入口道路数量为0时，展宽也为0
-      if (!road_info.canalize_info[states.cur_road_dir].enter.num) {
-        road_info.canalize_info[states.cur_road_dir].enter.extend_num = 0;
+      if (!rc.enter.num) {
+        rc.enter.extend_num = 0;
       }
       //出口道路数量为0时，展宽也为0
-      if (!road_info.canalize_info[states.cur_road_dir].exit.num) {
-        road_info.canalize_info[states.cur_road_dir].exit.extend_num = 0;
+      if (!rc.exit.num) {
+        rc.exit.extend_num = 0;
       }
       //路口数量变更时重绘路标
       if (filed === "enter_num" || filed === "exit_num") {
-        create_sign(road_info.canalize_info[states.cur_road_dir]);
+        create_sign(rc);
         setRoadDirection();
       }
       onLoadChange(road_info);
@@ -1828,6 +2093,18 @@ export default defineComponent({
         onLoad(rf);
       }
     });
+
+    //画待转区域线条
+    function drawPath(line: Element, d_str: string, dasharray: boolean) {
+      line.setAttribute("d", d_str);
+      line.setAttribute("stroke", "#ffffff");
+      line.setAttribute("stroke-width", "2");
+      line.setAttribute("deleteTag", "1");
+      if (dasharray) {
+        line.setAttribute("stroke-dasharray", "3,3");
+      }
+      states.cvs?.appendChild(line);
+    }
 
     function drawPoint(x: number, y: number, color: string) {
       var g = document.createElementNS(states.ns, "g");

@@ -95,10 +95,12 @@ export enum roadSignKey {
 
 export const canalizeTypeOption = [
   { label: "否", value: "否" },
-  { label: "划线渠化-无单独出口", value: "划线渠化-无单独出口" },
-  { label: "划线渠化-有单独出口", value: "划线渠化-有单独出口" },
-  { label: "固体渠化-无单独出口", value: "固体渠化-无单独出口" },
-  { label: "固体渠化-有单独出口", value: "固体渠化-有单独出口" },
+  { label: "划线渠化", value: "划线渠化" },
+  { label: "固体渠化", value: "固体渠化" },
+  // { label: "划线渠化-无单独出口", value: "划线渠化-无单独出口" },
+  // { label: "划线渠化-有单独出口", value: "划线渠化-有单独出口" },
+  // { label: "固体渠化-无单独出口", value: "固体渠化-无单独出口" },
+  // { label: "固体渠化-有单独出口", value: "固体渠化-有单独出口" },
 ];
 
 export const medianStripTypeOption = [
@@ -142,7 +144,9 @@ export const RoadCross = {
   canalize: {
     //渠化属性
     type: "否", //右转渠化
-    right_count: 1, //右转车道
+    right_enter_count: 0, //右转单独入口
+    right_exit_count: 0, //右转单独出口
+    lane_width: 15, //出入口宽度
   },
 
   enter: {
@@ -150,7 +154,7 @@ export const RoadCross = {
     num: 3, // 进口车道数
     lane_width: 3.5, //车道宽度，米
     extend_num: 0, // 展宽数量
-    extend_len: 40, // 展宽段长
+    extend_len: 30, // 展宽段长
     extend_width: 3, // 展宽车道宽度
     in_curv: 12, // 内侧渐变段长
     out_curv: 6, // 外侧渐变段长
@@ -168,7 +172,7 @@ export const RoadCross = {
     num: 3, // 出口车道数
     lane_width: 3.5, //车道宽度
     extend_num: 0, // 展宽数量
-    extend_len: 40, // 展宽段长
+    extend_len: 30, // 展宽段长
     extend_width: 3, // 展宽车道宽度
     in_curv: 12, // 内侧渐变段长
     out_curv: 6, // 外侧渐变段长

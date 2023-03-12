@@ -551,12 +551,12 @@ export default defineComponent({
     // 声明定义一下echart
     let echart = echarts;
     function initEcharts() {
-      //先销毁
-      echart.dispose;
-      //重建
       let chart = echart.init(document.getElementById("report")!);
       //填充配置和数据
       setEchartOption();
+      //先清空
+      chart.clear();
+      //再渲染
       chart.setOption(states.analysisOption);
     }
     const setEchartOption = () => {
@@ -613,18 +613,18 @@ export default defineComponent({
         states.analysisOption.series.push(seriesItem);
       });
 
-      // //平均值
-      // const seriesItem = {
-      //   name: "平均值",
-      //   type: "line",
-      //   tooltip: {
-      //     valueFormatter: function (value: number) {
-      //       return value;
-      //     },
-      //   },
-      //   data: [0.6, 0.3, 0.5, 0.8, 0.2, 0.5, 0.8, 0.1],
-      // };
-      // seriesData.push(seriesItem);
+      //平均值
+      const seriesItem = {
+        name: "平均值",
+        type: "line",
+        tooltip: {
+          valueFormatter: function (value: number) {
+            return value;
+          },
+        },
+        data: [0.6, 0.3, 0.5, 0.8, 0.2, 0.5, 0.8, 0.1],
+      };
+      states.analysisOption.series.push(seriesItem);
     };
     /**报表相关 end*/
 

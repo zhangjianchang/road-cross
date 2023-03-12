@@ -1,6 +1,8 @@
 <template>
   <div class="basic-main">
-    <div class="func">功能区</div>
+    <div class="func">
+      <!-- 功能区 -->
+    </div>
     <!-- 图示 -->
     <svg id="canvas">
       <defs>
