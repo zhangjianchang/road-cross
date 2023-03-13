@@ -586,6 +586,7 @@
                     v-model:value="
                       canalize_info[cur_road_dir].median_strip.safe_land
                     "
+                    @change="on_prop_change"
                     size="small"
                     class="form-width"
                   >
@@ -1480,6 +1481,34 @@ export default defineComponent({
           }
         }
 
+        //隔离桩
+        if (rc.median_strip.safe_land == 1) {
+          len = rc.median_strip.width * dw.ratio;
+          //左上角
+          d = (rc.cross_len_new - 7) * dw.ratio;
+          pt = cal_point(dw, d, dr, len);
+          d_str = `M${pt.x},${pt.y} `;
+          //左下角
+          d = (rc.cross_len_new - 2) * dw.ratio;
+          pt = cal_point(dw, d, dr, len);
+          d_str += `L${pt.x},${pt.y} `;
+          //右下角
+          d = (rc.cross_len_new - 2) * dw.ratio;
+          pt = cal_point(dw, d, -dr, len);
+          d_str += `L${pt.x},${pt.y} `;
+          //右上角
+          d = (rc.cross_len_new - 7) * dw.ratio;
+          pt = cal_point(dw, d, -dr, len);
+          d_str += `L${pt.x},${pt.y} Z`;
+          var safe_land = document.createElementNS(states.ns, "path");
+          safe_land.setAttribute("d", d_str);
+          safe_land.setAttribute("fill", "rgb(162,162,162)");
+          safe_land.setAttribute("stroke", "rgb(255,165,0)");
+          safe_land.setAttribute("stroke-width", "2");
+          safe_land.setAttribute("deleteTag", "1");
+          states.cvs?.appendChild(safe_land);
+        }
+
         // 出口车道展宽后白线
         for (var j = 1; j <= rc.exit.num - rc.exit.extend_num - 1; j++) {
           // 展宽后
@@ -1972,7 +2001,7 @@ export default defineComponent({
       }
       if (rc.median_strip.type === "鱼肚线" && rc.enter.extend_num <= 0) {
         //有展宽时才可以设置鱼肚线
-        openNotfication("warning", "展宽数量小于等于0时不可设置鱼肚线");
+        openNotfication("warning", "进口展宽数量小于等于0时不可设置鱼肚线");
         rc.median_strip.type = "双黄线";
       }
       if (rc.median_strip.type === "鱼肚线" && rc.enter.offset > 0) {
