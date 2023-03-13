@@ -601,6 +601,7 @@
                     v-model:value="
                       canalize_info[cur_road_dir].median_strip.turn
                     "
+                    @change="on_prop_change"
                     size="small"
                     class="form-width"
                   >
@@ -1481,30 +1482,49 @@ export default defineComponent({
           }
         }
 
-        //隔离桩
+        //安全岛
         if (rc.median_strip.safe_land == 1) {
-          len = rc.median_strip.width * dw.ratio;
+          const k = 0.5; //微调系数
+          len = (rc.median_strip.width + k) * dw.ratio;
           //左上角
           d = (rc.cross_len_new - 7) * dw.ratio;
-          pt = cal_point(dw, d, dr, len);
-          d_str = `M${pt.x},${pt.y} `;
+          var pt1 = cal_point(dw, d, dr, len);
+          d_str = `M${pt1.x},${pt1.y} `;
           //左下角
           d = (rc.cross_len_new - 2) * dw.ratio;
-          pt = cal_point(dw, d, dr, len);
-          d_str += `L${pt.x},${pt.y} `;
+          var pt2 = cal_point(dw, d, dr, len);
+          d_str += `L${pt2.x},${pt2.y} `;
           //右下角
           d = (rc.cross_len_new - 2) * dw.ratio;
-          pt = cal_point(dw, d, -dr, len);
-          d_str += `L${pt.x},${pt.y} `;
+          var pt3 = cal_point(dw, d, -dr, len);
+          d_str += `L${pt3.x},${pt3.y} `;
           //右上角
           d = (rc.cross_len_new - 7) * dw.ratio;
-          pt = cal_point(dw, d, -dr, len);
-          d_str += `L${pt.x},${pt.y} Z`;
+          var pt4 = cal_point(dw, d, -dr, len);
+          d_str += `L${pt4.x},${pt4.y} Z`;
           var safe_land = document.createElementNS(states.ns, "path");
           safe_land.setAttribute("d", d_str);
-          safe_land.setAttribute("fill", "rgb(162,162,162)");
-          safe_land.setAttribute("stroke", "rgb(255,165,0)");
-          safe_land.setAttribute("stroke-width", "2");
+          safe_land.setAttribute("fill", "rgb(131,131,131)");
+          safe_land.setAttribute("deleteTag", "1");
+          states.cvs?.appendChild(safe_land);
+
+          //上边缘圆弧
+          d = (rc.cross_len_new - 8) * dw.ratio;
+          var pt5 = cal_point(dw, d, dr, 0);
+          d_str = `M${pt1.x},${pt1.y} Q${pt5.x},${pt5.y} ${pt4.x},${pt4.y} Z`;
+          safe_land = document.createElementNS(states.ns, "path");
+          safe_land.setAttribute("d", d_str);
+          safe_land.setAttribute("fill", "rgb(255,165,0)");
+          safe_land.setAttribute("deleteTag", "1");
+          states.cvs?.appendChild(safe_land);
+
+          //下边缘圆弧
+          d = (rc.cross_len_new - 1) * dw.ratio;
+          var pt6 = cal_point(dw, d, dr, 0);
+          d_str = `M${pt2.x},${pt2.y} Q${pt6.x},${pt6.y} ${pt3.x},${pt3.y} Z`;
+          safe_land = document.createElementNS(states.ns, "path");
+          safe_land.setAttribute("d", d_str);
+          safe_land.setAttribute("fill", "rgb(255,165,0)");
           safe_land.setAttribute("deleteTag", "1");
           states.cvs?.appendChild(safe_land);
         }
@@ -1601,6 +1621,53 @@ export default defineComponent({
           setIsolationStyle(bkdiv, rc.exit.bike_lane.div_type);
           bkdiv.setAttribute("deleteTag", "1");
           states.cvs?.appendChild(bkdiv);
+        }
+
+        //停车线位置提前掉头
+        if (rc.median_strip.turn === "停车线位置") {
+          //掉头起点
+          len = rc.median_strip.width * dw.ratio;
+          d = rc.cross_len_new * dw.ratio;
+          pt = cal_point(dw, d, -dr, len);
+          d_str = `M${pt.x},${pt.y} `;
+          //掉头第二点
+          d = (rc.cross_len_new + 8) * dw.ratio;
+          pt = cal_point(dw, d, -dr, len);
+          d_str += `L${pt.x},${pt.y} Z`;
+          var turn = document.createElementNS(states.ns, "path");
+          turn.setAttribute("d", d_str);
+          turn.setAttribute("stroke", "rgb(163,163,163)");
+          turn.setAttribute("stroke-width", "2");
+          turn.setAttribute("stroke-dasharray", "2,5");
+          turn.setAttribute("deleteTag", "1");
+          states.cvs?.appendChild(turn);
+        }
+        //停车线位置提前掉头
+        if (rc.median_strip.turn === "停车线上游") {
+          //掉头起点
+          len = rc.median_strip.width * dw.ratio;
+          d = (rc.cross_len_new + 12) * dw.ratio;
+          pt = cal_point(dw, d, -dr, len);
+          d_str = `M${pt.x},${pt.y} `;
+          //掉头第二点
+          d = (rc.cross_len_new + 18) * dw.ratio;
+          pt = cal_point(dw, d, -dr, len);
+          d_str += `L${pt.x},${pt.y} `;
+          //左侧第二点
+          pt = cal_point(dw, d, dr, len);
+          d_str += `L${pt.x},${pt.y} `;
+          //左侧第一点
+          d = (rc.cross_len_new + 12) * dw.ratio;
+          pt = cal_point(dw, d, dr, len);
+          d_str += `L${pt.x},${pt.y} Z`;
+
+          var turn = document.createElementNS(states.ns, "path");
+          turn.setAttribute("d", d_str);
+          turn.setAttribute("fill", "rgb(163,163,163)");
+          turn.setAttribute("stroke", "rgb(163,163,163)");
+          turn.setAttribute("stroke-width", "3");
+          turn.setAttribute("deleteTag", "1");
+          states.cvs?.appendChild(turn);
         }
 
         // 入口路标
@@ -2003,11 +2070,24 @@ export default defineComponent({
         //有展宽时才可以设置鱼肚线
         openNotfication("warning", "进口展宽数量小于等于0时不可设置鱼肚线");
         rc.median_strip.type = "双黄线";
+        return;
       }
       if (rc.median_strip.type === "鱼肚线" && rc.enter.offset > 0) {
         //有展宽时才可以设置鱼肚线
         openNotfication("warning", "内侧偏移大于0时不可设置鱼肚线");
         rc.median_strip.type = "双黄线";
+        return;
+      }
+      if (
+        ["黄斜线", "绿化带"].indexOf(rc.median_strip.type) === -1 &&
+        rc.median_strip.turn === "停车线上游"
+      ) {
+        openNotfication(
+          "warning",
+          "只有当分割形式为黄斜线和绿化带时，才可将提前掉头设置为停车线上游"
+        );
+        rc.median_strip.turn = "否";
+        return;
       }
       //入口道路数量为0时，展宽也为0
       if (!rc.enter.num) {
