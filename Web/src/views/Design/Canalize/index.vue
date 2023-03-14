@@ -226,6 +226,7 @@
                 <a-form-item label="渠化方式">
                   <a-select
                     v-model:value="canalize_info[cur_road_dir].canalize.type"
+                    @change="on_prop_change"
                     size="small"
                     class="form-width"
                   >
@@ -1483,7 +1484,7 @@ export default defineComponent({
         }
 
         //安全岛
-        if (rc.median_strip.safe_land == 1) {
+        if (rc.median_strip.safe_land === 1) {
           const k = 0.5; //微调系数
           len = (rc.median_strip.width + k) * dw.ratio;
           //左上角
@@ -1527,6 +1528,53 @@ export default defineComponent({
           safe_land.setAttribute("fill", "rgb(255,165,0)");
           safe_land.setAttribute("deleteTag", "1");
           states.cvs?.appendChild(safe_land);
+        }
+
+        //停车线位置提前掉头
+        if (rc.median_strip.turn === "停车线位置") {
+          //掉头起点
+          len = rc.median_strip.width * dw.ratio;
+          d = rc.cross_len_new * dw.ratio;
+          pt = cal_point(dw, d, -dr, len);
+          d_str = `M${pt.x},${pt.y} `;
+          //掉头第二点
+          d = (rc.cross_len_new + 8) * dw.ratio;
+          pt = cal_point(dw, d, -dr, len);
+          d_str += `L${pt.x},${pt.y} Z`;
+          var turn = document.createElementNS(states.ns, "path");
+          turn.setAttribute("d", d_str);
+          turn.setAttribute("stroke", "rgb(163,163,163)");
+          turn.setAttribute("stroke-width", "2");
+          turn.setAttribute("stroke-dasharray", "2,5");
+          turn.setAttribute("deleteTag", "1");
+          states.cvs?.appendChild(turn);
+        }
+        //停车线上游提前掉头
+        if (rc.median_strip.turn === "停车线上游") {
+          //掉头起点
+          len = rc.median_strip.width * dw.ratio;
+          d = (rc.cross_len_new + 12) * dw.ratio;
+          pt = cal_point(dw, d, -dr, len);
+          d_str = `M${pt.x},${pt.y} `;
+          //掉头第二点
+          d = (rc.cross_len_new + 18) * dw.ratio;
+          pt = cal_point(dw, d, -dr, len);
+          d_str += `L${pt.x},${pt.y} `;
+          //左侧第二点
+          pt = cal_point(dw, d, dr, len);
+          d_str += `L${pt.x},${pt.y} `;
+          //左侧第一点
+          d = (rc.cross_len_new + 12) * dw.ratio;
+          pt = cal_point(dw, d, dr, len);
+          d_str += `L${pt.x},${pt.y} Z`;
+
+          var turn = document.createElementNS(states.ns, "path");
+          turn.setAttribute("d", d_str);
+          turn.setAttribute("fill", "rgb(163,163,163)");
+          turn.setAttribute("stroke", "rgb(163,163,163)");
+          turn.setAttribute("stroke-width", "3");
+          turn.setAttribute("deleteTag", "1");
+          states.cvs?.appendChild(turn);
         }
 
         // 出口车道展宽后白线
@@ -1621,53 +1669,6 @@ export default defineComponent({
           setIsolationStyle(bkdiv, rc.exit.bike_lane.div_type);
           bkdiv.setAttribute("deleteTag", "1");
           states.cvs?.appendChild(bkdiv);
-        }
-
-        //停车线位置提前掉头
-        if (rc.median_strip.turn === "停车线位置") {
-          //掉头起点
-          len = rc.median_strip.width * dw.ratio;
-          d = rc.cross_len_new * dw.ratio;
-          pt = cal_point(dw, d, -dr, len);
-          d_str = `M${pt.x},${pt.y} `;
-          //掉头第二点
-          d = (rc.cross_len_new + 8) * dw.ratio;
-          pt = cal_point(dw, d, -dr, len);
-          d_str += `L${pt.x},${pt.y} Z`;
-          var turn = document.createElementNS(states.ns, "path");
-          turn.setAttribute("d", d_str);
-          turn.setAttribute("stroke", "rgb(163,163,163)");
-          turn.setAttribute("stroke-width", "2");
-          turn.setAttribute("stroke-dasharray", "2,5");
-          turn.setAttribute("deleteTag", "1");
-          states.cvs?.appendChild(turn);
-        }
-        //停车线位置提前掉头
-        if (rc.median_strip.turn === "停车线上游") {
-          //掉头起点
-          len = rc.median_strip.width * dw.ratio;
-          d = (rc.cross_len_new + 12) * dw.ratio;
-          pt = cal_point(dw, d, -dr, len);
-          d_str = `M${pt.x},${pt.y} `;
-          //掉头第二点
-          d = (rc.cross_len_new + 18) * dw.ratio;
-          pt = cal_point(dw, d, -dr, len);
-          d_str += `L${pt.x},${pt.y} `;
-          //左侧第二点
-          pt = cal_point(dw, d, dr, len);
-          d_str += `L${pt.x},${pt.y} `;
-          //左侧第一点
-          d = (rc.cross_len_new + 12) * dw.ratio;
-          pt = cal_point(dw, d, dr, len);
-          d_str += `L${pt.x},${pt.y} Z`;
-
-          var turn = document.createElementNS(states.ns, "path");
-          turn.setAttribute("d", d_str);
-          turn.setAttribute("fill", "rgb(163,163,163)");
-          turn.setAttribute("stroke", "rgb(163,163,163)");
-          turn.setAttribute("stroke-width", "3");
-          turn.setAttribute("deleteTag", "1");
-          states.cvs?.appendChild(turn);
         }
 
         // 入口路标
@@ -1872,6 +1873,49 @@ export default defineComponent({
               true
             );
           }
+        }
+      }
+
+      //渠化相关
+      for (let i = 0; i < arr_rc_draw.length; i++) {
+        var rc = road_info.canalize_info[i];
+        var dw = arr_rc_draw[i];
+        const next_i = i + 1 === arr_rc_draw.length ? 0 : i + 1;
+        var rc_n = road_info.canalize_info[next_i]; //下条路
+        var dw_n = arr_rc_draw[next_i];
+        var dr = Math.PI * 0.5;
+        if (rc.canalize.type === "划线渠化") {
+          const enter_index = rc.enter.num - rc.canalize.right_enter_count;
+          //入口基点
+          var d = (rc.cross_len_new - 9) * dw.ratio;
+          var len =
+            (rc.median_strip.width + rc.enter.lane_width * enter_index) *
+            dw.ratio;
+          const pt1 = cal_point(dw, d, dr, len);
+          drawPoint(pt1.x, pt1.y, "red");
+
+          d = (rc.cross_len_new - 16) * dw.ratio;
+          len =
+            (rc.median_strip.width + rc.enter.lane_width * enter_index) *
+            dw.ratio;
+          const pt2 = cal_point(dw, d, dr, len);
+          drawPoint(pt2.x, pt2.y, "green");
+
+          //出口基点
+          const exit_index = rc.exit.num - rc.canalize.right_exit_count;
+          var d = (rc_n.cross_len_new - 9) * dw_n.ratio;
+          var len =
+            (rc_n.median_strip.width + rc_n.enter.lane_width * exit_index) *
+            dw_n.ratio;
+          const pt3 = cal_point(dw_n, d, -dr, len);
+          drawPoint(pt3.x, pt3.y, "blue");
+
+          d = (rc.cross_len_new - 16) * dw_n.ratio;
+          len =
+            (rc.median_strip.width + rc.enter.lane_width * exit_index) *
+            dw_n.ratio;
+          const pt4 = cal_point(dw_n, d, -dr, len);
+          drawPoint(pt4.x, pt4.y, "yellow");
         }
       }
     }
