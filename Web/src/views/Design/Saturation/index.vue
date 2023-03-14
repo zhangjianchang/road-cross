@@ -164,7 +164,16 @@ import {
   shallowRef,
   toRefs,
 } from "vue";
-import { getBackground, getCelr, tr_Cl, tr_Cs, tr_Csr, tr_VC } from "./index";
+import {
+  getBackground,
+  getCelr,
+  get_V,
+  get_x,
+  tr_Cl,
+  tr_Cs,
+  tr_Csr,
+  tr_VC,
+} from "./index";
 import Container from "../../../components/Container/index.vue";
 import {
   DragOutlined,
@@ -172,7 +181,7 @@ import {
   DeleteOutlined,
 } from "@ant-design/icons-vue";
 import { getQByPathCurv } from "../../../utils/common";
-import { plans, roadStates } from "..";
+import { get_λ, plans, roadStates } from "..";
 import { openNotfication } from "../../../utils/message";
 import * as echarts from "echarts";
 import { DirectionsEnum, echart_toolbox, echart_tooltip } from "../data";
@@ -341,7 +350,6 @@ export default defineComponent({
           road_sign: { enter: [] as any[] },
         };
         // 入口路标
-        rc.road_sign.enter;
         for (var j = 0; j < rc.enter.num; j++) {
           dw.road_sign.enter[j] = rc.road_sign.enter[j];
         }
@@ -377,36 +385,78 @@ export default defineComponent({
       states.cvs?.appendChild(line);
     }
 
-    //roadIndex路，wayIndex
+    //重构
     function getRatio(roadIndex: number, wayIndex: number) {
-      const rc = road_info.canalize_info[roadIndex];
+      //第r条路，第w条道是什么方向
+      const direction =
+        road_info.canalize_info[roadIndex].road_sign.enter[wayIndex].key;
+      const direction_number = road_info.flow_info.flow_detail[
+        roadIndex
+      ].turn.map((t: any) => {
+        // const k = road_info.canalize_info[roadIndex].road_direction;
+        return {
+          direction: t.direction,
+          number: t.number,
+        };
+      });
+      let number = 0;
+      direction_number.map((dm: any) => {
+        if (dm.direction === direction) {
+          number = dm.number;
+        } else if (dm.direction === "all_direction") {
+          //TODO
+        } else if (direction.indexOf("_") > -1) {
+          const d1 = direction.split("_")[0];
+          const d2 = direction.split("_")[1];
+          if (dm.direction === d1) {
+            number += dm.number * 0.5;
+          }
+          if (dm.direction === d2) {
+            number += dm.number * 0.5;
+          }
+        }
+      });
+      const flow_line = road_info.flow_info.line_info[roadIndex];
 
-      const T = road_info.signal_info.period;
-      const t = get_t(roadIndex);
-      const cart = road_info.flow_info.line_info[roadIndex].truck_ratio / 100;
-      const Bl = getBl(roadIndex);
-      const c_trCs = tr_Cs(T, t, cart); //直行通行能力
-      const c_trCsr = tr_Csr(c_trCs); //直右通行能力
-      const celr = getCelr(c_trCs + c_trCsr, Bl);
-      const c_trCl = tr_Cl(celr, Bl); //专左通行能力
-      let v = getCurrentWayFlow(roadIndex, wayIndex);
-      let trVC = 0; //饱和度
-      if (wayIndex === 0) {
-        //专左
-        trVC = tr_VC(v, c_trCl);
-        road_info.saturation_info[roadIndex].push({ vc: trVC, c: c_trCl });
-      } else if (wayIndex === 1) {
-        //直行
-        trVC = tr_VC(v, c_trCs);
-        road_info.saturation_info[roadIndex].push({ vc: trVC, c: c_trCs });
-      } else if (wayIndex === 2) {
-        //直右
-        trVC = tr_VC(v, c_trCsr);
-        road_info.saturation_info[roadIndex].push({ vc: trVC, c: c_trCsr });
-      }
-      console.log(wayIndex, trVC);
-      return trVC;
+      const q = number;
+      const d = flow_line.truck_ratio / 100;
+      const V = get_V(q, d);
+      const PHF = flow_line.peak_period;
+      const λ = get_λ(road_info, 1);
+      const S = road_info.flow_info.saturation[roadIndex][wayIndex].number;
+      const x = get_x(V, PHF, S, λ);
+      return x;
     }
+
+    // //roadIndex路，wayIndex 丢弃
+    // function getRatio(roadIndex: number, wayIndex: number) {
+    //   const rc = road_info.canalize_info[roadIndex];
+    //   const T = road_info.signal_info.period;
+    //   const t = get_t(roadIndex);
+    //   const cart = road_info.flow_info.line_info[roadIndex].truck_ratio / 100;
+    //   const Bl = getBl(roadIndex);
+    //   const c_trCs = tr_Cs(T, t, cart); //直行通行能力
+    //   const c_trCsr = tr_Csr(c_trCs); //直右通行能力
+    //   const celr = getCelr(c_trCs + c_trCsr, Bl);
+    //   const c_trCl = tr_Cl(celr, Bl); //专左通行能力
+    //   let v = getCurrentWayFlow(roadIndex, wayIndex);
+    //   let trVC = 0; //饱和度
+    //   if (wayIndex === 0) {
+    //     //专左
+    //     trVC = tr_VC(v, c_trCl);
+    //     road_info.saturation_info[roadIndex].push({ vc: trVC, c: c_trCl });
+    //   } else if (wayIndex === 1) {
+    //     //直行
+    //     trVC = tr_VC(v, c_trCs);
+    //     road_info.saturation_info[roadIndex].push({ vc: trVC, c: c_trCs });
+    //   } else if (wayIndex === 2) {
+    //     //直右
+    //     trVC = tr_VC(v, c_trCsr);
+    //     road_info.saturation_info[roadIndex].push({ vc: trVC, c: c_trCsr });
+    //   }
+    //   console.log(wayIndex, trVC);
+    //   return trVC;
+    // }
 
     /**
      * 绘制路标

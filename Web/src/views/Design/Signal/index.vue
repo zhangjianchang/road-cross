@@ -370,7 +370,7 @@ import {
 import _ from "lodash";
 import { getCurvByAngle } from "../Flow";
 import { road_model } from "../data";
-import { create_signal_info, insert_phase, plans, roadStates } from "..";
+import { create_signal_info, get_λ, insert_phase, plans, roadStates } from "..";
 
 export default defineComponent({
   components: { Container, DragOutlined },
@@ -547,10 +547,7 @@ export default defineComponent({
         createText(x1, y1, p, road_info.signal_info.phase_list[p].name);
         //绿信比
         y1 = signal + 30 + p * states.phase_height;
-        let λ = (
-          road_info.signal_info.phase_list[p].green /
-          road_info.signal_info.period
-        ).toFixed(2);
+        let λ = get_λ(road_info, p).toFixed(2);
         createText(x1, y1, p, `λ：${λ}`);
         /**文字 */
       }

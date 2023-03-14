@@ -477,7 +477,7 @@ export default defineComponent({
         const road = states.road_lines[i];
         //道路左侧
         let content = 0;
-        road_info.flow_info.flow_detail.map((f) => {
+        road_info.flow_info.flow_detail.map((f: any) => {
           content += f.turn.find(
             (t: any) => t.tag.indexOf(`#${i}`) > -1
           ).number;
@@ -669,7 +669,7 @@ export default defineComponent({
     //左侧道路数（流量大于0）
     function getFlowCountL(index: number) {
       let flow_count = 0;
-      road_info.flow_info.flow_detail.map((f) => {
+      road_info.flow_info.flow_detail.map((f: any) => {
         if (
           f.turn.find((t: any) => t.tag.indexOf(`#${index}`) > -1).number > 0
         ) {

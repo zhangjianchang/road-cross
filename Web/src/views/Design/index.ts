@@ -160,6 +160,18 @@ export function initFlowDetail(road_info: any) {
     flow_detail.turn.sort(function (a: any, b: any) {
       return b.order - a.order;
     });
+    flow_detail.turn.map((item: any, index: number) => {
+      //TODO 暂按照四条路来设计
+      if (index === 0) {
+        item.direction = "uturn";
+      } else if (index === 1) {
+        item.direction = "left";
+      } else if (index === 2) {
+        item.direction = "straight";
+      } else if (index === 3) {
+        item.direction = "right";
+      }
+    });
     road_info.flow_info.flow_detail.push(flow_detail);
   }
 }
@@ -220,3 +232,14 @@ export function insert_phase(road_info: any, p: number) {
     phaseItem.green + phaseItem.yellow + phaseItem.red;
 }
 /**信号相关 */
+
+/**计算 */
+//绿信比
+export function get_λ(road_info: any, p: number) {
+  return (
+    (road_info.signal_info.phase_list[p].green +
+      road_info.signal_info.phase_list[p].yellow -
+      3) /
+    road_info.signal_info.period
+  );
+}

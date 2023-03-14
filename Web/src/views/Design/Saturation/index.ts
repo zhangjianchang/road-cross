@@ -127,6 +127,31 @@ export function getBackground(number: number | string) {
   }
 }
 
+/**
+ * 进口车道实际交通量
+ * @param q 进口道转向流量
+ * @param d 大车比率
+ * @returns
+ */
+export function get_V(q: number, d: number) {
+  //V = q * (1 - d) + q * d * 2;
+  var V = q * (1 + d);
+  return V;
+}
+
+/**
+ * 进口车道饱和度
+ * @param V 进口车道实际交通量
+ * @param PHF 进口车道高峰小时流量系数(0.95)
+ * @param S 进口车道饱和流率（1650）
+ * @param λ 绿信比
+ * @returns
+ */
+export function get_x(V: number, PHF: number, S: number, λ: number) {
+  var x = V / PHF / (S * λ);
+  return x;
+}
+
 // 车道通行能力 traffic_capacity
 // 只考虑7种车道类型：直行Cs、专右、专左、左右转、直右、直左、直左右
 
@@ -200,7 +225,6 @@ export function tr_Celr(total_Cs: number, Bl: number, Br: number) {
   var Cslr = total_Cs / (1 - Bl - Br);
   return Cslr;
 }
-
 
 export function getCelr(total_Cs: number, Bl: number) {
   var Cslr = total_Cs / (1 - Bl);
