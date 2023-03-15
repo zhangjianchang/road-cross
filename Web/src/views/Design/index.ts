@@ -126,7 +126,6 @@ export function initFlowDetail(road_info: any) {
   road_info.flow_info.flowColumns.length = 0;
   Object.assign(road_info.flow_info.flowColumns, flowColumnsPart);
   for (let i = 0; i < road_info.road_attr.length; i++) {
-    console.log("加载中");
     let dataIndex = i.toString();
     road_info.flow_info.flowColumns.push({
       title: "转向" + (i + 1),
@@ -219,10 +218,11 @@ export function insert_phase(road_info: any, p: number) {
   let phaseItem = _.cloneDeep(phaseModel);
   phaseItem.index = p;
   phaseItem.name = `第${p + 1}相位`;
-  for (let d = 0; d < road_info.road_attr.length; d++) {
+  for (let d1 = 0; d1 < road_info.road_attr.length; d1++) {
     let directions = [];
-    for (let d = 0; d < road_info.road_attr.length; d++) {
+    for (let d2 = 0; d2 < road_info.road_attr.length; d2++) {
       let directionItem = _.cloneDeep(DirectionItemModel);
+      directionItem.direction = getDirection(d1, d2);
       directions.push(directionItem);
     }
     phaseItem.directions.push(directions);
@@ -231,6 +231,17 @@ export function insert_phase(road_info: any, p: number) {
   road_info.signal_info.period +=
     phaseItem.green + phaseItem.yellow + phaseItem.red;
 }
+
+export const getDirection = (i: number, j: number) => {
+  if (i === j) {
+    return "uturn";
+  } else if (i - j === 1) {
+    return "left";
+  } else if (j - i === 1) {
+    return "right";
+  }
+  return "straight";
+};
 /**信号相关 */
 
 /**计算 */

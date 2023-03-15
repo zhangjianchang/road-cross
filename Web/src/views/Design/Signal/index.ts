@@ -12,6 +12,7 @@ export const phaseModel = {
 
 export const DirectionItemModel = {
   is_enable: false, //是否启用，渲染线段
+  direction: "", //方向
   green: 0,
   yellow: 0,
   red: 0,

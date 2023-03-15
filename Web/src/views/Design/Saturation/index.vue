@@ -416,6 +416,7 @@ export default defineComponent({
           }
         }
       });
+      console.log(road_info.signal_info);
       const flow_line = road_info.flow_info.line_info[roadIndex];
 
       const q = number;
