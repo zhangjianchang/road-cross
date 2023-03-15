@@ -215,14 +215,15 @@ export function create_signal_info(road_info: any) {
 
 export function insert_phase(road_info: any, p: number) {
   //数据
+  let roadCount = road_info.road_attr.length;
   let phaseItem = _.cloneDeep(phaseModel);
   phaseItem.index = p;
   phaseItem.name = `第${p + 1}相位`;
-  for (let d1 = 0; d1 < road_info.road_attr.length; d1++) {
+  for (let d1 = 0; d1 < roadCount; d1++) {
     let directions = [];
-    for (let d2 = 0; d2 < road_info.road_attr.length; d2++) {
+    for (let d2 = 0; d2 < roadCount; d2++) {
       let directionItem = _.cloneDeep(DirectionItemModel);
-      directionItem.direction = getDirection(d1, d2);
+      directionItem.direction = getDirection(d1, d2, roadCount);
       directions.push(directionItem);
     }
     phaseItem.directions.push(directions);
@@ -232,12 +233,13 @@ export function insert_phase(road_info: any, p: number) {
     phaseItem.green + phaseItem.yellow + phaseItem.red;
 }
 
-export const getDirection = (i: number, j: number) => {
-  if (i === j) {
+export const getDirection = (i: number, j: number, roadCount: number) => {
+  const order = j - i <= 0 ? j - i + roadCount : j - i; //排序（为了把掉头车道放在第一个）
+  if (order === 4) {
     return "uturn";
-  } else if (i - j === 1) {
+  } else if (order === 1) {
     return "left";
-  } else if (j - i === 1) {
+  } else if (order === 3) {
     return "right";
   }
   return "straight";
@@ -246,11 +248,6 @@ export const getDirection = (i: number, j: number) => {
 
 /**计算 */
 //绿信比
-export function get_λ(road_info: any, p: number) {
-  return (
-    (road_info.signal_info.phase_list[p].green +
-      road_info.signal_info.phase_list[p].yellow -
-      3) /
-    road_info.signal_info.period
-  );
+export function get_λ(green: number, yellow: number, period: number) {
+  return (green + yellow - 3) / period;
 }

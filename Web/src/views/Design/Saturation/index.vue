@@ -416,14 +416,28 @@ export default defineComponent({
           }
         }
       });
-      console.log(road_info.signal_info);
-      const flow_line = road_info.flow_info.line_info[roadIndex];
 
+      const period = road_info.signal_info.period;
+      let green = 0;
+      let yellow = 0;
+      road_info.signal_info.phase_list.forEach((p) => {
+        p.directions[roadIndex].forEach((d: any) => {
+          if (direction.indexOf(d.direction) > -1) {
+            green = green | d.green;
+            yellow = yellow | d.yellow;
+
+            console.log(green, d.green);
+            console.log(yellow, d.yellow);
+          }
+        });
+      });
+
+      const flow_line = road_info.flow_info.line_info[roadIndex];
       const q = number;
       const d = flow_line.truck_ratio / 100;
       const V = get_V(q, d);
       const PHF = flow_line.peak_period;
-      const λ = get_λ(road_info, 1);
+      const λ = get_λ(green, yellow, period);
       const S = road_info.flow_info.saturation[roadIndex][wayIndex].number;
       const x = get_x(V, PHF, S, λ);
       return x;

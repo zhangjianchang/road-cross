@@ -434,14 +434,13 @@ export default defineComponent({
 
     //加载各道路之间的方向
     const initDirections = () => {
-      for (let i = 0; i < road_info.road_attr.length; i++) {
+      const road_count = road_info.road_attr.length;
+      for (let i = 0; i < road_count; i++) {
         const sign_pt = [];
-        for (let j = 0; j < road_info.road_attr.length; j++) {
+        for (let m = 0; m < road_count; m++) {
+          let j = i + m >= road_count ? i + m - road_count : i + m;
           const road = road_info.road_attr[i];
-          const nextRoad =
-            j === road_info.road_attr.length - 1
-              ? road_info.road_attr[0]
-              : road_info.road_attr[j + 1];
+          const nextRoad = road_info.road_attr[j];
           const d = `M${road.coordinate[0]} ${road.coordinate[1]} L${states.cx} ${states.cy} L${nextRoad.coordinate[0]} ${nextRoad.coordinate[1]}`;
           const path = { d };
           sign_pt.push(path);
@@ -547,7 +546,11 @@ export default defineComponent({
         createText(x1, y1, p, road_info.signal_info.phase_list[p].name);
         //绿信比
         y1 = signal + 30 + p * states.phase_height;
-        let λ = get_λ(road_info, p).toFixed(2);
+        let λ = get_λ(
+          road_info.signal_info.phase_list[p].green,
+          road_info.signal_info.phase_list[p].yellow,
+          road_info.signal_info.period
+        ).toFixed(2);
         createText(x1, y1, p, `λ：${λ}`);
         /**文字 */
       }
@@ -837,8 +840,13 @@ export default defineComponent({
     };
 
     const drawDirectionPath = (index: number) => {
+      const road_count = road_info.road_attr.length;
       const index1 = states.currentDirection;
-      const index2 = index + 1 === road_info.road_attr.length ? 0 : index + 1;
+      const index2 =
+        index1 + index >= road_count
+          ? index1 + index - road_count
+          : index1 + index;
+      console.log(index, index1, index2);
       const point1 =
         states.road_pts[states.currentPhase].point[index1].right_point;
       const point2 =
