@@ -147,7 +147,7 @@
           </a-form>
         </div>
         <div class="header mt-2">车道属性</div>
-        <div class="content mt-2" v-if="is_init">
+        <div class="content mt-2" v-if="is_flow_init">
           <a-table
             :dataSource="flow_info.line_info"
             :columns="lineColumns"
@@ -193,7 +193,7 @@
           </a-table>
         </div>
         <div class="header mt-5">进口道转向流量</div>
-        <div class="content mt-2" v-if="is_init">
+        <div class="content mt-2" v-if="is_flow_init">
           <a-table
             :dataSource="flow_info.flow_detail"
             :columns="flow_info.flowColumns"
@@ -424,8 +424,8 @@ export default defineComponent({
 
     //填充表格
     async function initRoadInfo(rf: any) {
-      if (!states.is_init) initFlowDetail(rf);
-      states.is_init = true; //标记已经初始化过了
+      if (!roadStates.is_flow_init) initFlowDetail(rf);
+      roadStates.is_flow_init = true; //标记已经初始化过了
     }
 
     //绘制道路
@@ -723,6 +723,7 @@ export default defineComponent({
     return {
       ...toRefs(states),
       ...toRefs(road_info),
+      ...toRefs(roadStates),
       labelCol: { span: 10 },
       wrapperCol: { span: 12 },
       lineColumns,

@@ -148,6 +148,7 @@ export function get_V(q: number, d: number) {
  * @returns
  */
 export function get_x(V: number, PHF: number, S: number, λ: number) {
+  if (PHF === 0 || S === 0 || λ === 0) return 0;
   var x = V / PHF / (S * λ);
   return x;
 }

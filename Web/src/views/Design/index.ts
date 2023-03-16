@@ -49,6 +49,7 @@ export const roadStates = reactive({
   cy: 350, //圆心y
   road_list: [] as any[], //TODO缓存方案，后期删
   currentUrl: "Basic",
+  is_flow_init: false, //是否已经初始化过流量信息
   showSelect: {
     showCanalize: false,
     showFlow: false,
@@ -224,30 +225,52 @@ export function insert_phase(road_info: any, p: number) {
     for (let d2 = 0; d2 < roadCount; d2++) {
       let directionItem = _.cloneDeep(DirectionItemModel);
       directionItem.direction = getDirection(d1, d2, roadCount);
+      directionItem.order = getDirectionOerder(directionItem.direction);
       directions.push(directionItem);
     }
+    //排序
+    directions.sort(function (a: any, b: any) {
+      return a.order - b.order;
+    });
     phaseItem.directions.push(directions);
   }
+  console.log(phaseItem.directions);
   road_info.signal_info.phase_list.push(phaseItem);
   road_info.signal_info.period +=
     phaseItem.green + phaseItem.yellow + phaseItem.red;
 }
 
 export const getDirection = (i: number, j: number, roadCount: number) => {
-  const order = j - i <= 0 ? j - i + roadCount : j - i; //排序（为了把掉头车道放在第一个）
-  if (order === 4) {
+  if (i === j) {
     return "uturn";
-  } else if (order === 1) {
+  } else if (i - j === 1 || i - j + roadCount === 1) {
     return "left";
-  } else if (order === 3) {
+  } else if (j - i === 1 || j - i + roadCount === 1) {
     return "right";
   }
   return "straight";
 };
+
+export const getDirectionOerder = (direction: string) => {
+  switch (direction) {
+    case "uturn":
+      return 0;
+    case "right":
+      return 1;
+    case "straight":
+      return 2;
+    case "left":
+      return 3;
+    default:
+      return 2;
+  }
+};
+
 /**信号相关 */
 
 /**计算 */
 //绿信比
 export function get_λ(green: number, yellow: number, period: number) {
-  return (green + yellow - 3) / period;
+  const λ = (green + yellow - 3) / period;
+  return λ < 0 ? 0 : λ;
 }

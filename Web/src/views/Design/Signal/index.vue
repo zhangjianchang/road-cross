@@ -397,7 +397,6 @@ export default defineComponent({
     const initRoads = (rf: any) => {
       states.ns = "http://www.w3.org/2000/svg";
       states.cvs = document.getElementById("canvas");
-      console.log("这里一次");
       onChangeSignal(rf); //渲染
     };
 
@@ -420,7 +419,6 @@ export default defineComponent({
     }
 
     function onChangeSignal(rf: any) {
-      console.log("这里2次");
       Object.assign(road_info, rf);
       initSignal(); //初始化数据
       render();
@@ -846,7 +844,6 @@ export default defineComponent({
         index1 + index >= road_count
           ? index1 + index - road_count
           : index1 + index;
-      console.log(index, index1, index2);
       const point1 =
         states.road_pts[states.currentPhase].point[index1].right_point;
       const point2 =
