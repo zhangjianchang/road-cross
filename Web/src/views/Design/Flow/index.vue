@@ -309,6 +309,7 @@ import {
   getMiddlePoint,
   getPoint,
   getQByPathCurv,
+  intersect_line_point,
 } from "../../../utils/common";
 import {
   getCurvByAngle,
@@ -389,11 +390,19 @@ export default defineComponent({
           const road_r =
             road_info.flow_info.space * roadCount - j * states.line_width;
           //道路左侧
-          const pt_fl = getPoint("fl", angle, x3, y3, road_r);
-          left_line.push(pt_fl);
+          const l_lines = [];
+          const pt_fl1 = getPoint("fl", angle, x3, y3, road_r);
+          const pt_fl2 = getPoint("fl", angle, x2, y2, road_r);
+          l_lines.push(pt_fl1);
+          l_lines.push(pt_fl2);
+          left_line.push(l_lines);
           //道路右侧
-          const pt_fr = getPoint("fr", angle, x3, y3, road_r);
-          right_line.push(pt_fr);
+          const r_lines = [];
+          const pt_fr1 = getPoint("fr", angle, x3, y3, road_r);
+          const pt_fr2 = getPoint("fr", angle, x2, y2, road_r);
+          r_lines.push(pt_fr1);
+          r_lines.push(pt_fr2);
+          right_line.push(r_lines);
         }
         var ml_line = [];
         var mr_line = [];
@@ -522,28 +531,43 @@ export default defineComponent({
             continue;
           }
           const road2 = states.road_lines[road2_index]; //连接第二条路
-          const angle1 = road_info.road_attr[i].angle;
-          const angle2 = road_info.road_attr[road2_index].angle;
-          const point1 = road1.right_line[k];
-          const point2 = road2.left_line[k];
-          const curvature = getCurvByAngle(
-            states.curvature,
-            angle1,
-            angle2,
-            point1,
-            point2
-          );
-          //道路两两连接
-          const line = document.createElementNS(states.ns, "path");
-          const Q = getQByPathCurv(point1, point2, curvature);
+          const angle = 360 - road_info.road_attr[i].angle;
+
+          const point1 = road1.right_line[k][0];
+          const point2 = road2.left_line[k][0];
+
+          var insect_pt = intersect_line_point(
+            { x: road1.right_line[k][0][0], y: road1.right_line[k][0][1] },
+            { x: road1.right_line[k][1][0], y: road1.right_line[k][1][1] },
+            { x: road2.left_line[k][0][0], y: road2.left_line[k][0][1] },
+            { x: road2.left_line[k][1][0], y: road2.left_line[k][1][1] }
+          ); // 相邻两直线的交点
+          var mid_pt = {
+            x: (road1.right_line[k][0][0] + road2.left_line[k][0][0]) * 0.5,
+            y: (road1.right_line[k][0][1] + road2.left_line[k][0][1]) * 0.5,
+          };
+          let Q = "";
+          // 曲度插值法计算Q的中间点
+          if (insect_pt && i != road2_index) {
+            var qpt = {
+              x: mid_pt.x + (insect_pt.x - mid_pt.x) * 1,
+              y: mid_pt.y + (insect_pt.y - mid_pt.y) * 1,
+            };
+            Q = qpt.x + "," + qpt.y + " ";
+          } else {
+            //掉头车道
+            console.log(road2_index, i);
+            Q = getQByPathCurv(point1, point2, 4);
+          }
+
           let d_str = `M ${point1[0]} ${point1[1]} Q ${Q} ${point2[0]} ${point2[1]}`;
+          const line = document.createElementNS(states.ns, "path");
           drawPath(line, `main_path_${i}_${k}`, d_str, road1.color);
           //路径文字
           const tag = `${i}#${road2_index}`;
           const content = road_info.flow_info.flow_detail[i].turn.find(
             (t: any) => t.tag === tag
           ).number;
-          const angle = 360 - angle1;
           setText(
             `${i}_${road2_index}`,
             point1,

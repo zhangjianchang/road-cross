@@ -223,8 +223,8 @@ export function getRandomColor() {
 
 // 2直线交点
 export function intersect_line_point(
-  a: { y: number; x: number },
-  b: { y: number; x: number },
+  a: { x: number; y: number },
+  b: { x: number; y: number },
   c: { x: number; y: number },
   d: { x: number; y: number }
 ) {
