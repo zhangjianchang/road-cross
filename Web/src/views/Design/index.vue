@@ -5,7 +5,7 @@
         <a-input
           v-model:value="plans.road_name"
           placeholder="请输入交叉口名称"
-          style="width: 530px"
+          style="width: 520px"
         />
         <a-button type="primary" class="ml-5" @click="onSave"> 保存 </a-button>
       </div>
@@ -202,7 +202,10 @@
         <!-- 断面 -->
         <Section v-else-if="currentUrl === MenuListEnum.Section" />
         <!-- 饱和度 -->
-        <Saturation v-else-if="currentUrl === MenuListEnum.Saturation" />
+        <Saturation
+          v-else-if="currentUrl === MenuListEnum.Saturation"
+          ref="saturationRef"
+        />
         <!-- 排队分析 -->
         <QueueAnalysis v-else-if="currentUrl === MenuListEnum.QueueAnalysis" />
         <!-- 延误分析 -->
@@ -297,6 +300,7 @@ export default defineComponent({
     const canalizeRef = ref();
     const flowRef = ref();
     const signalRef = ref();
+    const saturationRef = ref();
     roadStates.currentUrl = MenuListEnum.Basic;
 
     //切换菜单
@@ -311,7 +315,6 @@ export default defineComponent({
         road_info.canalize_info.length === 0
       ) {
         openNotfication("warning", "请先初始化渠化信息");
-
         return;
       }
       roadStates.currentUrl = item.url;
@@ -487,38 +490,57 @@ export default defineComponent({
       roadStates.current_canalize = index;
       roadStates.current_flow = 0;
       roadStates.current_signal = 0;
-
+      const rf =
+        plans.canalize_plans[index].flow_plans[0].signal_plans[0].road_info;
+      //渠化需要做出的反应
       if (is_load) {
-        const rf =
-          plans.canalize_plans[index].flow_plans[0].signal_plans[0].road_info;
         canalizeRef.value.onLoadChange(rf);
+      } else {
+        changePlan(rf);
       }
     };
     //切换或点击流量时
     const changeFlow = (index: number, is_load = true) => {
+      console.log(index);
       roadStates.current_flow = index;
       roadStates.current_signal = 0;
-
+      const rf =
+        plans.canalize_plans[roadStates.current_canalize].flow_plans[index]
+          .signal_plans[0].road_info;
+      //流量需要做出的反应
       if (is_load) {
-        const rf =
-          plans.canalize_plans[roadStates.current_canalize].flow_plans[index]
-            .signal_plans[0].road_info;
         flowRef.value.onChangeFlow(rf);
+      } else {
+        changePlan(rf);
       }
     };
     //点击或切换信号时
     const changeSignal = (index: number, is_load = true) => {
       roadStates.current_signal = index;
-
+      const rf =
+        plans.canalize_plans[roadStates.current_canalize].flow_plans[
+          roadStates.current_flow
+        ].signal_plans[index].road_info;
       if (is_load) {
-        const rf =
-          plans.canalize_plans[roadStates.current_canalize].flow_plans[
-            roadStates.current_flow
-          ].signal_plans[index].road_info;
         signalRef.value.onChangeSignal(rf);
+      } else {
+        changePlan(rf);
       }
     };
 
+    // 切换方案时页面及分析切换
+    const changePlan = (rf: any) => {
+      if (roadStates.currentUrl === MenuListEnum.Flow) {
+        //流量需要做出的反应
+        flowRef.value.onChangeFlow(rf);
+      } else if (roadStates.currentUrl === MenuListEnum.Signal) {
+        //信号需要做出的反应
+        signalRef.value.onChangeSignal(rf);
+      } else if (roadStates.currentUrl === MenuListEnum.Saturation) {
+        //饱和度需要做出的反应
+        saturationRef.value.onChangeSatuation(rf);
+      }
+    };
     //保存
     const onSave = () => {
       if (!plans.road_name) {
@@ -580,6 +602,7 @@ export default defineComponent({
       canalizeRef,
       flowRef,
       signalRef,
+      saturationRef,
       MenuListEnum,
       menuList,
       handleChangeMenu,

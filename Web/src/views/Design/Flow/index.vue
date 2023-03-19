@@ -57,248 +57,288 @@
     <!-- 参数 -->
     <div class="menu">
       <div class="form">
-        <div class="header">绘图属性</div>
-        <div class="content">
-          <a-form :label-col="labelCol" :wrapper-col="wrapperCol">
-            <a-row>
-              <a-col :span="12">
-                <a-form-item label="颜色">
-                  <a-select
-                    v-model:value="flow_info.colorScheme"
-                    size="small"
-                    class="form-width"
-                    @change="onChangeFlow"
-                  >
-                    <a-select-option
-                      v-for="index in [0, 1, 2]"
-                      :key="index"
-                      :value="index"
-                    >
-                      方案{{ index + 1 }}
-                    </a-select-option>
-                  </a-select>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="粗细">
-                  <a-input-number
-                    v-model:value="flow_info.thickness"
-                    :min="1"
-                    :max="8"
-                    size="small"
-                    class="form-width"
-                    @change="onChangeFlow"
-                  />
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="长度">
-                  <a-input-number
-                    v-model:value="flow_info.width"
-                    :min="50"
-                    :max="120"
-                    :step="1"
-                    size="small"
-                    class="form-width"
-                    @change="onChangeFlow"
-                  />
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="间距">
-                  <a-input-number
-                    v-model:value="flow_info.space"
-                    :min="20"
-                    :max="40"
-                    :step="1"
-                    size="small"
-                    class="form-width"
-                    @change="onChangeFlow"
-                  />
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="字号1">
-                  <a-input-number
-                    v-model:value="flow_info.font_size1"
-                    :min="10"
-                    :max="18"
-                    :step="2"
-                    size="small"
-                    class="form-width"
-                    @change="onChangeFlow"
-                  />
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="字号2">
-                  <a-input-number
-                    v-model:value="flow_info.font_size2"
-                    :min="14"
-                    :max="18"
-                    :step="2"
-                    size="small"
-                    class="form-width"
-                    @change="onChangeFlow"
-                  />
-                </a-form-item>
-              </a-col>
-            </a-row>
-          </a-form>
-        </div>
-        <div class="header mt-2">车道属性</div>
-        <div class="content mt-2" v-if="is_flow_init">
-          <a-table
-            :dataSource="flow_info.line_info"
-            :columns="lineColumns"
-            :pagination="false"
-            :bordered="true"
-            :customRow="onRowClick"
-            :rowClassName="
+        <a-collapse v-model:activeKey="activeKey">
+          <a-collapse-panel key="1" header="绘图属性">
+            <div>
+              <a-form :label-col="labelCol" :wrapper-col="wrapperCol">
+                <a-row>
+                  <a-col :span="8">
+                    <a-form-item label="颜色">
+                      <a-select
+                        v-model:value="flow_info.colorScheme"
+                        size="small"
+                        class="form-width"
+                        @change="onChangeFlow"
+                      >
+                        <a-select-option
+                          v-for="index in [0, 1, 2]"
+                          :key="index"
+                          :value="index"
+                        >
+                          方案{{ index + 1 }}
+                        </a-select-option>
+                      </a-select>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="8">
+                    <a-form-item label="粗细">
+                      <a-input-number
+                        v-model:value="flow_info.thickness"
+                        :min="1"
+                        :max="8"
+                        size="small"
+                        class="form-width"
+                        @change="onChangeFlow"
+                      />
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="8">
+                    <a-form-item label="长度">
+                      <a-input-number
+                        v-model:value="flow_info.width"
+                        :min="50"
+                        :max="120"
+                        :step="1"
+                        size="small"
+                        class="form-width"
+                        @change="onChangeFlow"
+                      />
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="8">
+                    <a-form-item label="间距">
+                      <a-input-number
+                        v-model:value="flow_info.space"
+                        :min="16"
+                        :max="40"
+                        :step="1"
+                        size="small"
+                        class="form-width"
+                        @change="onChangeFlow"
+                      />
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="8">
+                    <a-form-item label="字号1">
+                      <a-input-number
+                        v-model:value="flow_info.font_size1"
+                        :min="10"
+                        :max="18"
+                        :step="2"
+                        size="small"
+                        class="form-width"
+                        @change="onChangeFlow"
+                      />
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="8">
+                    <a-form-item label="字号2">
+                      <a-input-number
+                        v-model:value="flow_info.font_size2"
+                        :min="14"
+                        :max="18"
+                        :step="2"
+                        size="small"
+                        class="form-width"
+                        @change="onChangeFlow"
+                      />
+                    </a-form-item>
+                  </a-col>
+                </a-row>
+              </a-form>
+            </div>
+          </a-collapse-panel>
+          <a-collapse-panel key="2" header="车道属性">
+            <div v-if="is_flow_init">
+              <a-table
+                :dataSource="flow_info.line_info"
+                :columns="lineColumns"
+                :pagination="false"
+                :bordered="true"
+                :customRow="onRowClick"
+                :scroll="{ x: '100%' }"
+                :rowClassName="
               (_: any, index: number) => (index === currentRoad ? 'click-row' : null)
             "
-            size="small"
-          >
-            <!-- 路名 -->
-            <template #road_name="{ index }">
-              <a-input
-                v-model:value="canalize_info[index].name"
                 size="small"
-                class="form-width"
-                @blur="onChangeFlow"
-              />
-            </template>
-            <!-- 大车比率 -->
-            <template #truck_ratio="{ record }">
-              <a-input-number
-                v-model:value="record.truck_ratio"
-                :min="0"
-                :max="100"
-                :step="1"
-                size="small"
-                class="form-width"
-              />
-            </template>
-            <!-- 高峰小时系数 -->
-            <template #peak_period="{ record }">
-              <a-input-number
-                v-model:value="record.peak_period"
-                :min="0"
-                :max="1"
-                :step="0.01"
-                size="small"
-                class="form-width"
-              />
-            </template>
-          </a-table>
-        </div>
-        <div class="header mt-5">进口道转向流量</div>
-        <div class="content mt-2" v-if="is_flow_init">
-          <a-table
-            :dataSource="flow_info.flow_detail"
-            :columns="flow_info.flowColumns"
-            :pagination="false"
-            :showHeader="false"
-            :bordered="true"
-            :customRow="onRowClick"
-            :rowClassName="
-              (_: any, index: number) => (index === currentRoad ? 'click-row' : null)
-            "
-            size="small"
-          >
-            <!-- 路名 -->
-            <template #road_name="{ index }">
-              {{ canalize_info[index].name }}
-            </template>
-            <!-- 转向 -->
-            <template
-              v-for="col in flowDataIndex"
-              #[col]="{ index }"
-              :key="col"
-            >
-              <div v-if="flow_info.flow_detail[index].turn">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 700 700"
-                  class="road-sign"
-                  v-if="col !== '0'"
-                >
-                  <path
-                    :id="'direction'"
-                    :d="flow_info.flow_detail[index].turn[Number(col)].d"
-                    fill="none"
-                    stroke="#4f48ad"
-                    stroke-width="100"
-                    :marker-end="'url(#arrow)'"
-                  ></path>
-                </svg>
-                <svg
-                  v-else
-                  viewBox="0 0 700 700"
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="road-sign"
-                >
-                  <g
-                    :transform="`rotate(${270 - road_attr[index].angle} ${
-                      road_attr[index].coordinate[0]
-                    },${road_attr[index].coordinate[1]}) translate(${
-                      road_attr[index].coordinate[0]
-                    },${road_attr[index].coordinate[1]})`"
-                  >
-                    <path
-                      :id="'direction'"
-                      :d="flow_info.flow_detail[index].turn[Number(col)].d"
-                      fill="#4f48ad"
-                      stroke="none"
-                      stroke-width="100"
-                    ></path>
-                  </g>
-                </svg>
-                <div>
-                  <a-input-number
-                    v-model:value="
-                      flow_info.flow_detail[index].turn[Number(col)].number
-                    "
-                    :min="0"
-                    :max="9999"
-                    :step="10"
+              >
+                <!-- 路名 -->
+                <template #road_name="{ index }">
+                  <a-input
+                    v-model:value="canalize_info[index].name"
                     size="small"
-                    class="small-form-width"
+                    class="form-width"
                     @blur="onChangeFlow"
                   />
-                </div>
-              </div>
-            </template>
-          </a-table>
-        </div>
-        <div class="header mt-5">进口车道饱和流量（从内侧车道开始）</div>
-        <div class="content mt-5">
-          <a-form
-            :label-col="labelCol"
-            :wrapper-col="wrapperCol"
-            layout="horizontal"
-          >
-            <a-row>
-              <a-col
-                :span="8"
-                v-for="(rec, index) in flow_info.saturation[currentRoad]"
-                :key="rec"
-              >
-                <a-form-item :label="'车道' + (index + 1)">
+                </template>
+                <!-- 大车比率 -->
+                <template #truck_ratio="{ record }">
                   <a-input-number
-                    v-model:value="rec.number"
+                    v-model:value="record.truck_ratio"
                     :min="0"
-                    :step="50"
+                    :max="100"
+                    :step="1"
                     size="small"
                     class="form-width"
                   />
-                </a-form-item>
-              </a-col>
-            </a-row>
-          </a-form>
-        </div>
+                </template>
+                <!-- 高峰小时系数 -->
+                <template #peak_period="{ record }">
+                  <a-input-number
+                    v-model:value="record.peak_period"
+                    :min="0"
+                    :max="1"
+                    :step="0.01"
+                    size="small"
+                    class="form-width"
+                  />
+                </template>
+              </a-table>
+            </div>
+          </a-collapse-panel>
+          <a-collapse-panel key="3" header="进口道转向流量">
+            <div v-if="is_flow_init">
+              <a-table
+                :dataSource="flow_info.flow_detail"
+                :columns="flow_info.flowColumns"
+                :pagination="false"
+                :showHeader="false"
+                :bordered="true"
+                :customRow="onRowClick"
+                :rowClassName="
+              (_: any, index: number) => (index === currentRoad ? 'click-row' : null)
+            "
+                size="small"
+              >
+                <!-- 路名 -->
+                <template #road_name="{ index }">
+                  {{ canalize_info[index].name }}
+                </template>
+                <!-- 转向 -->
+                <template
+                  v-for="col in flowDataIndex"
+                  #[col]="{ index }"
+                  :key="col"
+                >
+                  <div v-if="flow_info.flow_detail[index].turn">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 700 700"
+                      class="road-sign"
+                      v-if="col !== '0'"
+                    >
+                      <path
+                        :id="'direction'"
+                        :d="flow_info.flow_detail[index].turn[Number(col)].d"
+                        fill="none"
+                        stroke="#4f48ad"
+                        stroke-width="100"
+                        :marker-end="'url(#arrow)'"
+                      ></path>
+                    </svg>
+                    <svg
+                      v-else
+                      viewBox="0 0 700 700"
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="road-sign"
+                    >
+                      <g
+                        :transform="`rotate(${270 - road_attr[index].angle} ${
+                          road_attr[index].coordinate[0]
+                        },${road_attr[index].coordinate[1]}) translate(${
+                          road_attr[index].coordinate[0]
+                        },${road_attr[index].coordinate[1]})`"
+                      >
+                        <path
+                          :id="'direction'"
+                          :d="flow_info.flow_detail[index].turn[Number(col)].d"
+                          fill="#4f48ad"
+                          stroke="none"
+                          stroke-width="100"
+                        ></path>
+                      </g>
+                    </svg>
+                    <div
+                      :class="
+                        currentEditText ===
+                        `${flow_info.flow_detail[index].turn[Number(col)].tag}`
+                          ? 'form-actitve'
+                          : ''
+                      "
+                    >
+                      <a-input-number
+                        v-model:value="
+                          flow_info.flow_detail[index].turn[Number(col)].number
+                        "
+                        :min="0"
+                        :max="5000"
+                        :step="10"
+                        size="small"
+                        class="small-form-width"
+                        @blur="onChangeFlow"
+                        @focus="
+                          onFocusFlow(
+                            flow_info.flow_detail[index].turn[Number(col)].tag
+                          )
+                        "
+                      />
+                    </div>
+                  </div>
+                </template>
+              </a-table>
+            </div>
+          </a-collapse-panel>
+          <a-collapse-panel key="4" header="进口车道饱和流量（从内侧车道开始）">
+            <div>
+              <a-form
+                :label-col="labelCol"
+                :wrapper-col="wrapperCol"
+                layout="horizontal"
+              >
+                <a-row>
+                  <a-col
+                    :span="8"
+                    v-for="(rec, index) in flow_info.saturation[currentRoad]"
+                    :key="rec"
+                  >
+                    <a-form-item :label="'车道' + (index + 1)">
+                      <a-input-number
+                        v-model:value="rec.number"
+                        :min="0"
+                        :step="50"
+                        size="small"
+                        class="form-width"
+                      />
+                    </a-form-item>
+                  </a-col>
+                </a-row>
+              </a-form>
+            </div>
+          </a-collapse-panel>
+        </a-collapse>
       </div>
     </div>
+    <a-modal
+      v-if="is_flow_init"
+      v-model:visible="visible"
+      :title="'修改进口道转向流量'"
+      width="400px"
+      centered
+      ok-text="确认"
+      cancel-text="取消"
+      @ok="onNumberConfirm"
+    >
+      <div>
+        <a-input-number
+          v-model:value="updateNumber"
+          :min="0"
+          :max="5000"
+          :step="1"
+          placeholder="请输入对应进口道转向流量"
+          class="modal-input-width"
+        />
+      </div>
+    </a-modal>
   </div>
 </template>
 
@@ -312,7 +352,6 @@ import {
   intersect_line_point,
 } from "../../../utils/common";
 import {
-  getCurvByAngle,
   lineColumns,
   flowDataIndex,
   getLineWidth,
@@ -322,6 +361,7 @@ import {
 import _ from "lodash";
 import { initEnterNum, initFlowDetail, plans, roadStates } from "..";
 import { road_model } from "../data";
+import { message } from "ant-design-vue";
 
 export default defineComponent({
   components: { Container },
@@ -344,7 +384,11 @@ export default defineComponent({
       sign_pts: [] as any[],
       line_width: 8,
       is_init: false,
+      activeKey: ["1", "2", "3", "4"], //默认展开面板
       currentRoad: 0, //当前选中道路
+      currentEditText: "", //当前正在编辑的文字
+      visible: false, //弹出框可见性
+      updateNumber: "", //修改的时间
     });
 
     const initRoads = (rf: any) => {
@@ -433,7 +477,12 @@ export default defineComponent({
 
     //填充表格
     async function initRoadInfo(rf: any) {
-      if (!roadStates.is_flow_init) initFlowDetail(rf);
+      if (!roadStates.is_flow_init) {
+        initFlowDetail(rf);
+      } else if (plans.road_count !== rf.flow_info.line_info.length) {
+        //道路数变化的时候需要重新加载
+        initFlowDetail(rf);
+      }
       roadStates.is_flow_init = true; //标记已经初始化过了
     }
 
@@ -447,9 +496,14 @@ export default defineComponent({
 
     //绘制道路左右两侧(右侧)
     function drawMRRoad() {
+      const width = road_info.flow_info.thickness;
       for (let i = 0; i < states.road_lines.length; i++) {
         const flow_count = getFlowCountR(i);
-        const line_width = getLineWidth(road_info.road_attr.length, flow_count);
+        const line_width = getLineWidth(
+          road_info.road_attr.length,
+          flow_count,
+          width
+        );
         const road = states.road_lines[i];
         //道路左侧
 
@@ -468,21 +522,26 @@ export default defineComponent({
         let midPoint = getMiddlePoint(point_r1, point_r2);
         let angle = 360 - road_info.road_attr[i].angle;
         if (content !== 0) {
-          setText(i, midPoint, angle, content);
+          setText(i, midPoint, angle, content, "rightMRoad");
         }
         //取两侧道路中点标记道路
         const point_l1 = road.middle_line.ml_line[1];
         midPoint = getMiddlePoint(point_l1, point_r1);
         angle = 270 - road_info.road_attr[i].angle;
         content = road_info.canalize_info[i].name;
-        setText(i, midPoint, angle, content, "road_name", -15, 70);
+        setText(i, midPoint, angle, content, "roadName", -15, 70);
       }
     }
     //绘制道路左右两侧(左侧)
     function drawMLRoad() {
+      const width = road_info.flow_info.thickness;
       for (let i = 0; i < states.road_lines.length; i++) {
         let flow_count = getFlowCountL(i);
-        let line_width = getLineWidth(road_info.road_attr.length, flow_count);
+        let line_width = getLineWidth(
+          road_info.road_attr.length,
+          flow_count,
+          width
+        );
         const road = states.road_lines[i];
         //道路左侧
         let content = 0;
@@ -509,7 +568,7 @@ export default defineComponent({
           //取两线中点用来标记数字
           const midPoint = getMiddlePoint(point_l1, point_l2);
           let angle = 360 - road_info.road_attr[i].angle;
-          setText(i, midPoint, angle, content);
+          setText(i, midPoint, angle, content, "leftMRoad");
         }
       }
     }
@@ -557,7 +616,7 @@ export default defineComponent({
           } else {
             //掉头车道
             console.log(road2_index, i);
-            Q = getQByPathCurv(point1, point2, 4);
+            Q = getQByPathCurv(point1, point2, 2.5);
           }
 
           let d_str = `M ${point1[0]} ${point1[1]} Q ${Q} ${point2[0]} ${point2[1]}`;
@@ -568,15 +627,7 @@ export default defineComponent({
           const content = road_info.flow_info.flow_detail[i].turn.find(
             (t: any) => t.tag === tag
           ).number;
-          setText(
-            `${i}_${road2_index}`,
-            point1,
-            angle,
-            content,
-            "main_road",
-            -30,
-            7 * k
-          );
+          setText(tag, point1, angle, content, "rightRoad", -30, 7 * k);
           k++;
         }
       }
@@ -626,12 +677,12 @@ export default defineComponent({
       point: any,
       angle: any,
       content: any,
-      type = "main_road",
+      type: string,
       translateX = -10,
       translateY = 20
     ) {
       const road_text = {
-        id: `left_text_${i}`,
+        id: `${type}_${i}`,
         point: point,
         angle: angle,
         content: content,
@@ -650,15 +701,25 @@ export default defineComponent({
         text.setAttribute("y", t.point[1]);
         text.setAttribute("fill", "#000");
         // 主路径字体取字体1
-        if (t.type === "road_name") {
+        if (t.type === "roadName") {
           text.setAttribute(
             "style",
             `font-size:${road_info.flow_info.font_size2}`
           );
+        } else if (t.type === "rightRoad") {
+          text.setAttribute(
+            "style",
+            `font-size:${road_info.flow_info.font_size1};cursor:pointer`
+          );
+          text.addEventListener(
+            "click",
+            () => onClickText(t.id, t.content),
+            false
+          );
         } else {
           text.setAttribute(
             "style",
-            `font-size:${road_info.flow_info.font_size1}`
+            `font-size:${road_info.flow_info.font_size1};`
           );
         }
         text.setAttribute(
@@ -671,6 +732,30 @@ export default defineComponent({
       });
     }
 
+    //点击数字
+    const onClickText = (id: string, number: string) => {
+      const tag = id.split("_")[1];
+      states.currentRoad = Number(tag.split("#")[0]);
+      states.updateNumber = number;
+      states.visible = true;
+      onFocusFlow(tag);
+    };
+
+    //确认修改数字
+    const onNumberConfirm = () => {
+      if (!states.updateNumber) {
+        message.warning("请填写进口道转向流量");
+        return;
+      }
+      const ct = road_info.flow_info.flow_detail[states.currentRoad].turn.find(
+        (t: any) => t.tag === states.currentEditText
+      );
+      ct.number = states.updateNumber;
+      onChangeFlow(road_info);
+      states.visible = false;
+    };
+
+    //页面属性变动
     const onChangeFlow = (rf: any) => {
       if (!rf) {
         rf =
@@ -679,8 +764,30 @@ export default defineComponent({
           ].signal_plans[0].road_info;
       }
       Object.assign(road_info, rf);
+      console.log(road_info);
+      //默认值
+      if (!road_info.flow_info.thickness) {
+        road_info.flow_info.thickness = 5;
+      }
+      if (!road_info.flow_info.width) {
+        road_info.flow_info.width = 100;
+      }
+      if (!road_info.flow_info.space) {
+        road_info.flow_info.space = 24;
+      }
+      if (!road_info.flow_info.font_size1) {
+        road_info.flow_info.font_size1 = 14;
+      }
+      if (!road_info.flow_info.font_size2) {
+        road_info.flow_info.font_size2 = 16;
+      }
       clearRoadPath();
       render();
+    };
+
+    //流量框聚焦
+    const onFocusFlow = (tag: string) => {
+      states.currentEditText = tag;
     };
 
     //右侧道路数（流量大于0）
@@ -754,6 +861,8 @@ export default defineComponent({
       flowDataIndex,
       onChangeFlow,
       onRowClick,
+      onFocusFlow,
+      onNumberConfirm,
     };
   },
 });

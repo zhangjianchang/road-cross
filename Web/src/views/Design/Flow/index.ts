@@ -86,16 +86,21 @@ export function getK(roadCount: number): number {
 }
 
 //roundCount 实际道路数量，flowCount 车流大于0的道路数量
-export function getLineWidth(roadCount: number, flowCount: number) {
+export function getLineWidth(
+  roadCount: number,
+  flowCount: number,
+  width: number
+) {
+  width = width < 3 ? 3 : width;
   if (flowCount === 2) {
-    return (6.5 * (roadCount - 1) * flowCount) / roadCount;
+    return ((width + 1.5) * (roadCount - 1) * flowCount) / roadCount;
   }
   if (flowCount === 3) {
-    return (6.5 * (roadCount - 1) * flowCount) / roadCount;
+    return ((width + 1.5) * (roadCount - 1) * flowCount) / roadCount;
   } else if (flowCount === 4) {
-    return (6 * (roadCount - 1) * flowCount) / roadCount;
+    return ((width + 1) * (roadCount - 1) * flowCount) / roadCount;
   } else if (flowCount === 5) {
-    return (5 * (roadCount - 1) * flowCount) / roadCount;
+    return (width * (roadCount - 1) * flowCount) / roadCount;
   }
 }
 

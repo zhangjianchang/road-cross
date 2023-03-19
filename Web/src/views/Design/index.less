@@ -62,7 +62,7 @@
   }
 
   &-menu {
-    width: 100px;
+    width: 90px;
 
     &-item {
       height: 76px;
@@ -86,22 +86,28 @@
   }
 
   &-main {
-    margin-left: 10px;
-    width: 1580px;
+    width: 1240px;
   }
 }
 
 .form {
-  padding: 20px;
+  // padding: 20px;
   //字体大小
   :deep(.ant-form-item-label > label),
   :deep(.ant-select),
   :deep(.ant-input),
   :deep(.ant-input-number-input),
   :deep(.ant-select-dropdown),
-  :deep(.ant-select-item-option-content) {
+  :deep(.ant-select-item-option-content),
+  :deep(.ant-table-wrapper) .ant-table-content {
     font-size: 12px !important;
     line-height: 24px;
+  }
+  :deep(.ant-collapse > .ant-collapse-item > .ant-collapse-header) {
+    padding: 8px 16px;
+  }
+  :deep(.ant-divider-horizontal) {
+    margin: 12px 0;
   }
 }
 
@@ -132,10 +138,33 @@
   width: 60px !important;
 }
 
+.gradient-text {
+  position: absolute;
+  bottom: 5px;
+  right: 28px;
+  height: 160px;
+  text-align: center;
+  .dec {
+    writing-mode: vertical-lr;
+    height: 110px;
+  }
+}
+
 .gradient {
   position: absolute;
-  bottom: 50px;
-  right: 50px;
+  bottom: 5px;
+  right: 24px;
+  height: 170px;
+  width: 30px;
+  border: 0.001rem solid #c7c2c2;
+  background-color: #ff0000; /* 针对不支持渐变的浏览器 */
+  background-image: linear-gradient(#ff0000, #ffff00, #00ff00);
+}
+
+.gradient-horizontal {
+  position: absolute;
+  bottom: 5px;
+  right: 24px;
 
   .rect {
     width: 60px;

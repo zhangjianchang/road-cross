@@ -29,11 +29,11 @@
         style="cursor: pointer"
       >
         <!-- 外层矩形轮廓 -->
-        <rect width="80%" height="680" fill="#FFFF99" />
+        <rect width="700" height="700" fill="#FFFF99" />
         <!-- 道路路径 -->
         <path :d="road.path.d" :id="road.path.id" fill="rgb(162,162,162)" />
         <!-- 相位数据 -->
-        <text x="150" y="770" class="phase-text">
+        <text x="120" y="800" class="phase-text">
           {{ road.text }}
         </text>
         <!-- 相位内部方向箭头 -->
@@ -61,33 +61,33 @@
         <!-- 外层边框 -->
         <rect
           x="35"
-          y="200"
+          y="170"
           height="40"
-          width="790"
+          width="630"
           rx="4"
           ry="4"
           fill="rgba(0,0,0,0.3)"
         />
         <!-- 机动车文字 -->
-        <text x="75" y="225" class="legend-text">机动车</text>
+        <text x="75" y="195" class="legend-text">机动车</text>
         <!-- 机动车图示 -->
-        <rect x="120" y="215" height="12" width="100" fill="#FFFFFF" />
+        <rect x="120" y="185" height="12" width="70" fill="#FFFFFF" />
         <!-- 非机动车文字 -->
-        <text x="270" y="225" class="legend-text">非机动车</text>
+        <text x="240" y="195" class="legend-text">非机动车</text>
         <!-- 非机动车图示 -->
-        <rect x="328" y="215" height="12" width="100" fill="#FFB90F" />
+        <rect x="298" y="185" height="12" width="70" fill="#FFB90F" />
         <!-- 行人文字 -->
-        <text x="470" y="225" class="legend-text">行人</text>
+        <text x="410" y="195" class="legend-text">行人</text>
         <!-- 行人图示 -->
-        <rect x="503" y="215" height="12" width="100" fill="#00FF99" />
+        <rect x="443" y="185" height="12" width="70" fill="#00FF99" />
         <!-- 待转文字 -->
-        <text x="638" y="225" class="legend-text">待转</text>
+        <text x="548" y="195" class="legend-text">待转</text>
         <!-- 待转图示 -->
         <line
-          x1="671"
-          y1="221"
-          x2="771"
-          y2="221"
+          x1="581"
+          y1="192"
+          x2="631"
+          y2="192"
           style="stroke: #ffffff; stroke-width: 12"
           stroke-dasharray="5,5"
         />
@@ -96,138 +96,138 @@
     <!-- 参数 -->
     <div class="menu">
       <div class="form">
-        <div class="content">
-          <a-form :label-col="labelCol" :wrapper-col="wrapperCol">
-            <a-row>
-              <a-col :span="12">
-                <a-form-item label="相位总数">
-                  <a-select
-                    v-model:value="signal_info.phase"
+        <a-collapse v-model:activeKey="activeKey">
+          <a-collapse-panel key="1" header="基础信息">
+            <div>
+              <a-form :label-col="labelCol" :wrapper-col="wrapperCol">
+                <a-row>
+                  <a-col :span="7">
+                    <a-form-item label="相位总数">
+                      <a-select
+                        v-model:value="signal_info.phase"
+                        size="small"
+                        class="form-width"
+                        @change="onPhaseChange"
+                      >
+                        <a-select-option
+                          v-for="item in [1, 2, 3, 4, 5]"
+                          :key="item"
+                          :value="item"
+                        >
+                          {{ item }}
+                        </a-select-option>
+                      </a-select>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="10">
+                    <a-form-item label="周期">
+                      <a-input-number
+                        v-model:value="signal_info.period"
+                        size="small"
+                        class="form-width"
+                        :disabled="true"
+                      />
+                      <div class="span-unit">秒</div>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="7">
+                    <a-form-item label="图例">
+                      <a-select
+                        v-model:value="signal_info.is_show_legend"
+                        @change="onShowLegendChange"
+                        size="small"
+                        class="form-width"
+                      >
+                        <a-select-option :value="true"> 是 </a-select-option>
+                        <a-select-option :value="false"> 否 </a-select-option>
+                      </a-select>
+                    </a-form-item>
+                  </a-col>
+                </a-row>
+              </a-form>
+            </div>
+          </a-collapse-panel>
+          <a-collapse-panel key="2" header="相位信息">
+            <div>
+              <a-table
+                :dataSource="signal_info.phase_list"
+                :columns="phaseColumns"
+                :scroll="{ x: 485 }"
+                :customRow="onRowClick"
+                :pagination="false"
+                :bordered="true"
+                :rowClassName="
+              (_: any, index: number) => (index === currentPhase ? 'click-row' : null)
+            "
+                size="small"
+              >
+                <!-- 相位index -->
+                <template #index="{ text }">
+                  {{ text + 1 }}
+                </template>
+                <!-- 名称 -->
+                <template #name="{ record }">
+                  <a-input
+                    v-model:value="record.name"
                     size="small"
                     class="form-width"
-                    @change="onPhaseChange"
-                  >
-                    <a-select-option
-                      v-for="item in [1, 2, 3, 4, 5]"
-                      :key="item"
-                      :value="item"
-                    >
-                      {{ item }}
-                    </a-select-option>
-                  </a-select>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="周期">
-                  <a-input-number
-                    v-model:value="signal_info.period"
-                    size="small"
-                    class="form-width"
-                    :disabled="true"
+                    @blur="onItemPeriodBlur"
                   />
-                  <div class="span-unit">秒</div>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="图例">
-                  <a-select
-                    v-model:value="signal_info.is_show_legend"
-                    @change="onShowLegendChange"
+                </template>
+                <!-- 绿灯 -->
+                <template #green="{ record }">
+                  <a-input-number
+                    v-model:value="record.green"
+                    :min="0"
+                    :max="100"
+                    :step="1"
+                    @blur="onItemPeriodBlur"
                     size="small"
-                    class="form-width"
+                    class="small-form-width"
+                  />
+                </template>
+                <!-- 黄灯 -->
+                <template #yellow="{ record }">
+                  <a-input-number
+                    v-model:value="record.yellow"
+                    :min="0"
+                    :max="100"
+                    :step="1"
+                    @blur="onItemPeriodBlur"
+                    size="small"
+                    class="small-form-width"
+                  />
+                </template>
+                <!-- 全红 -->
+                <template #red="{ record }">
+                  <a-input-number
+                    v-model:value="record.red"
+                    :min="0"
+                    :max="100"
+                    :step="1"
+                    @blur="onItemPeriodBlur"
+                    size="small"
+                    class="small-form-width"
+                  />
+                </template>
+                <!-- 搭接相位 -->
+                <template #is_lap="{ record }">
+                  <a-select
+                    v-model:value="record.is_lap"
+                    size="small"
+                    class="middle-form-width"
                   >
                     <a-select-option :value="true"> 是 </a-select-option>
                     <a-select-option :value="false"> 否 </a-select-option>
                   </a-select>
-                </a-form-item>
-              </a-col>
-            </a-row>
-          </a-form>
-        </div>
-        <div class="content mt-2">
-          <a-table
-            :dataSource="signal_info.phase_list"
-            :columns="phaseColumns"
-            :scroll="{ x: 485 }"
-            :customRow="onRowClick"
-            :pagination="false"
-            :bordered="true"
-            :rowClassName="
-              (_: any, index: number) => (index === currentPhase ? 'click-row' : null)
-            "
-            size="small"
-          >
-            <!-- 相位index -->
-            <template #index="{ text }">
-              {{ text + 1 }}
-            </template>
-            <!-- 名称 -->
-            <template #name="{ record }">
-              <a-input
-                v-model:value="record.name"
-                size="small"
-                class="form-width"
-                @blur="onItemPeriodBlur"
-              />
-            </template>
-            <!-- 绿灯 -->
-            <template #green="{ record }">
-              <a-input-number
-                v-model:value="record.green"
-                :min="0"
-                :max="100"
-                :step="1"
-                @blur="onItemPeriodBlur"
-                size="small"
-                class="small-form-width"
-              />
-            </template>
-            <!-- 黄灯 -->
-            <template #yellow="{ record }">
-              <a-input-number
-                v-model:value="record.yellow"
-                :min="0"
-                :max="100"
-                :step="1"
-                @blur="onItemPeriodBlur"
-                size="small"
-                class="small-form-width"
-              />
-            </template>
-            <!-- 全红 -->
-            <template #red="{ record }">
-              <a-input-number
-                v-model:value="record.red"
-                :min="0"
-                :max="100"
-                :step="1"
-                @blur="onItemPeriodBlur"
-                size="small"
-                class="small-form-width"
-              />
-            </template>
-            <!-- 搭接相位 -->
-            <template #is_lap="{ record }">
-              <a-select
-                v-model:value="record.is_lap"
-                size="small"
-                class="middle-form-width"
-              >
-                <a-select-option :value="true"> 是 </a-select-option>
-                <a-select-option :value="false"> 否 </a-select-option>
-              </a-select>
-            </template>
-          </a-table>
-        </div>
-        <div class="content mt-2" v-if="signal_info.phase_list.length > 0">
-          <a-form>
-            <a-row>
-              <a-col :span="24">
-                <a-form-item
-                  label="进口方向"
-                  :label-col="labelCol"
-                  :wrapper-col="wrapperCol"
-                >
+                </template>
+              </a-table>
+            </div>
+          </a-collapse-panel>
+          <a-collapse-panel key="3" header="进口设置">
+            <div v-if="signal_info.phase_list.length > 0">
+              <a-form>
+                <a-form-item label="进口方向">
                   <a-select
                     v-model:value="currentDirection"
                     size="small"
@@ -243,72 +243,71 @@
                     </a-select-option>
                   </a-select>
                 </a-form-item>
-              </a-col>
-            </a-row>
-          </a-form>
-        </div>
-        <div class="mt-2" v-if="signal_info.phase_list.length > 0">
-          <div>机动车</div>
-          <div>
-            <svg
-              v-for="(item, index) in sign_pts[currentDirection]"
-              :key="index"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 700 700"
-              class="road-sign"
-              @click="onDirectionClick(index)"
-            >
-              <defs>
-                <marker
-                  :id="
-                    'arrow' +
-                    currentPhase +
-                    '_' +
-                    currentDirection +
-                    '_' +
-                    index
-                  "
-                  markerUnits="strokeWidth"
-                  markerWidth="3"
-                  markerHeight="3"
-                  viewBox="0 0 12 12"
-                  refX="6"
-                  refY="6"
-                  orient="auto"
+              </a-form>
+            </div>
+            <a-divider />
+            <div v-if="signal_info.phase_list.length > 0">
+              <div>机动车</div>
+              <div>
+                <svg
+                  v-for="(item, index) in sign_pts[currentDirection]"
+                  :key="index"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 700 700"
+                  class="road-sign"
+                  @click="onDirectionClick(index)"
                 >
+                  <defs>
+                    <marker
+                      :id="
+                        'arrow' +
+                        currentPhase +
+                        '_' +
+                        currentDirection +
+                        '_' +
+                        index
+                      "
+                      markerUnits="strokeWidth"
+                      markerWidth="3"
+                      markerHeight="3"
+                      viewBox="0 0 12 12"
+                      refX="6"
+                      refY="6"
+                      orient="auto"
+                    >
+                      <path
+                        xmlns="http://www.w3.org/2000/svg"
+                        d="M2,2 L10,6 L2,10 L2,6 L2,2"
+                        style="fill: #a2a2a2"
+                      />
+                    </marker>
+                  </defs>
                   <path
-                    xmlns="http://www.w3.org/2000/svg"
-                    d="M2,2 L10,6 L2,10 L2,6 L2,2"
-                    style="fill: #a2a2a2"
-                  />
-                </marker>
-              </defs>
-              <path
-                :id="
-                  'direction' +
-                  currentPhase +
-                  '_' +
-                  currentDirection +
-                  '_' +
-                  index
-                "
-                :d="item.d"
-                fill="none"
-                stroke="#a2a2a2"
-                stroke-width="100"
-                :marker-end="
-                  'url(#arrow' +
-                  currentPhase +
-                  '_' +
-                  currentDirection +
-                  '_' +
-                  index +
-                  ')'
-                "
-              ></path>
-            </svg>
-          </div>
-          <!-- <div>非机动车</div>
+                    :id="
+                      'direction' +
+                      currentPhase +
+                      '_' +
+                      currentDirection +
+                      '_' +
+                      index
+                    "
+                    :d="item.d"
+                    fill="none"
+                    stroke="#a2a2a2"
+                    stroke-width="100"
+                    :marker-end="
+                      'url(#arrow' +
+                      currentPhase +
+                      '_' +
+                      currentDirection +
+                      '_' +
+                      index +
+                      ')'
+                    "
+                  ></path>
+                </svg>
+              </div>
+              <!-- <div>非机动车</div>
           <div>
             <svg
               v-for="(item, index) in sign_pts[currentDirection]"
@@ -349,9 +348,38 @@
           <div>1</div>
           <div>待转</div>
           <div>2</div> -->
-        </div>
+            </div>
+          </a-collapse-panel>
+        </a-collapse>
       </div>
     </div>
+    <a-modal
+      v-if="signal_info.phase_list.length > 0"
+      v-model:visible="visible"
+      :title="
+        '修改【' +
+        signal_info.phase_list[currentPhase].name +
+        '】的' +
+        currentTimeTypeName +
+        '时间'
+      "
+      width="400px"
+      centered
+      ok-text="确认"
+      cancel-text="取消"
+      @ok="onTimeConfirm"
+    >
+      <div>
+        <a-input-number
+          v-model:value="updateTime"
+          :min="0"
+          :max="100"
+          :step="1"
+          placeholder="请输入修改的时间"
+          class="modal-input-width"
+        />
+      </div>
+    </a-modal>
   </div>
 </template>
 
@@ -360,17 +388,12 @@ import { defineComponent, onMounted, reactive, toRefs } from "vue";
 import Container from "../../../components/Container/index.vue";
 import { DragOutlined } from "@ant-design/icons-vue";
 import { getQByPathCurv } from "../../../utils/common";
-import {
-  signalColor,
-  getStartX,
-  phaseModel,
-  phaseColumns,
-  DirectionItemModel,
-} from ".";
+import { signalColor, getStartX, phaseColumns } from ".";
 import _ from "lodash";
 import { getCurvByAngle } from "../Flow";
 import { road_model } from "../data";
 import { create_signal_info, get_λ, insert_phase, plans, roadStates } from "..";
+import { message } from "ant-design-vue";
 
 export default defineComponent({
   components: { Container, DragOutlined },
@@ -383,7 +406,7 @@ export default defineComponent({
       cvs: null as HTMLElement | null,
       cx: 350, //圆心x
       cy: 350, //圆心y
-      svg_width: 740, //画布宽度
+      svg_width: 590, //画布宽度
       road_width: 160, //路宽
       phase_height: 80, //每个相位的间距
       curvature: 2, //路口弧度
@@ -391,7 +414,12 @@ export default defineComponent({
       road_pts: [] as any[], //道路缩略
       sign_pts: [] as any[], //路标（掉头右转之类）
       currentPhase: 0, //当前选中相位
+      currentTimeType: "", //当前修改时间类型（green/yellow/red）
+      currentTimeTypeName: "", //当前修改时间类型（绿灯/黄灯/红灯）
       currentDirection: 0, //当前选中方向（相位的子集）
+      activeKey: ["1", "2", "3"], //默认展开全部面板
+      visible: false, //弹出框可见性
+      updateTime: "", //修改的时间
     });
     //加载道路
     const initRoads = (rf: any) => {
@@ -416,6 +444,7 @@ export default defineComponent({
           states.currentDirection = 0;
         }, 10);
       }
+      initDirections();
     }
 
     function onChangeSignal(rf: any) {
@@ -425,7 +454,6 @@ export default defineComponent({
     }
 
     function render() {
-      initDirections();
       drawScale();
       drawMain();
     }
@@ -468,7 +496,7 @@ export default defineComponent({
       //默认四个相位
       for (let p = 0; p < road_info.signal_info.phase; p++) {
         let width = states.svg_width / road_info.signal_info.period; //每个刻度的宽度
-        let x1, y1, x2, y2, w, h;
+        let x1, y1, x2, y2, w, h, time;
         for (let i = 0; i <= road_info.signal_info.period; i++) {
           let tick_len = 10; // 小刻度=10
           if (i % 5 == 0) tick_len = 20; // 长刻度=20
@@ -478,6 +506,10 @@ export default defineComponent({
           x2 = start_x + i * width;
           y2 = top + p * states.phase_height + tick_len;
           createLine(x1, y1, x2, y2);
+          if (p === 0 && i % 10 == 0) {
+            const left_x = i != 0 ? (i < 100 ? 7 : 10) : 0;
+            createText(x1 - left_x, y1 - 3, p, i.toString());
+          }
           /**上边缘线 */
           /**下边缘线 */
           y1 = bottom + p * states.phase_height - tick_len;
@@ -515,7 +547,11 @@ export default defineComponent({
           getStartX(road_info.signal_info.phase_list, p, "y") * width -
           x1;
         h = 30;
-        createRect(x1, y1, w, h, "green");
+        createRect(p, x1, y1, w, h, "green");
+        time = road_info.signal_info.phase_list[p].green;
+        if (Number(time) > 0) {
+          createText(x1 + w / 2 - 3, y1 + h / 2 + 3, p, time, "green", true);
+        }
         /**绿色信号 */
         /**黄色信号 */
         x1 =
@@ -525,8 +561,11 @@ export default defineComponent({
           start_x +
           getStartX(road_info.signal_info.phase_list, p, "r") * width -
           x1;
-        createRect(x1, y1, w, h, "yellow");
-        /**黄色信号 */
+        createRect(p, x1, y1, w, h, "yellow");
+        time = road_info.signal_info.phase_list[p].yellow;
+        if (Number(time) > 0) {
+          createText(x1 + w / 2 - 3, y1 + h / 2 + 3, p, time, "yellow", true);
+        } /**黄色信号 */
         /**红色信号 */
         x1 =
           start_x + getStartX(road_info.signal_info.phase_list, p, "r") * width;
@@ -535,8 +574,11 @@ export default defineComponent({
           start_x +
           getStartX(road_info.signal_info.phase_list, p + 1, "g") * width -
           x1;
-        createRect(x1, y1, w, h, "red");
-        /**红色信号 */
+        createRect(p, x1, y1, w, h, "red");
+        time = road_info.signal_info.phase_list[p].red;
+        if (Number(time) > 0) {
+          createText(x1 + w / 2 - 3, y1 + h / 2 + 3, p, time, "red", true);
+        } /**红色信号 */
         /**文字 */
         //相位
         x1 = start_x - 60;
@@ -574,6 +616,7 @@ export default defineComponent({
     }
 
     function createRect(
+      p: number,
       x: number,
       y: number,
       width: number,
@@ -587,18 +630,77 @@ export default defineComponent({
       rect.setAttribute("width", width.toString());
       rect.setAttribute("height", height.toString());
       rect.setAttribute("fill", `url(#rect_${stroke_type})`);
+      rect.addEventListener("click", () => onClickRect(p), false);
       states.cvs?.appendChild(rect);
     }
 
-    function createText(x: number, y: number, i: number, content: string) {
+    //点击红绿黄条
+    const onClickRect = (p: number) => {
+      states.currentPhase = p;
+      onDirectionChange(states.currentDirection);
+    };
+
+    /**
+     * 绘制文字
+     * @param x 绘制文字x坐标位置
+     * @param y 绘制文字y坐标位置
+     * @param i 索引
+     * @param content 内容
+     * @param type green/yellow/red
+     * @param is_time 是否为相位对应时间
+     */
+    function createText(
+      x: number,
+      y: number,
+      i: number,
+      content: string,
+      type = "",
+      is_time = false
+    ) {
       let text = document.createElementNS(states.ns, "text");
       text.setAttribute("id", `text_${i}`);
       text.setAttribute("x", x.toString());
       text.setAttribute("y", y.toString());
-      text.setAttribute("style", `font-size:12px`);
+      if (is_time) {
+        text.setAttribute(
+          "style",
+          `font-size:12px;cursor:pointer;font-weight:800`
+        );
+        text.addEventListener(
+          "click",
+          () => onClickTime(i, type, content),
+          false
+        );
+      } else {
+        text.setAttribute("style", `font-size:12px`);
+      }
       text.appendChild(document.createTextNode(content));
       states.cvs?.appendChild(text);
     }
+
+    //点击时间
+    const onClickTime = (p: number, type: string, number: string) => {
+      states.currentPhase = p;
+      states.currentTimeType = type;
+      states.updateTime = number;
+      states.currentTimeTypeName =
+        type === "green" ? "绿灯" : type === "yellow" ? "黄灯" : "红灯";
+      onDirectionChange(states.currentDirection);
+      states.visible = true;
+    };
+
+    //确定修改时间
+    const onTimeConfirm = () => {
+      if (!states.updateTime) {
+        message.warning("请填写时间");
+        return;
+      }
+      road_info.signal_info.phase_list[states.currentPhase][
+        states.currentTimeType
+      ] = states.updateTime;
+      onItemPeriodBlur();
+      states.visible = false;
+    };
 
     //画相位路径
     function drawMain() {
@@ -705,7 +807,7 @@ export default defineComponent({
         d: d_str,
       };
       const g = {
-        transform: `translate(${164 * i + 20},10) scale(0.23)`,
+        transform: `translate(${130 * i + 20},10) scale(0.18)`,
       };
       const text = `${road_info.signal_info.phase_list[i].name}：${road_info.signal_info.phase_list[i].green}秒`;
       states.road_pts.push({ g, path, point, text });
@@ -713,11 +815,12 @@ export default defineComponent({
 
     //重新调整相位位置
     const refreshLocation = () => {
-      const paddingLeft = 420 - road_info.signal_info.phase * 80;
+      const paddingLeft = 370 - road_info.signal_info.phase * 70;
       states.road_pts.map((r: any, index: number) => {
         r.g = {
-          transform: `translate(${164 * index + paddingLeft},10) scale(0.23)`,
+          transform: `translate(${130 * index + paddingLeft},10) scale(0.18)`,
         };
+        r.text = `${road_info.signal_info.phase_list[index].name}：${road_info.signal_info.phase_list[index].green}秒`;
       });
     };
 
@@ -752,6 +855,8 @@ export default defineComponent({
     //灯时间变更
     const onItemPeriodBlur = () => {
       calculatePeriod();
+      //渲染路
+      initRoads(road_info);
     };
 
     //计算总周期
@@ -933,6 +1038,7 @@ export default defineComponent({
       onDirectionClick,
       onGClick,
       onChangeSignal,
+      onTimeConfirm,
     };
   },
 });

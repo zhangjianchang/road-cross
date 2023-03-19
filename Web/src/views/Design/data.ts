@@ -87,6 +87,6 @@ export enum DirectionsEnum {
   straight_left = "直左",
   straight = "直行",
   straight_right = "直右",
-  all_direction = "直左右",
+  left_straight_right = "直左右",
   right = "右转",
 }

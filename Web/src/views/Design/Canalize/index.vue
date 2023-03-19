@@ -28,93 +28,97 @@
     <!-- 参数 -->
     <div class="menu">
       <div class="form" v-if="canalize_info.length > 0">
-        <div class="header">交叉口属性</div>
-        <div class="content">
-          <a-form :label-col="labelCol" :wrapper-col="wrapperCol">
-            <a-row>
-              <a-col :span="12">
-                <a-form-item label="方向">
-                  <a-select
-                    v-model:value="cur_road_dir"
-                    size="small"
-                    class="form-width"
-                    @change="on_sel_dirs_change"
-                  >
-                    <a-select-option
-                      v-for="(_, index) in road_attr"
-                      :key="index"
-                      :value="index"
-                    >
-                      方向{{ index + 1 }}
-                    </a-select-option>
-                  </a-select>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="非机动车道">
-                  <a-button
-                    type="primary"
-                    size="small"
-                    class="line-button"
-                    @click="on_bike_lane_set(1)"
-                  >
-                    设置
-                  </a-button>
-                  <a-button
-                    type="default"
-                    size="small"
-                    class="line-button"
-                    style="margin-left: 3px"
-                    @click="on_bike_lane_set(0)"
-                  >
-                    取消
-                  </a-button>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="交叉口大小">
-                  <a-input-number
-                    v-model:value="canalize_info[cur_road_dir].cross_len"
-                    :min="20"
-                    :max="25"
-                    size="small"
-                    class="form-width"
-                    @change="on_prop_change"
-                  />
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="右转曲度">
-                  <a-input-number
-                    v-model:value="canalize_info[cur_road_dir].enter.right_curv"
-                    @change="on_prop_change"
-                    :min="0"
-                    :max="1"
-                    :step="0.1"
-                    size="small"
-                    class="form-width"
-                  />
-                </a-form-item>
-              </a-col>
-            </a-row>
-          </a-form>
-        </div>
-        <div class="header">道路属性</div>
-        <div class="content">
-          <a-form :label-col="labelCol" :wrapper-col="wrapperCol">
-            <a-row>
-              <a-col :span="12">
-                <a-form-item label="路名">
-                  <a-input
-                    v-model:value="canalize_info[cur_road_dir].name"
-                    @change="on_prop_change"
-                    class="form-width"
-                    size="small"
-                  />
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <!-- <a-form-item label="偏移量">
+        <a-collapse v-model:activeKey="activeKey">
+          <a-collapse-panel key="1" header="交叉口属性">
+            <div>
+              <a-form :label-col="labelCol" :wrapper-col="wrapperCol">
+                <a-row>
+                  <a-col :span="12">
+                    <a-form-item label="方向">
+                      <a-select
+                        v-model:value="cur_road_dir"
+                        size="small"
+                        class="form-width"
+                        @change="on_sel_dirs_change"
+                      >
+                        <a-select-option
+                          v-for="(_, index) in road_attr"
+                          :key="index"
+                          :value="index"
+                        >
+                          方向{{ index + 1 }}
+                        </a-select-option>
+                      </a-select>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="非机动车道">
+                      <a-button
+                        type="primary"
+                        size="small"
+                        class="line-button"
+                        @click="on_bike_lane_set(1)"
+                      >
+                        设置
+                      </a-button>
+                      <a-button
+                        type="default"
+                        size="small"
+                        class="line-button"
+                        style="margin-left: 3px"
+                        @click="on_bike_lane_set(0)"
+                      >
+                        取消
+                      </a-button>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="交叉口大小">
+                      <a-input-number
+                        v-model:value="canalize_info[cur_road_dir].cross_len"
+                        :min="20"
+                        :max="25"
+                        size="small"
+                        class="form-width"
+                        @change="on_prop_change"
+                      />
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="右转曲度">
+                      <a-input-number
+                        v-model:value="
+                          canalize_info[cur_road_dir].enter.right_curv
+                        "
+                        @change="on_prop_change"
+                        :min="0"
+                        :max="1"
+                        :step="0.1"
+                        size="small"
+                        class="form-width"
+                      />
+                    </a-form-item>
+                  </a-col>
+                </a-row>
+              </a-form>
+            </div>
+          </a-collapse-panel>
+          <a-collapse-panel key="2" header="道路属性">
+            <div>
+              <a-form :label-col="labelCol" :wrapper-col="wrapperCol">
+                <a-row>
+                  <a-col :span="12">
+                    <a-form-item label="路名">
+                      <a-input
+                        v-model:value="canalize_info[cur_road_dir].name"
+                        @change="on_prop_change"
+                        class="form-width"
+                        size="small"
+                      />
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <!-- <a-form-item label="偏移量">
                   <a-input-number
                     v-model:value="canalize_info[cur_road_dir].offset"
                     @change="on_prop_change"
@@ -125,61 +129,63 @@
                     class="form-width"
                   />
                 </a-form-item> -->
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="人行道">
-                  <a-select
-                    v-model:value="canalize_info[cur_road_dir].walk.has"
-                    @change="on_prop_change"
-                    size="small"
-                    class="form-width"
-                  >
-                    <a-select-option :value="1"> 是 </a-select-option>
-                    <a-select-option :value="0"> 否 </a-select-option>
-                  </a-select>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="路段速度">
-                  <a-input-number
-                    v-model:value="canalize_info[cur_road_dir].speed"
-                    @change="on_prop_change"
-                    :min="0"
-                    :max="300"
-                    :step="5"
-                    size="small"
-                    class="form-width"
-                  />
-                  <div class="span-unit">Km/h</div>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="左转待转">
-                  <a-select
-                    v-model:value="canalize_info[cur_road_dir].wait.left"
-                    size="small"
-                    class="form-width"
-                    @change="on_prop_change"
-                  >
-                    <a-select-option :value="1"> 是 </a-select-option>
-                    <a-select-option :value="0"> 否 </a-select-option>
-                  </a-select>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="直行待转">
-                  <a-select
-                    v-model:value="canalize_info[cur_road_dir].wait.straight"
-                    size="small"
-                    class="form-width"
-                    @change="on_prop_change"
-                  >
-                    <a-select-option :value="1"> 是 </a-select-option>
-                    <a-select-option :value="0"> 否 </a-select-option>
-                  </a-select>
-                </a-form-item>
-              </a-col>
-              <!-- <a-col :span="12">
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="人行道">
+                      <a-select
+                        v-model:value="canalize_info[cur_road_dir].walk.has"
+                        @change="on_prop_change"
+                        size="small"
+                        class="form-width"
+                      >
+                        <a-select-option :value="1"> 是 </a-select-option>
+                        <a-select-option :value="0"> 否 </a-select-option>
+                      </a-select>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="路段速度">
+                      <a-input-number
+                        v-model:value="canalize_info[cur_road_dir].speed"
+                        @change="on_prop_change"
+                        :min="0"
+                        :max="300"
+                        :step="5"
+                        size="small"
+                        class="form-width"
+                      />
+                      <div class="span-unit">Km/h</div>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="左转待转">
+                      <a-select
+                        v-model:value="canalize_info[cur_road_dir].wait.left"
+                        size="small"
+                        class="form-width"
+                        @change="on_prop_change"
+                      >
+                        <a-select-option :value="1"> 是 </a-select-option>
+                        <a-select-option :value="0"> 否 </a-select-option>
+                      </a-select>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="直行待转">
+                      <a-select
+                        v-model:value="
+                          canalize_info[cur_road_dir].wait.straight
+                        "
+                        size="small"
+                        class="form-width"
+                        @change="on_prop_change"
+                      >
+                        <a-select-option :value="1"> 是 </a-select-option>
+                        <a-select-option :value="0"> 否 </a-select-option>
+                      </a-select>
+                    </a-form-item>
+                  </a-col>
+                  <!-- <a-col :span="12">
                 <a-form-item label="穿越到">
                   <a-select
                     v-model:value="canalize_info[cur_road_dir].wait.through"
@@ -215,191 +221,202 @@
                   </a-select>
                 </a-form-item>
               </a-col> -->
-            </a-row>
-          </a-form>
-        </div>
-        <div class="header">渠化属性</div>
-        <div class="content">
-          <a-form :label-col="labelCol" :wrapper-col="wrapperCol">
-            <a-row>
-              <a-col :span="12">
-                <a-form-item label="渠化方式">
-                  <a-select
-                    v-model:value="canalize_info[cur_road_dir].canalize.type"
-                    @change="on_prop_change"
-                    size="small"
-                    class="form-width"
-                  >
-                    <a-select-option
-                      v-for="item in canalizeTypeOption"
-                      :key="item.value"
-                      :value="item.value"
-                      :title="item.label"
-                    >
-                      {{ item.label }}
-                    </a-select-option>
-                  </a-select>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="右转单独入口">
-                  <a-input-number
-                    v-model:value="
-                      canalize_info[cur_road_dir].canalize.right_enter_count
-                    "
-                    @change="on_prop_change"
-                    :disabled="
-                      canalize_info[cur_road_dir].canalize.type === '否'
-                    "
-                    :min="0"
-                    :max="2"
-                    :step="1"
-                    size="small"
-                    class="form-width"
-                  />
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="出入口宽度">
-                  <a-input-number
-                    v-model:value="
-                      canalize_info[cur_road_dir].canalize.lane_width
-                    "
-                    @change="on_prop_change"
-                    :disabled="
-                      canalize_info[cur_road_dir].canalize.type !== '固体渠化'
-                    "
-                    :min="10"
-                    :max="20"
-                    :step="1"
-                    size="small"
-                    class="form-width"
-                  />
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="右转单独出口">
-                  <a-input-number
-                    v-model:value="
-                      canalize_info[cur_road_dir].canalize.right_exit_count
-                    "
-                    @change="on_prop_change"
-                    :disabled="
-                      canalize_info[cur_road_dir].canalize.type === '否'
-                    "
-                    :min="0"
-                    :max="2"
-                    :step="1"
-                    size="small"
-                    class="form-width"
-                  />
-                </a-form-item>
-              </a-col>
-            </a-row>
-          </a-form>
-        </div>
-        <div class="header">进口属性</div>
-        <div class="content">
-          <a-form :label-col="labelCol" :wrapper-col="wrapperCol">
-            <a-row>
-              <a-col :span="12">
-                <a-form-item label="进口车道">
-                  <a-input-number
-                    v-model:value="canalize_info[cur_road_dir].enter.num"
-                    @change="on_prop_change('enter_num')"
-                    :min="0"
-                    :max="6"
-                    :step="1"
-                    size="small"
-                    class="form-width"
-                  />
-                  <div class="span-unit">个</div>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="车道宽度">
-                  <a-input-number
-                    v-model:value="canalize_info[cur_road_dir].enter.lane_width"
-                    @change="on_prop_change"
-                    :disabled="!canalize_info[cur_road_dir].enter.num"
-                    :min="3.5"
-                    :max="5.5"
-                    :step="0.25"
-                    size="small"
-                    class="form-width"
-                  />
-                  <div class="span-unit">米</div>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="展宽数量">
-                  <a-input-number
-                    v-model:value="canalize_info[cur_road_dir].enter.extend_num"
-                    @change="on_prop_change"
-                    :disabled="!canalize_info[cur_road_dir].enter.num"
-                    :min="-2"
-                    :max="2"
-                    :step="1"
-                    size="small"
-                    class="form-width"
-                  />
-                  <div class="span-unit">个</div>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="展宽车道宽度">
-                  <a-input-number
-                    v-model:value="
-                      canalize_info[cur_road_dir].enter.extend_width
-                    "
-                    @change="on_prop_change"
-                    :disabled="
-                      !canalize_info[cur_road_dir].enter.num ||
-                      !canalize_info[cur_road_dir].enter.extend_num
-                    "
-                    :min="0"
-                    :max="6"
-                    :step="0.25"
-                    size="small"
-                    class="form-width"
-                  />
-                  <div class="span-unit">米</div>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="展宽段长">
-                  <a-input-number
-                    v-model:value="canalize_info[cur_road_dir].enter.extend_len"
-                    @change="on_prop_change"
-                    :disabled="
-                      !canalize_info[cur_road_dir].enter.num ||
-                      !canalize_info[cur_road_dir].enter.extend_num
-                    "
-                    :min="20"
-                    :max="40"
-                    :step="5"
-                    size="small"
-                    class="form-width"
-                  />
-                  <div class="span-unit">米</div>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="内侧偏移">
-                  <a-input-number
-                    v-model:value="canalize_info[cur_road_dir].enter.offset"
-                    @change="on_prop_change"
-                    :disabled="!canalize_info[cur_road_dir].enter.num"
-                    :min="0"
-                    :max="3.5"
-                    :step="0.25"
-                    size="small"
-                    class="form-width"
-                  />
-                  <div class="span-unit">米</div>
-                </a-form-item>
-              </a-col>
-              <!-- <a-col :span="12">
+                </a-row>
+              </a-form>
+            </div>
+          </a-collapse-panel>
+          <a-collapse-panel key="3" header="渠化属性">
+            <div>
+              <a-form :label-col="labelCol" :wrapper-col="wrapperCol">
+                <a-row>
+                  <a-col :span="12">
+                    <a-form-item label="渠化方式">
+                      <a-select
+                        v-model:value="
+                          canalize_info[cur_road_dir].canalize.type
+                        "
+                        @change="on_prop_change"
+                        size="small"
+                        class="form-width"
+                      >
+                        <a-select-option
+                          v-for="item in canalizeTypeOption"
+                          :key="item.value"
+                          :value="item.value"
+                          :title="item.label"
+                        >
+                          {{ item.label }}
+                        </a-select-option>
+                      </a-select>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="右转单独入口">
+                      <a-input-number
+                        v-model:value="
+                          canalize_info[cur_road_dir].canalize.right_enter_count
+                        "
+                        @change="on_prop_change"
+                        :disabled="
+                          canalize_info[cur_road_dir].canalize.type === '否'
+                        "
+                        :min="0"
+                        :max="2"
+                        :step="1"
+                        size="small"
+                        class="form-width"
+                      />
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="出入口宽度">
+                      <a-input-number
+                        v-model:value="
+                          canalize_info[cur_road_dir].canalize.lane_width
+                        "
+                        @change="on_prop_change"
+                        :disabled="
+                          canalize_info[cur_road_dir].canalize.type !==
+                          '固体渠化'
+                        "
+                        :min="10"
+                        :max="20"
+                        :step="1"
+                        size="small"
+                        class="form-width"
+                      />
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="右转单独出口">
+                      <a-input-number
+                        v-model:value="
+                          canalize_info[cur_road_dir].canalize.right_exit_count
+                        "
+                        @change="on_prop_change"
+                        :disabled="
+                          canalize_info[cur_road_dir].canalize.type === '否'
+                        "
+                        :min="0"
+                        :max="2"
+                        :step="1"
+                        size="small"
+                        class="form-width"
+                      />
+                    </a-form-item>
+                  </a-col>
+                </a-row>
+              </a-form>
+            </div>
+          </a-collapse-panel>
+          <a-collapse-panel key="4" header="进口属性">
+            <div>
+              <a-form :label-col="labelCol" :wrapper-col="wrapperCol">
+                <a-row>
+                  <a-col :span="12">
+                    <a-form-item label="进口车道">
+                      <a-input-number
+                        v-model:value="canalize_info[cur_road_dir].enter.num"
+                        @change="on_prop_change('enter_num')"
+                        :min="0"
+                        :max="6"
+                        :step="1"
+                        size="small"
+                        class="form-width"
+                      />
+                      <div class="span-unit">个</div>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="车道宽度">
+                      <a-input-number
+                        v-model:value="
+                          canalize_info[cur_road_dir].enter.lane_width
+                        "
+                        @change="on_prop_change"
+                        :disabled="!canalize_info[cur_road_dir].enter.num"
+                        :min="3.5"
+                        :max="5.5"
+                        :step="0.25"
+                        size="small"
+                        class="form-width"
+                      />
+                      <div class="span-unit">米</div>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="展宽数量">
+                      <a-input-number
+                        v-model:value="
+                          canalize_info[cur_road_dir].enter.extend_num
+                        "
+                        @change="on_prop_change"
+                        :disabled="!canalize_info[cur_road_dir].enter.num"
+                        :min="-2"
+                        :max="2"
+                        :step="1"
+                        size="small"
+                        class="form-width"
+                      />
+                      <div class="span-unit">个</div>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="展宽车道宽度">
+                      <a-input-number
+                        v-model:value="
+                          canalize_info[cur_road_dir].enter.extend_width
+                        "
+                        @change="on_prop_change"
+                        :disabled="
+                          !canalize_info[cur_road_dir].enter.num ||
+                          !canalize_info[cur_road_dir].enter.extend_num
+                        "
+                        :min="0"
+                        :max="6"
+                        :step="0.25"
+                        size="small"
+                        class="form-width"
+                      />
+                      <div class="span-unit">米</div>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="展宽段长">
+                      <a-input-number
+                        v-model:value="
+                          canalize_info[cur_road_dir].enter.extend_len
+                        "
+                        @change="on_prop_change"
+                        :disabled="
+                          !canalize_info[cur_road_dir].enter.num ||
+                          !canalize_info[cur_road_dir].enter.extend_num
+                        "
+                        :min="20"
+                        :max="40"
+                        :step="5"
+                        size="small"
+                        class="form-width"
+                      />
+                      <div class="span-unit">米</div>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="内侧偏移">
+                      <a-input-number
+                        v-model:value="canalize_info[cur_road_dir].enter.offset"
+                        @change="on_prop_change"
+                        :disabled="!canalize_info[cur_road_dir].enter.num"
+                        :min="0"
+                        :max="3.5"
+                        :step="0.25"
+                        size="small"
+                        class="form-width"
+                      />
+                      <div class="span-unit">米</div>
+                    </a-form-item>
+                  </a-col>
+                  <!-- <a-col :span="12">
                 <a-form-item label="外侧渐变段长">
                   <a-input-number
                     v-model:value="canalize_info[cur_road_dir].enter.out_curv"
@@ -429,96 +446,103 @@
                   <div class="span-unit">米</div>
                 </a-form-item>
               </a-col> -->
-            </a-row>
-          </a-form>
-        </div>
-        <div class="header">出口属性</div>
-        <div class="content">
-          <a-form :label-col="labelCol" :wrapper-col="wrapperCol">
-            <a-row>
-              <a-col :span="12">
-                <a-form-item label="出口车道">
-                  <a-input-number
-                    v-model:value="canalize_info[cur_road_dir].exit.num"
-                    @change="on_prop_change('exit_num')"
-                    :min="0"
-                    :max="6"
-                    :step="1"
-                    size="small"
-                    class="form-width"
-                  />
-                  <div class="span-unit">个</div>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="车道宽度">
-                  <a-input-number
-                    v-model:value="canalize_info[cur_road_dir].exit.lane_width"
-                    @change="on_prop_change"
-                    :disabled="!canalize_info[cur_road_dir].exit.num"
-                    :min="3.5"
-                    :max="5.5"
-                    :step="0.25"
-                    size="small"
-                    class="form-width"
-                  />
-                  <div class="span-unit">米</div>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="展宽数量">
-                  <a-input-number
-                    v-model:value="canalize_info[cur_road_dir].exit.extend_num"
-                    @change="on_prop_change"
-                    :disabled="!canalize_info[cur_road_dir].exit.num"
-                    :min="-2"
-                    :max="2"
-                    :step="1"
-                    size="small"
-                    class="form-width"
-                  />
-                  <div class="span-unit">个</div>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="展宽车道宽度">
-                  <a-input-number
-                    v-model:value="
-                      canalize_info[cur_road_dir].exit.extend_width
-                    "
-                    @change="on_prop_change"
-                    :disabled="
-                      !canalize_info[cur_road_dir].exit.num ||
-                      !canalize_info[cur_road_dir].exit.extend_num
-                    "
-                    :min="0"
-                    :max="4"
-                    :step="0.25"
-                    size="small"
-                    class="form-width"
-                  />
-                  <div class="span-unit">米</div>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="展宽段长">
-                  <a-input-number
-                    v-model:value="canalize_info[cur_road_dir].exit.extend_len"
-                    @change="on_prop_change"
-                    :disabled="
-                      !canalize_info[cur_road_dir].exit.num ||
-                      !canalize_info[cur_road_dir].exit.extend_num
-                    "
-                    :min="20"
-                    :max="40"
-                    :step="5"
-                    size="small"
-                    class="form-width"
-                  />
-                  <div class="span-unit">米</div>
-                </a-form-item>
-              </a-col>
-              <!-- <a-col :span="12">
+                </a-row>
+              </a-form>
+            </div>
+          </a-collapse-panel>
+          <a-collapse-panel key="5" header="出口属性">
+            <div>
+              <a-form :label-col="labelCol" :wrapper-col="wrapperCol">
+                <a-row>
+                  <a-col :span="12">
+                    <a-form-item label="出口车道">
+                      <a-input-number
+                        v-model:value="canalize_info[cur_road_dir].exit.num"
+                        @change="on_prop_change('exit_num')"
+                        :min="0"
+                        :max="6"
+                        :step="1"
+                        size="small"
+                        class="form-width"
+                      />
+                      <div class="span-unit">个</div>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="车道宽度">
+                      <a-input-number
+                        v-model:value="
+                          canalize_info[cur_road_dir].exit.lane_width
+                        "
+                        @change="on_prop_change"
+                        :disabled="!canalize_info[cur_road_dir].exit.num"
+                        :min="3.5"
+                        :max="5.5"
+                        :step="0.25"
+                        size="small"
+                        class="form-width"
+                      />
+                      <div class="span-unit">米</div>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="展宽数量">
+                      <a-input-number
+                        v-model:value="
+                          canalize_info[cur_road_dir].exit.extend_num
+                        "
+                        @change="on_prop_change"
+                        :disabled="!canalize_info[cur_road_dir].exit.num"
+                        :min="-2"
+                        :max="2"
+                        :step="1"
+                        size="small"
+                        class="form-width"
+                      />
+                      <div class="span-unit">个</div>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="展宽车道宽度">
+                      <a-input-number
+                        v-model:value="
+                          canalize_info[cur_road_dir].exit.extend_width
+                        "
+                        @change="on_prop_change"
+                        :disabled="
+                          !canalize_info[cur_road_dir].exit.num ||
+                          !canalize_info[cur_road_dir].exit.extend_num
+                        "
+                        :min="0"
+                        :max="4"
+                        :step="0.25"
+                        size="small"
+                        class="form-width"
+                      />
+                      <div class="span-unit">米</div>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="展宽段长">
+                      <a-input-number
+                        v-model:value="
+                          canalize_info[cur_road_dir].exit.extend_len
+                        "
+                        @change="on_prop_change"
+                        :disabled="
+                          !canalize_info[cur_road_dir].exit.num ||
+                          !canalize_info[cur_road_dir].exit.extend_num
+                        "
+                        :min="20"
+                        :max="40"
+                        :step="5"
+                        size="small"
+                        class="form-width"
+                      />
+                      <div class="span-unit">米</div>
+                    </a-form-item>
+                  </a-col>
+                  <!-- <a-col :span="12">
                 <a-form-item label="渐变段长">
                   <a-input-number
                     v-model:value="canalize_info[cur_road_dir].exit.out_curv"
@@ -533,197 +557,213 @@
                   <div class="span-unit">米</div>
                 </a-form-item>
               </a-col> -->
-            </a-row>
-          </a-form>
-        </div>
-        <div class="header">隔离带</div>
-        <div class="content">
-          <a-form :label-col="labelCol" :wrapper-col="wrapperCol">
-            <a-row>
-              <a-col :span="12">
-                <a-form-item label="分割形式">
-                  <a-select
-                    v-model:value="
-                      canalize_info[cur_road_dir].median_strip.type
-                    "
-                    @change="on_prop_change"
-                    size="small"
-                    class="form-width"
-                  >
-                    <a-select-option
-                      v-for="item in medianStripTypeOption"
-                      :value="item.value"
-                      :key="item.value"
-                    >
-                      {{ item.label }}
-                    </a-select-option>
-                  </a-select>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="分割宽度">
-                  <a-input-number
-                    v-model:value="
-                      canalize_info[cur_road_dir].median_strip.width
-                    "
-                    :disabled="
-                      ['黄斜线', '绿化带'].indexOf(
-                        canalize_info[cur_road_dir].median_strip.type
-                      ) === -1
-                    "
-                    @change="on_prop_change"
-                    :min="0.5"
-                    :max="2"
-                    :step="0.25"
-                    size="small"
-                    class="form-width"
-                  />
-                  <div class="span-unit">米</div>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="安全岛">
-                  <a-select
-                    v-model:value="
-                      canalize_info[cur_road_dir].median_strip.safe_land
-                    "
-                    @change="on_prop_change"
-                    size="small"
-                    class="form-width"
-                  >
-                    <a-select-option :value="1"> 是 </a-select-option>
-                    <a-select-option :value="0"> 否 </a-select-option>
-                  </a-select>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="提前掉头">
-                  <a-select
-                    v-model:value="
-                      canalize_info[cur_road_dir].median_strip.turn
-                    "
-                    @change="on_prop_change"
-                    size="small"
-                    class="form-width"
-                  >
-                    <a-select-option value="否"> 否 </a-select-option>
-                    <a-select-option value="停车线位置">
-                      停车线位置
-                    </a-select-option>
-                    <a-select-option value="停车线上游">
-                      停车线上游
-                    </a-select-option>
-                  </a-select>
-                </a-form-item>
-              </a-col>
-            </a-row>
-          </a-form>
-        </div>
-        <div class="header">非机动车道</div>
-        <div class="content">
-          <a-form :label-col="labelCol" :wrapper-col="wrapperCol">
-            <a-row>
-              <a-col :span="12">
-                <a-form-item label="进口">
-                  <a-select
-                    v-model:value="
-                      canalize_info[cur_road_dir].enter.bike_lane.has
-                    "
-                    @change="on_prop_change"
-                    size="small"
-                    class="form-width"
-                  >
-                    <a-select-option :value="1"> 是 </a-select-option>
-                    <a-select-option :value="0"> 否 </a-select-option>
-                  </a-select>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="出口">
-                  <a-select
-                    v-model:value="
-                      canalize_info[cur_road_dir].exit.bike_lane.has
-                    "
-                    @change="on_prop_change"
-                    size="small"
-                    class="form-width"
-                  >
-                    <a-select-option :value="1"> 是 </a-select-option>
-                    <a-select-option :value="0"> 否 </a-select-option>
-                  </a-select>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="车道宽度">
-                  <a-input-number
-                    v-model:value="
-                      canalize_info[cur_road_dir].enter.bike_lane.width
-                    "
-                    @change="on_prop_change"
-                    :disabled="!canalize_info[cur_road_dir].enter.bike_lane.has"
-                    :min="1"
-                    :max="4"
-                    :step="0.25"
-                    size="small"
-                    class="form-width"
-                  />
-                  <div class="span-unit">米</div>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="车道宽度">
-                  <a-input-number
-                    v-model:value="
-                      canalize_info[cur_road_dir].exit.bike_lane.width
-                    "
-                    @change="on_prop_change"
-                    :disabled="!canalize_info[cur_road_dir].exit.bike_lane.has"
-                    :min="1"
-                    :max="4"
-                    :step="0.25"
-                    size="small"
-                    class="form-width"
-                  />
-                  <div class="span-unit">米</div>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="分割形式">
-                  <a-select
-                    v-model:value="
-                      canalize_info[cur_road_dir].enter.bike_lane.div_type
-                    "
-                    @change="on_prop_change"
-                    :disabled="!canalize_info[cur_road_dir].enter.bike_lane.has"
-                    size="small"
-                    class="form-width"
-                  >
-                    <a-select-option value="划线"> 划线 </a-select-option>
-                    <a-select-option value="护栏"> 护栏 </a-select-option>
-                    <a-select-option value="绿化带"> 绿化带 </a-select-option>
-                  </a-select>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="分割形式">
-                  <a-select
-                    v-model:value="
-                      canalize_info[cur_road_dir].exit.bike_lane.div_type
-                    "
-                    @change="on_prop_change"
-                    :disabled="!canalize_info[cur_road_dir].exit.bike_lane.has"
-                    size="small"
-                    class="form-width"
-                  >
-                    <a-select-option value="划线"> 划线 </a-select-option>
-                    <a-select-option value="护栏"> 护栏 </a-select-option>
-                    <a-select-option value="绿化带"> 绿化带 </a-select-option>
-                  </a-select>
-                </a-form-item>
-              </a-col>
-            </a-row>
-          </a-form>
-        </div>
+                </a-row>
+              </a-form>
+            </div>
+          </a-collapse-panel>
+          <a-collapse-panel key="6" header="隔离带">
+            <div>
+              <a-form :label-col="labelCol" :wrapper-col="wrapperCol">
+                <a-row>
+                  <a-col :span="12">
+                    <a-form-item label="分割形式">
+                      <a-select
+                        v-model:value="
+                          canalize_info[cur_road_dir].median_strip.type
+                        "
+                        @change="on_prop_change"
+                        size="small"
+                        class="form-width"
+                      >
+                        <a-select-option
+                          v-for="item in medianStripTypeOption"
+                          :value="item.value"
+                          :key="item.value"
+                        >
+                          {{ item.label }}
+                        </a-select-option>
+                      </a-select>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="分割宽度">
+                      <a-input-number
+                        v-model:value="
+                          canalize_info[cur_road_dir].median_strip.width
+                        "
+                        :disabled="
+                          ['黄斜线', '绿化带'].indexOf(
+                            canalize_info[cur_road_dir].median_strip.type
+                          ) === -1
+                        "
+                        @change="on_prop_change"
+                        :min="0.5"
+                        :max="2"
+                        :step="0.25"
+                        size="small"
+                        class="form-width"
+                      />
+                      <div class="span-unit">米</div>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="安全岛">
+                      <a-select
+                        v-model:value="
+                          canalize_info[cur_road_dir].median_strip.safe_land
+                        "
+                        @change="on_prop_change"
+                        size="small"
+                        class="form-width"
+                      >
+                        <a-select-option :value="1"> 是 </a-select-option>
+                        <a-select-option :value="0"> 否 </a-select-option>
+                      </a-select>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="提前掉头">
+                      <a-select
+                        v-model:value="
+                          canalize_info[cur_road_dir].median_strip.turn
+                        "
+                        @change="on_prop_change"
+                        size="small"
+                        class="form-width"
+                      >
+                        <a-select-option value="否"> 否 </a-select-option>
+                        <a-select-option value="停车线位置">
+                          停车线位置
+                        </a-select-option>
+                        <a-select-option value="停车线上游">
+                          停车线上游
+                        </a-select-option>
+                      </a-select>
+                    </a-form-item>
+                  </a-col>
+                </a-row>
+              </a-form>
+            </div>
+          </a-collapse-panel>
+          <a-collapse-panel key="7" header="非机动车道">
+            <div>
+              <a-form :label-col="labelCol" :wrapper-col="wrapperCol">
+                <a-row>
+                  <a-col :span="12">
+                    <a-form-item label="进口">
+                      <a-select
+                        v-model:value="
+                          canalize_info[cur_road_dir].enter.bike_lane.has
+                        "
+                        @change="on_prop_change"
+                        size="small"
+                        class="form-width"
+                      >
+                        <a-select-option :value="1"> 是 </a-select-option>
+                        <a-select-option :value="0"> 否 </a-select-option>
+                      </a-select>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="出口">
+                      <a-select
+                        v-model:value="
+                          canalize_info[cur_road_dir].exit.bike_lane.has
+                        "
+                        @change="on_prop_change"
+                        size="small"
+                        class="form-width"
+                      >
+                        <a-select-option :value="1"> 是 </a-select-option>
+                        <a-select-option :value="0"> 否 </a-select-option>
+                      </a-select>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="车道宽度">
+                      <a-input-number
+                        v-model:value="
+                          canalize_info[cur_road_dir].enter.bike_lane.width
+                        "
+                        @change="on_prop_change"
+                        :disabled="
+                          !canalize_info[cur_road_dir].enter.bike_lane.has
+                        "
+                        :min="1"
+                        :max="4"
+                        :step="0.25"
+                        size="small"
+                        class="form-width"
+                      />
+                      <div class="span-unit">米</div>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="车道宽度">
+                      <a-input-number
+                        v-model:value="
+                          canalize_info[cur_road_dir].exit.bike_lane.width
+                        "
+                        @change="on_prop_change"
+                        :disabled="
+                          !canalize_info[cur_road_dir].exit.bike_lane.has
+                        "
+                        :min="1"
+                        :max="4"
+                        :step="0.25"
+                        size="small"
+                        class="form-width"
+                      />
+                      <div class="span-unit">米</div>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="分割形式">
+                      <a-select
+                        v-model:value="
+                          canalize_info[cur_road_dir].enter.bike_lane.div_type
+                        "
+                        @change="on_prop_change"
+                        :disabled="
+                          !canalize_info[cur_road_dir].enter.bike_lane.has
+                        "
+                        size="small"
+                        class="form-width"
+                      >
+                        <a-select-option value="划线"> 划线 </a-select-option>
+                        <a-select-option value="护栏"> 护栏 </a-select-option>
+                        <a-select-option value="绿化带">
+                          绿化带
+                        </a-select-option>
+                      </a-select>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="分割形式">
+                      <a-select
+                        v-model:value="
+                          canalize_info[cur_road_dir].exit.bike_lane.div_type
+                        "
+                        @change="on_prop_change"
+                        :disabled="
+                          !canalize_info[cur_road_dir].exit.bike_lane.has
+                        "
+                        size="small"
+                        class="form-width"
+                      >
+                        <a-select-option value="划线"> 划线 </a-select-option>
+                        <a-select-option value="护栏"> 护栏 </a-select-option>
+                        <a-select-option value="绿化带">
+                          绿化带
+                        </a-select-option>
+                      </a-select>
+                    </a-form-item>
+                  </a-col>
+                </a-row>
+              </a-form>
+            </div>
+          </a-collapse-panel>
+        </a-collapse>
       </div>
     </div>
     <a-modal
@@ -795,6 +835,7 @@ export default defineComponent({
       cross_line_pts: [] as any[], //cross点集合
       currentSign: {} as any, //当前选中路标
       modalVisible: false, //车道弹窗
+      activeKey: ["1", "2", "3", "4", "5", "6", "7"], //默认全部展开
     });
 
     /**
@@ -1301,9 +1342,8 @@ export default defineComponent({
           }
 
           if (rc.median_strip.type === "黄斜线") {
-            d_str = `M${pt_s1.x} ${pt_s1.y} L${pt1.x} ${pt1.y} L${pt2.x} ${pt2.y} L${pt_e1.x} ${pt_e1.y} 
+            d_str = `M${pt_s1.x} ${pt_s1.y} L${pt1.x} ${pt1.y} L${pt2.x} ${pt2.y} L${pt_e1.x} ${pt_e1.y}
             L${pt_e2.x} ${pt_e2.y} L${pt4.x} ${pt4.y} L${pt3.x} ${pt3.y} L${pt_s2.x} ${pt_s2.y} Z`;
-            console.log(d_str);
             var slash = document.createElementNS(states.ns, "path"); // 黄斜线
             slash.setAttribute("d", d_str);
             slash.setAttribute("fill", "url(#slash)");
@@ -2045,8 +2085,8 @@ export default defineComponent({
           (rs: any) => rs.key === roadSignKey.left_right
         ).length;
         //左转加直行加右转
-        const all_direction = rc.road_sign.enter.filter(
-          (rs: any) => rs.key === roadSignKey.all_direction
+        const left_straight_right = rc.road_sign.enter.filter(
+          (rs: any) => rs.key === roadSignKey.left_straight_right
         ).length;
         //直行
         const straight = rc.road_sign.enter.filter(
@@ -2072,18 +2112,18 @@ export default defineComponent({
             0.5 * left_uturn +
             0.5 * straight_left +
             0.5 * left_right +
-            0.33 * all_direction,
+            0.33 * left_straight_right,
           straight:
             straight +
             0.5 * straight_uturn +
             0.5 * straight_left +
             0.5 * straight_right +
-            0.33 * all_direction,
+            0.33 * left_straight_right,
           right:
             right +
             0.5 * straight_right +
             0.5 * left_right +
-            0.33 * all_direction,
+            0.33 * left_straight_right,
         };
       });
     }
@@ -2275,7 +2315,7 @@ export default defineComponent({
     return {
       ...toRefs(states),
       ...toRefs(road_info),
-      labelCol: { span: 10 },
+      labelCol: { span: 8 },
       wrapperCol: { span: 12 },
       roadSigns,
       on_prop_change,

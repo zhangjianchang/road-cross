@@ -1,14 +1,13 @@
 <template>
   <div class="basic-main">
     <div class="func">
-      功能区
-      <div class="gradient">
-        <div class="gradient-A rect">A</div>
-        <div class="gradient-B rect">B</div>
-        <div class="gradient-C rect">C</div>
-        <div class="gradient-D rect">D</div>
-        <div class="gradient-E rect">E</div>
-        <div class="gradient-F rect">F</div>
+      <div class="gradient-horizontal">
+        <div class="gradient-horizontal-A rect">A</div>
+        <div class="gradient-horizontal-B rect">B</div>
+        <div class="gradient-horizontal-C rect">C</div>
+        <div class="gradient-horizontal-D rect">D</div>
+        <div class="gradient-horizontal-E rect">E</div>
+        <div class="gradient-horizontal-F rect">F</div>
       </div>
     </div>
     <!-- 图示 -->
@@ -55,14 +54,14 @@
         {{ total_saturation }}
       </text>
     </svg>
-
+    <!-- <div>单位：s/pcu</div> -->
     <!-- 参数 -->
     <div class="menu">延误分析</div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, inject, onMounted, reactive, toRefs } from "vue";
+import { defineComponent,  onMounted, reactive, toRefs } from "vue";
 import { d_d, d_d1, d_d2, getBackground, getRoadDefaultSign } from "./index";
 import Container from "../../../components/Container/index.vue";
 import { DragOutlined } from "@ant-design/icons-vue";

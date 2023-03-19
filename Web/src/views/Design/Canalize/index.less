@@ -2,7 +2,7 @@
   width: 100%;
 }
 #canvas {
-  width: 856px;
+  width: 700px;
   height: 700px;
   float: left;
   margin-left: 10px;
@@ -10,11 +10,12 @@
 }
 
 .menu {
-  width: 530px;
+  width: 520px;
   height: 700px;
   float: right;
   background-color: #ffffff;
   margin-left: 10px;
+  overflow-y: auto;
 }
 
 .func {
@@ -34,7 +35,7 @@
 }
 
 .form {
-  padding: 20px;
+  // padding: 20px;
   //字体大小
   :deep(.ant-form-item-label > label),
   :deep(.ant-select),
@@ -43,7 +44,10 @@
   :deep(.ant-select-dropdown),
   :deep(.ant-select-item-option-content) {
     font-size: 12px !important;
-    line-height: 24px;
+    // line-height: 24px;
+  }
+  :deep(.ant-collapse > .ant-collapse-item > .ant-collapse-header) {
+    padding: 8px 16px;
   }
 }
 

@@ -45,7 +45,7 @@ export const roadSigns = [
     path: "M512.064 288.48l159.392-159.68V0l160 192.256-160 287.744v-128l-96 96v576h-126.784V448l-96-96v128l-160-287.744L352.672 0v128.768z",
   },
   {
-    key: "all_direction",
+    key: "left_straight_right",
     name: "所有方向",
     path: "M456.944 657.488V447.872h-90.832L512.464 0l143.952 447.872h-96.528v209.04l112.16-95.296v-128.768l160.288 192.256-160.304 287.744v-128l-112.144 95.104V1024H456.944v-143.472l-104.304-95.68v128L192.336 625.104l160.32-192.256V561.6z",
   },
@@ -76,6 +76,9 @@ export const roadSigns = [
     path: "m465.999916,1.936573l2.000937,575.397813l-94.666839,-1.333336l138.666919,446.667481l137.333584,-445.334145l-85.333489,-1.333336l0,-576.00105",
   },
 ];
+
+//四个基本方向
+export const basicDirection = ["uturn", "left", "straight", "right"];
 
 //根据车道获取默认路标 k系数，>=1正向路，否则反向路
 export function getRoadDefaultSign(wayIndex: number, is_last: boolean): string {
@@ -127,6 +130,7 @@ export function getBackground(number: number | string) {
   }
 }
 
+//重构计算start
 /**
  * 进口车道实际交通量
  * @param q 进口道转向流量
@@ -152,6 +156,7 @@ export function get_x(V: number, PHF: number, S: number, λ: number) {
   var x = V / PHF / (S * λ);
   return x;
 }
+//重构计算end
 
 // 车道通行能力 traffic_capacity
 // 只考虑7种车道类型：直行Cs、专右、专左、左右转、直右、直左、直左右

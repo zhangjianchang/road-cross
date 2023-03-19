@@ -2,7 +2,7 @@
   width: 100%;
 }
 #canvas {
-  width: 856px;
+  width: 700px;
   height: 700px;
   float: left;
   margin-left: 10px;
@@ -10,7 +10,7 @@
 }
 
 .menu {
-  width: 530px;
+  width: 520px;
   height: 700px;
   float: right;
   background-color: #ffffff;
@@ -35,7 +35,7 @@
 }
 
 .form {
-  padding: 20px;
+  // padding: 20px;
   //字体大小
   :deep(.ant-form-item-label > label),
   :deep(.ant-select),
@@ -43,7 +43,10 @@
   :deep(.ant-input-sm),
   :deep(.ant-table-wrapper) .ant-table-content {
     font-size: 12px;
-    line-height: 24px;
+    // line-height: 24px;
+  }
+  :deep(.ant-collapse > .ant-collapse-item > .ant-collapse-header) {
+    padding: 8px 16px;
   }
 }
 
@@ -64,7 +67,7 @@
 }
 
 .form-width {
-  width: 100px !important;
+  width: 90px !important;
 }
 
 .small-form-width {
@@ -123,4 +126,14 @@
 :deep(.ant-table-tbody > tr.click-row td) {
   background-color: #e6f7ff !important;
   // color: #ffffff;
+}
+
+.form-actitve {
+  :deep(.ant-input-number-input) {
+    background-color: rgb(255, 255, 153);
+  }
+}
+
+.modal-input-width {
+  width: 100%;
 }
