@@ -238,16 +238,17 @@
                     </svg>
                     <svg
                       v-else
-                      viewBox="0 0 700 700"
+                      viewBox="0 0 1500 1500"
                       xmlns="http://www.w3.org/2000/svg"
                       class="road-sign"
                     >
                       <g
-                        :transform="`rotate(${270 - road_attr[index].angle} ${
-                          road_attr[index].coordinate[0]
-                        },${road_attr[index].coordinate[1]}) translate(${
-                          road_attr[index].coordinate[0]
-                        },${road_attr[index].coordinate[1]})`"
+                        :transform="`rotate(${
+                          270 - road_attr[index].angle
+                        } ${cx},${cy}) translate(${
+                          flow_info.flow_detail[index].turn[Number(col)]
+                            .translate
+                        })`"
                       >
                         <path
                           :id="'direction'"
@@ -615,7 +616,6 @@ export default defineComponent({
             Q = qpt.x + "," + qpt.y + " ";
           } else {
             //掉头车道
-            console.log(road2_index, i);
             Q = getQByPathCurv(point1, point2, 2.5);
           }
 

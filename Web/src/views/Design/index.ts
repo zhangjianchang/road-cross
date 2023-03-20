@@ -1,5 +1,6 @@
 import _ from "lodash";
 import { reactive } from "vue";
+import { getQuadrantByAngle } from "../../utils/common";
 import { getRoadDefaultSign, RoadCross } from "./Canalize";
 import { plans_model } from "./data";
 import {
@@ -193,17 +194,36 @@ const getTurnDetail = (road_info: any, i: number, j: number) => {
   const roadCount = road_info.road_attr.length;
   const road = road_info.road_attr[i];
   const nextRoad = road_info.road_attr[j];
+  const translate = getUturnTranslate(road_info, i);
   //转向属性
   const turn_detail = {
     number: i === j ? 0 : 450,
     d:
       i === j
         ? uturn_path
-        : `M${road.coordinate[0]} ${road.coordinate[1]} L${roadStates.cx} ${roadStates.cy} L${nextRoad.coordinate[0]} ${nextRoad.coordinate[1]}`,
+        : `M${road.coordinate[0]} ${road.coordinate[1]} Q${roadStates.cx} ${roadStates.cy} ${nextRoad.coordinate[0]} ${nextRoad.coordinate[1]}`,
     tag: `${i}#${j}`, //标记从哪个车道到哪个车道
     order: j - i <= 0 ? j - i + roadCount : j - i, //排序（为了把掉头车道放在第一个）
+    translate,
   } as any;
   return turn_detail;
+};
+
+//掉头车道平移计算
+const getUturnTranslate = (road_info: any, i: number) => {
+  const angle = road_info.road_attr[i].angle;
+  const quadrant = getQuadrantByAngle(angle);
+  if (quadrant === 0) {
+    return `${-(roadStates.cx + 270 - angle)},${roadStates.cy - angle}`;
+  } else if (quadrant === 1) {
+    return `${-(roadStates.cx + 270 - angle)},${-(roadStates.cy - angle)}`;
+  } else if (quadrant === 2) {
+    return `${roadStates.cx - (270 - angle)},${-(270 - angle + roadStates.cy)}`;
+  } else if (quadrant === 3) {
+    return `${roadStates.cx - (270 - angle)},${270 - angle - roadStates.cy}`;
+  } else if (quadrant === 4) {
+    return `${roadStates.cx - angle},${roadStates.cy}`;
+  }
 };
 /**流量相关 */
 

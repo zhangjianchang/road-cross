@@ -19,7 +19,7 @@ export function goRouterByParam(
 
 // 求角度
 export function getAngle(cx: number, cy: number, x: number, y: number) {
-  let quadrant = getQuadrant(x, y);
+  let quadrant = getQuadrantByPoint(x, y);
   // 第一象限
   if (quadrant === 1) {
     x = x - cx;
@@ -76,7 +76,7 @@ export function getQByPathCurv(a: number[], b: number[], curv: any) {
   if (b[1] - a[1] === 0) {
     const x = (a[0] + b[0]) / 2;
     const y = (a[1] + b[1]) / 2;
-    let quadrant = getQuadrant(x, y);
+    let quadrant = getQuadrantByPoint(x, y);
     curv = quadrant === 1 || quadrant === 2 ? curv : -curv;
     controX = Math.abs((b[0] + a[0]) / 2);
     controY = Math.abs(curv * 35 + (a[1] + b[1]) / 2);
@@ -105,7 +105,7 @@ export function getMiddlePoint(a: number[], b: number[]): number[] {
 }
 
 //根据坐标获取象限
-export function getQuadrant(x: number, y: number) {
+export function getQuadrantByPoint(x: number, y: number) {
   let quadrant = 0;
   if (x >= 350 && y <= 350) {
     quadrant = 1;
@@ -125,6 +125,27 @@ export function getQuadrant(x: number, y: number) {
   return quadrant;
 }
 
+//根据角度获取象限
+export function getQuadrantByAngle(angle: number) {
+  if (angle === 0) {
+    return 0;
+  } else if (angle > 0 && angle <= 90) {
+    return 1;
+  }
+  // 第二象限
+  else if (angle >= 90 && angle < 180) {
+    return 2;
+  }
+  //第三象限
+  else if (angle >= 180 && angle < 270) {
+    return 3;
+  }
+  //第四象限
+  else {
+    return 4;
+  }
+}
+
 // 查看点是否在中垂线以内
 function isWithInVerticalLine(a: number[], b: number[], curv: any) {
   let flag = true;
@@ -139,7 +160,7 @@ function isWithInVerticalLine(a: number[], b: number[], curv: any) {
     controY = Math.abs((b[1] + a[1]) / 2 + curv * 20);
     controX = Math.abs((controY - (a[1] + b[1]) / 2) / k2 + (a[0] + b[0]) / 2);
   }
-  const quadrant = getQuadrant(x, y);
+  const quadrant = getQuadrantByPoint(x, y);
   if ((quadrant === 1 || quadrant === 4) && controX > x) {
     flag = false;
   }
