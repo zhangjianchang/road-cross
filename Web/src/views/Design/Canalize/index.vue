@@ -2105,7 +2105,7 @@ export default defineComponent({
           (rs: any) => rs.key === roadSignKey.right
         ).length;
 
-        rc.road_direction = {
+        rc.direction_num = {
           uturn: uturn + 0.5 * left_uturn + 0.5 * straight_uturn,
           left:
             left +

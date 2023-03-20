@@ -3,7 +3,7 @@
     <div class="main-canvas" v-if="isNaN(Number(total_saturation))">
       <div class="error-msg">请先设置信号方案</div>
     </div>
-    <div class="main-canvas" v-else-if="!showAnalysis">
+    <div v-show="!showAnalysis" class="main-canvas">
       <div class="func">
         <div class="gradient"></div>
         <div class="gradient-text">
@@ -40,7 +40,7 @@
             stroke-width="2"
           />
           <path
-            :d="road.sign.d"
+            :d="road.sign.path"
             fill="#fff"
             v-if="road.rect.saturation != 0"
           ></path>
@@ -177,7 +177,13 @@
 
 <script lang="ts">
 import { defineComponent, onMounted, onUnmounted, reactive, toRefs } from "vue";
-import { basicDirection, getBackground, get_V, get_x } from "./index";
+import {
+  basicDirection,
+  getBackground,
+  getDirectionZhName,
+  get_V,
+  get_x,
+} from "./index";
 import Container from "../../../components/Container/index.vue";
 import {
   DragOutlined,
@@ -189,12 +195,7 @@ import { getQByPathCurv } from "../../../utils/common";
 import { get_λ, plans, roadStates } from "..";
 import { openNotfication } from "../../../utils/message";
 import * as echarts from "echarts";
-import {
-  DirectionsEnum,
-  echart_toolbox,
-  echart_tooltip,
-  road_model,
-} from "../data";
+import { echart_toolbox, echart_tooltip, road_model } from "../data";
 import { roadSigns } from "../Canalize";
 
 export default defineComponent({
@@ -241,6 +242,9 @@ export default defineComponent({
         xAxis: [
           {
             type: "category",
+            axisLabel: {
+              interval: 0, //显示全部
+            },
             data: [] as string[],
             axisPointer: { type: "shadow" },
           },
@@ -251,8 +255,8 @@ export default defineComponent({
             type: "value",
             name: "饱和度",
             min: 0,
-            max: 1.5,
-            interval: 0.3,
+            max: 1,
+            interval: 0.25,
             axisLabel: {
               formatter: "{value}",
             },
@@ -261,6 +265,7 @@ export default defineComponent({
         //具体显示数据
         series: [] as any[],
       },
+      reportData: [] as any[],
     });
 
     const initRoads = () => {
@@ -462,7 +467,8 @@ export default defineComponent({
       };
       //路标
       const sign = {
-        d: road_path,
+        key: road_key,
+        path: road_path,
       };
       let q = get_q(index, road_key);
       let saturation = getRatio(index, way_index, road_key, q);
@@ -511,8 +517,7 @@ export default defineComponent({
       const direction_number = road_info.flow_info.flow_detail[
         roadIndex
       ].turn.map((t: any) => {
-        const k =
-          road_info.canalize_info[roadIndex].road_direction[t.direction];
+        const k = road_info.canalize_info[roadIndex].direction_num[t.direction];
         return {
           direction: t.direction,
           number: t.number,
@@ -639,48 +644,26 @@ export default defineComponent({
     }
     //设置echarts数据
     const setEchartOption = () => {
-      //legend
+      //先初始化数据
+      initPlansData();
+
+      //填充legend
       let legendData = [] as string[];
       legendData = states.analysisList.map((item) => item.name);
       legendData.push("平均值");
       states.analysisOption.legend.data = legendData;
 
-      //xAxis
-      let xAxisData = [] as string[]; //方向
-      for (let i = 0; i < road_info.canalize_info.length; i++) {
-        const rd = road_info.canalize_info[i].road_direction;
-        if (rd.uturn >= 1) {
-          xAxisData.push("方向" + (i + 1) + DirectionsEnum.uturn);
-        }
-        if (rd.left >= 1) {
-          xAxisData.push("方向" + (i + 1) + DirectionsEnum.left);
-        }
-        if (rd.straight >= 1) {
-          xAxisData.push("方向" + (i + 1) + DirectionsEnum.straight);
-        }
-        if (rd.right >= 1) {
-          xAxisData.push("方向" + (i + 1) + DirectionsEnum.right);
-        }
-      }
-      states.analysisOption.xAxis[0].data = xAxisData;
+      //填充xAxis TODO多方案去重
+      states.analysisOption.xAxis[0].data = states.reportData[0].items.map(
+        (r: any) => r.x
+      );
 
-      //series
+      //填充series
       states.analysisOption.series.length = 0;
-      states.analysisList.forEach((a) => {
-        const seriesItemData = [] as number[];
-        //当前方案对应的道路信息
-        const rf =
-          plans.canalize_plans[a.canalize_plan].flow_plans[a.flow_plan]
-            .signal_plans[a.signal_plan].road_info;
-        rf.canalize_info.forEach((ci) => {
-          //对应某种方向的数值
-          //TODO 默认左转
-          seriesItemData.push(Number(Math.random().toFixed(2)));
-          //TODO 默认直右
-          seriesItemData.push(Number(Math.random().toFixed(2)));
-        });
+      states.reportData.map((r) => {
+        const seriesItemData = r.items.map((r: any) => r.y);
         const seriesItem = {
-          name: a.name,
+          name: r.name,
           type: "bar",
           tooltip: {
             valueFormatter: function (value: number) {
@@ -693,17 +676,56 @@ export default defineComponent({
       });
 
       //平均值
-      const seriesItem = {
-        name: "平均值",
-        type: "line",
-        tooltip: {
-          valueFormatter: function (value: number) {
-            return value;
-          },
-        },
-        data: [0.6, 0.3, 0.5, 0.8, 0.2, 0.5, 0.8, 0.1],
-      };
-      states.analysisOption.series.push(seriesItem);
+      // const seriesItem = {
+      //   name: "平均值",
+      //   type: "line",
+      //   tooltip: {
+      //     valueFormatter: function (value: number) {
+      //       return value;
+      //     },
+      //   },
+      //   data: [0.6, 0.3, 0.5, 0.8, 0.2, 0.5, 0.8, 0.1],
+      // };
+      // states.analysisOption.series.push(seriesItem);
+    };
+
+    //计算数据
+    const initPlansData = () => {
+      states.reportData.length = 0;
+      states.analysisList.forEach((a) => {
+        var road_info =
+          plans.canalize_plans[a.canalize_plan].flow_plans[a.flow_plan]
+            .signal_plans[a.signal_plan].road_info;
+
+        let reportItems = [] as any[];
+        for (let i = 0; i < plans.road_count; i++) {
+          const rc = road_info.canalize_info[i];
+          //获取合并后方向的key
+          const all_keys = mergeWays(rc);
+          all_keys.map((key: any, j: number) => {
+            const item = getReportItem(i, j, key);
+            if (item) {
+              reportItems.push(item);
+            }
+          });
+        }
+        states.reportData.push({ name: a.name, items: reportItems });
+      });
+    };
+
+    const getReportItem = (i: number, j: number, road_key: string) => {
+      let q = get_q(i, road_key);
+      let number = getRatio(i, j, road_key, q);
+      states.analysisOption.yAxis[0].max = Math.max(
+        states.analysisOption.yAxis[0].max,
+        number
+      );
+      //写进统计数据中去
+      if (number > 0) {
+        const name = getDirectionZhName(i, road_key);
+        return { x: name, y: number.toFixed(2) };
+      }
+      return undefined;
     };
     /**报表相关 end*/
 

@@ -1,3 +1,5 @@
+import { DirectionsZh } from "../data";
+
 export const roadSigns = [
   {
     key: "uturn",
@@ -288,3 +290,8 @@ export function Ln(x1: number, y1: number, x2: number, y2: number, x: number) {
   }
   return y;
 }
+
+//获取车道转向名称
+export const getDirectionZhName = (i: number, road_key: string) => {
+  return "方向" + (i + 1) + DirectionsZh[road_key];
+};

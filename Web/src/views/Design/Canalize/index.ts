@@ -129,7 +129,7 @@ export const RoadCross = {
   cross_len_new: 20, // 根据真实情况会对原始cross_len做后移调整
   stop_line_length: 30, //长实线长度
 
-  road_direction: {
+  direction_num: {
     uturn: 0, //掉头
     left: 1, //专左
     straight: 1.5, //直行

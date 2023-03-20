@@ -222,7 +222,7 @@ const getUturnTranslate = (road_info: any, i: number) => {
   } else if (quadrant === 3) {
     return `${roadStates.cx - (270 - angle)},${270 - angle - roadStates.cy}`;
   } else if (quadrant === 4) {
-    return `${roadStates.cx - angle},${roadStates.cy}`;
+    return `${-(roadStates.cx - angle)},${roadStates.cy}`;
   }
 };
 /**流量相关 */

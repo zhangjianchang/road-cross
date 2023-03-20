@@ -81,12 +81,12 @@ export const echart_toolbox = {
   },
 };
 
-export enum DirectionsEnum {
-  uturn = "掉头",
-  left = "左转",
-  straight_left = "直左",
-  straight = "直行",
-  straight_right = "直右",
-  left_straight_right = "直左右",
-  right = "右转",
-}
+export const DirectionsZh = {
+  uturn: "掉头",
+  left: "左转",
+  straight_left: "直左",
+  straight: "直行",
+  straight_right: "直右",
+  left_straight_right: "直左右",
+  right: "右转",
+};
