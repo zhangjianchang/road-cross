@@ -1,5 +1,4 @@
 import { notification } from "ant-design-vue";
-import { NotificationApi } from "ant-design-vue/lib/notification";
 
 export const openNotfication = (
   type: string,

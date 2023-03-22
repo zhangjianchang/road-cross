@@ -17,6 +17,11 @@ export function goRouterByParam(
   } catch {}
 }
 
+// 数组去重
+export function unique(arr: any[]) {
+  return Array.from(new Set(arr));
+}
+
 // 求角度
 export function getAngle(cx: number, cy: number, x: number, y: number) {
   let quadrant = getQuadrantByPoint(x, y);
@@ -329,4 +334,50 @@ export function getAngleBetweenLines(
   const degree = angle * (180 / Math.PI);
 
   return degree;
+}
+
+// 路口Draw对象dw；距离基点d，弧度增量dr，长度len，返回新点
+export function cal_point(
+  dw: { dir: { radian: any }; origin: { x: number } },
+  d: number,
+  dr: number,
+  len: number
+) {
+  // 计算
+  var np = { x: 0, y: 0 }; // new point
+
+  var tx, ty; // 临时点坐标
+  var r = dw.dir.radian;
+  // 基线上终点
+  tx = Math.cos(r) * d + dw.origin.x;
+  ty = -Math.sin(r) * d + dw.origin.x;
+  // 垂直基线，交点在tx，ty，长度len的点
+  np.x = len * Math.cos(r + dr) + tx;
+  np.y = -len * Math.sin(r + dr) + ty;
+
+  return np;
+}
+
+//曲度插值法计算Q的中间点
+export function insect_pt(line1: any, line2: any) {
+  var insect_pt = intersect_line_point(
+    line1.point2,
+    line1.point1,
+    line2.point2,
+    line2.point1
+  );
+  // 相邻两直线的交点
+  var mid_pt = {
+    x: (line1.point2.x + line2.point2.x) * 0.5,
+    y: (line1.point2.y + line2.point2.y) * 0.5,
+  };
+  // 曲度插值法计算Q的中间点
+  if (insect_pt) {
+    var qpt = {
+      x: mid_pt.x + (insect_pt.x - mid_pt.x),
+      y: mid_pt.y + (insect_pt.y - mid_pt.y),
+    };
+    return qpt;
+  }
+  return false;
 }

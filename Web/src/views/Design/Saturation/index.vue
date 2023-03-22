@@ -3,7 +3,10 @@
     <div class="main-canvas" v-if="isNaN(Number(total_saturation))">
       <div class="error-msg">请先设置信号方案</div>
     </div>
-    <div v-show="!showAnalysis" class="main-canvas">
+    <div
+      v-show="!showAnalysis && !isNaN(Number(total_saturation))"
+      class="main-canvas"
+    >
       <div class="func">
         <div class="gradient"></div>
         <div class="gradient-text">
@@ -114,6 +117,7 @@
                   <a-select
                     placeholder="请选择渠化方案"
                     v-model:value="analysis.canalize_plan"
+                    @change="handleChangeAnalysis"
                   >
                     <a-select-option
                       v-for="(item, index) in plans.canalize_plans"
@@ -130,6 +134,7 @@
                   <a-select
                     placeholder="请选择流量方案"
                     v-model:value="analysis.flow_plan"
+                    @change="handleChangeAnalysis"
                   >
                     <a-select-option
                       v-for="(item, index) in plans.canalize_plans[
@@ -148,6 +153,7 @@
                   <a-select
                     placeholder="请选择信号方案"
                     v-model:value="analysis.signal_plan"
+                    @change="handleChangeAnalysis"
                   >
                     <a-select-option
                       v-for="(item, index) in plans.canalize_plans[
@@ -177,13 +183,7 @@
 
 <script lang="ts">
 import { defineComponent, onMounted, onUnmounted, reactive, toRefs } from "vue";
-import {
-  basicDirection,
-  getBackground,
-  getDirectionZhName,
-  get_V,
-  get_x,
-} from "./index";
+import { get_V, get_x } from "./index";
 import Container from "../../../components/Container/index.vue";
 import {
   DragOutlined,
@@ -191,8 +191,16 @@ import {
   DeleteOutlined,
   SwapOutlined,
 } from "@ant-design/icons-vue";
-import { getQByPathCurv } from "../../../utils/common";
-import { get_λ, plans, roadStates } from "..";
+import { insect_pt, unique } from "../../../utils/common";
+import {
+  basicDirection,
+  getBackground,
+  getDirectionZhName,
+  get_λ,
+  mergeWays,
+  plans,
+  roadStates,
+} from "..";
 import { openNotfication } from "../../../utils/message";
 import * as echarts from "echarts";
 import { echart_toolbox, echart_tooltip, road_model } from "../data";
@@ -215,7 +223,9 @@ export default defineComponent({
       cvs: null as HTMLElement | null,
       cx: 350, //圆心x
       cy: 350, //圆心y
-      road_width: 160, //路宽
+      d: 120, //离圆心距离
+      far_d: 240, //离圆心距离
+      road_width: 80, //路宽
       curvature: 2, //路口弧度
       cross_pts: [] as any[], //所有路口交叉点
       road_sign_pts: [] as any[], //路标
@@ -253,7 +263,7 @@ export default defineComponent({
         yAxis: [
           {
             type: "value",
-            name: "饱和度",
+            name: "饱和度对比分析",
             min: 0,
             max: 1,
             interval: 0.25,
@@ -271,21 +281,8 @@ export default defineComponent({
     const initRoads = () => {
       states.ns = "http://www.w3.org/2000/svg";
       states.cvs = document.getElementById("canvas");
-      initCrossData();
       render();
     };
-
-    function initCrossData() {
-      states.cross_pts.length = 0; //先清空
-      for (var i = 0; i < road_info.road_attr.length; i++) {
-        var angle = road_info.road_attr[i].angle;
-        var radian = (Math.PI / 180) * angle; // 角度转弧度
-        var x3 = Math.cos(radian) * states.road_width + 350; // 交叉口圆半径100
-        var y3 = -Math.sin(radian) * states.road_width + 350;
-        //获取交叉口圆plus和路边相交的点
-        setPts(states.cross_pts, angle, x3, y3);
-      }
-    }
 
     function render() {
       //先清空路径
@@ -294,6 +291,8 @@ export default defineComponent({
       drawRoadLine();
       //画路标
       drawRoadSign();
+      //写路名
+      drawRoadText();
     }
 
     //清空道路svg
@@ -312,52 +311,89 @@ export default defineComponent({
     };
 
     //画路径
-    function drawRoadLine() {
-      const line = document.createElementNS(states.ns, "path"); // 创建SVG元素——交叉口
-      let d_str = "";
-      let roadIdx = 0;
-      for (let i = 0; i < states.cross_pts.length; i++) {
-        const pt = states.cross_pts[i];
-        if (i === 0) {
-          d_str += `M ${pt[0]} ${pt[1]} `;
-        } else if (i % 2 !== 0) {
-          /* 路边缘点 */
-          let angle = road_info.road_attr[roadIdx].angle;
-          const radian = (Math.PI / 180) * angle; // 角度转弧度
-          const x = Math.cos(radian) * 300 + 350; // 大圆半径300
-          const y = -Math.sin(radian) * 300 + 350;
-          let point = getPoint("fl", angle, x, y);
-          d_str += `L ${point[0]} ${point[1]} `;
-          point = getPoint("fr", angle, x, y);
-          d_str += `L ${point[0]} ${point[1]} `;
-          //连接黄色点
-          d_str += `L ${pt[0]} ${pt[1]} `;
-          /* Q */
-          const nextPt =
-            i + 1 === states.cross_pts.length
-              ? states.cross_pts[0]
-              : states.cross_pts[i + 1];
-          const Q = getQByPathCurv(pt, nextPt, states.curvature);
-          d_str += `Q ${Q} `;
-          if (i === states.cross_pts.length - 1) {
-            //最后一个点曲线连接
-            const firstPt = states.cross_pts[0];
-            d_str += `${firstPt[0]} ${firstPt[1]} `;
-          }
-          /*标记第几条路 */
-          roadIdx++;
+    const drawRoadLine = () => {
+      for (let i = 0; i < road_info.road_attr.length; i++) {
+        const dr = Math.PI * 0.5;
+        const len = states.road_width;
+        //第一条路
+        let dw = getDW(i);
+        //夹角过小后移距离
+        let offset = getOffset(dw.diff_angle);
+        let d = states.far_d;
+        let pt_r10 = cal_point(dw, d, -dr, len); //这点用来连接远端虚线
+
+        let pt_r11 = cal_point(dw, d, dr, len);
+        let d_str = `M${pt_r11.x},${pt_r11.y} `;
+
+        d = states.d + offset;
+        let pt_r12 = cal_point(dw, d, dr, len);
+        d_str += `L${pt_r12.x},${pt_r12.y} `;
+        //第二条路
+        const next_i = i === road_info.road_attr.length - 1 ? 0 : i + 1;
+        dw = getDW(next_i);
+        d = states.far_d;
+        let pt_l11 = cal_point(dw, d, -dr, len);
+
+        d = states.d + offset;
+        let pt_l12 = cal_point(dw, d, -dr, len);
+
+        //连接两条路
+        let Q = insect_pt(
+          { point1: pt_r11, point2: pt_r12 },
+          { point1: pt_l11, point2: pt_l12 }
+        );
+        //连接第一条路右侧，Q点，第二条路左侧
+        if (Q) {
+          d_str += `Q${Q.x},${Q.y} ${pt_l12.x},${pt_l12.y} L${pt_l11.x},${pt_l11.y}`;
         } else {
-          d_str += ` ${pt[0]} ${pt[1]} `;
+          d_str = "";
         }
+        drawPath(d_str, false);
+        //远端两点虚线连接
+        d_str = `M${pt_r10.x},${pt_r10.y} L${pt_r11.x},${pt_r11.y}`;
+        drawPath(d_str, true);
       }
-      drawPath(line, d_str);
+    };
+    const getDW = (i: number) => {
+      const next_i = i === road_info.road_attr.length - 1 ? 0 : i + 1;
+      const angle1 = road_info.road_attr[i].angle;
+      const angle2 = road_info.road_attr[next_i].angle;
+      const radian = (Math.PI / 180) * angle1; // 角度转弧度
+      const dw = {
+        dir: { radian },
+        origin: { x: states.cx },
+        diff_angle:
+          angle2 - angle1 < 0 ? 360 + (angle2 - angle1) : angle2 - angle1,
+      };
+      return dw;
+    };
+    const getOffset = (diff_angle: number) => {
+      let offset = 0;
+      if (diff_angle < 50) {
+        offset = (90 - diff_angle) * 2.5;
+      } else if (diff_angle < 90) {
+        offset = (90 - diff_angle) * 1.5;
+      }
+      return offset > 120 ? 120 : offset;
+    };
+    function drawPath(d_str: string, dasharray: boolean) {
+      // 创建SVG元素——交叉口
+      const path = document.createElementNS(states.ns, "path");
+      path.setAttribute("deleteTag", `1`);
+      path.setAttribute("id", "road_path");
+      path.setAttribute("d", d_str);
+      path.setAttribute("fill", "none");
+      path.setAttribute("stroke", "#ddd");
+      path.setAttribute("stroke-width", "2");
+      if (dasharray) {
+        path.setAttribute("stroke-dasharray", "5,5");
+      }
+      states.cvs?.appendChild(path);
     }
 
     //画路标
     function drawRoadSign() {
       for (let i = 0; i < plans.road_count; i++) {
-        //每条道路增加一个分析
-        road_info.saturation_info.push([]);
         var rc = road_info.canalize_info[i];
         const dw = {
           dir: { radian: (Math.PI / 180) * rc.angle },
@@ -399,51 +435,6 @@ export default defineComponent({
       states.total_saturation = (total_xq / total_q).toFixed(2);
       states.total_color = getBackground(states.total_saturation);
     }
-
-    //绘制之前合并同时并行道路
-    const mergeWays = (rc: any) => {
-      //绘制之前先确定合并
-      let all_keys = rc.road_sign.enter.map((rs: any) => rs.key); //全部方向
-      const multiple_way_keys = rc.road_sign.enter
-        .filter((rs: any) => basicDirection.indexOf(rs.key) === -1)
-        .map((rs: any) => rs.key); //两种及以上转向的方向
-
-      //剔除多方向已包含的方向
-      multiple_way_keys.map((mk: any) => {
-        const mks = mk.split("_");
-        mks.forEach((s: any) => {
-          let index = all_keys.indexOf(s);
-          if (index > -1) {
-            all_keys = all_keys.filter((k: any) => k != s);
-          }
-        });
-      });
-
-      //针对多方向再次合并
-      const sl_index = all_keys.indexOf("straight_left");
-      let sr_index = all_keys.indexOf("straight_right");
-      if (sl_index > -1 && sr_index > -1) {
-        all_keys.splice(sl_index, 1);
-        sr_index = all_keys.indexOf("straight_right");
-        all_keys.splice(sr_index, 1);
-        all_keys.push("left_straight_right");
-      }
-      return all_keys;
-    };
-    //掉头类型合并
-    //TODO
-
-    //画路面上的线
-    function drawPath(line: Element, d_str: string) {
-      line.setAttribute("id", "road_path");
-      line.setAttribute("d", d_str);
-      line.setAttribute("stroke", "#ddd");
-      line.setAttribute("stroke-width", "2");
-      line.setAttribute("fill", `none`);
-      line.setAttribute("deleteTag", `1`);
-      states.cvs?.appendChild(line);
-    }
-
     /**
      * 绘制路标
      * @param way_pt 绘制坐标原点
@@ -470,8 +461,8 @@ export default defineComponent({
         key: road_key,
         path: road_path,
       };
-      let q = get_q(index, road_key);
-      let saturation = getRatio(index, way_index, road_key, q);
+      let q = get_q(index, road_key, road_info);
+      let saturation = getRatio(index, way_index, road_key, q, road_info);
       let background = getBackground(saturation);
       //圆角矩形背景
       const rect = {
@@ -482,18 +473,45 @@ export default defineComponent({
       states.road_sign_pts.push({ g, sign, rect });
     }
 
+    //写数字
+    const drawRoadText = () => {
+      for (let i = 0; i < road_info.canalize_info.length; i++) {
+        const rc = road_info.canalize_info[i];
+
+        const dr = Math.PI * 0.5;
+        const len = states.road_width;
+        let dw = getDW(i);
+        let d = states.far_d - 40;
+        const pt = cal_point(dw, d, -dr, len + 20);
+
+        var txt = document.createElementNS(states.ns, "text"); // 方向n文本
+        txt.innerHTML = rc.name;
+        txt.setAttribute("deleteTag", "1");
+        txt.setAttribute("fill", "rgb(0,0,0)");
+        txt.setAttribute("text-anchor", "middle");
+        var angle = -rc.angle;
+        if (angle < -120 && angle > -270) angle = angle + 180; // 文字朝上
+        txt.setAttribute(
+          "transform",
+          "translate(" + pt.x + "," + pt.y + ") rotate(" + angle + ")"
+        );
+        states.cvs?.appendChild(txt);
+      }
+    };
+
     //重构饱和度
     function getRatio(
       roadIndex: number,
       wayIndex: number,
       road_key: string,
-      road_q: number
+      road_q: number,
+      rf: any
     ) {
       //绿信比数据
-      const period = road_info.signal_info.period;
+      const period = rf.signal_info.period;
       let green = 0;
       let yellow = 0;
-      road_info.signal_info.phase_list.forEach((p: any) => {
+      rf.signal_info.phase_list.forEach((p: any) => {
         p.directions[roadIndex].forEach((d: any) => {
           if (road_key.indexOf(d.direction) > -1) {
             green = green | d.green;
@@ -502,28 +520,28 @@ export default defineComponent({
         });
       });
 
-      const flow_line = road_info.flow_info.line_info[roadIndex];
+      const flow_line = rf.flow_info.line_info[roadIndex];
       const q = road_q;
       const d = flow_line.truck_ratio / 100;
       const V = get_V(q, d);
       const PHF = flow_line.peak_period;
       const λ = get_λ(green, yellow, period);
-      const S = road_info.flow_info.saturation[roadIndex][wayIndex].number;
+      const S = rf.flow_info.saturation[roadIndex][wayIndex].number;
       const x = get_x(V, PHF, S, λ);
       return x;
     }
 
-    const get_q = (roadIndex: number, road_key: string) => {
-      const direction_number = road_info.flow_info.flow_detail[
-        roadIndex
-      ].turn.map((t: any) => {
-        const k = road_info.canalize_info[roadIndex].direction_num[t.direction];
-        return {
-          direction: t.direction,
-          number: t.number,
-          k,
-        };
-      });
+    const get_q = (roadIndex: number, road_key: string, rf: any) => {
+      const direction_number = rf.flow_info.flow_detail[roadIndex].turn.map(
+        (t: any) => {
+          const k = rf.canalize_info[roadIndex].direction_num[t.direction];
+          return {
+            direction: t.direction,
+            number: t.number,
+            k,
+          };
+        }
+      );
 
       //进口道流量数据
       let number = 0;
@@ -653,9 +671,15 @@ export default defineComponent({
       legendData.push("平均值");
       states.analysisOption.legend.data = legendData;
 
-      //填充xAxis TODO多方案去重
-      states.analysisOption.xAxis[0].data = states.reportData[0].items.map(
-        (r: any) => r.x
+      //填充xAxis
+      states.reportData.map((rd) => {
+        rd.items.map((r: any) => {
+          states.analysisOption.xAxis[0].data.push(r.x);
+        });
+      });
+      //去重
+      states.analysisOption.xAxis[0].data = unique(
+        states.analysisOption.xAxis[0].data
       );
 
       //填充series
@@ -693,60 +717,53 @@ export default defineComponent({
     const initPlansData = () => {
       states.reportData.length = 0;
       states.analysisList.forEach((a) => {
-        var road_info =
+        var rf =
           plans.canalize_plans[a.canalize_plan].flow_plans[a.flow_plan]
             .signal_plans[a.signal_plan].road_info;
-
         let reportItems = [] as any[];
-        for (let i = 0; i < plans.road_count; i++) {
-          const rc = road_info.canalize_info[i];
-          //获取合并后方向的key
-          const all_keys = mergeWays(rc);
-          all_keys.map((key: any, j: number) => {
-            const item = getReportItem(i, j, key);
-            if (item) {
-              reportItems.push(item);
-            }
+        rf.saturation_info.map((si, i) => {
+          si.map((s: any) => {
+            reportItems.push({
+              x: getDirectionZhName(i, s.key),
+              y: s.number.toFixed(2),
+            });
           });
-        }
+        });
         states.reportData.push({ name: a.name, items: reportItems });
+        console.log(states.reportData);
       });
-    };
-
-    const getReportItem = (i: number, j: number, road_key: string) => {
-      let q = get_q(i, road_key);
-      let number = getRatio(i, j, road_key, q);
-      states.analysisOption.yAxis[0].max = Math.max(
-        states.analysisOption.yAxis[0].max,
-        number
-      );
-      //写进统计数据中去
-      if (number > 0) {
-        const name = getDirectionZhName(i, road_key);
-        return { x: name, y: number.toFixed(2) };
-      }
-      return undefined;
     };
     /**报表相关 end*/
 
     /**基础方法 */
-    //direction：方向，nr 近右,nl 近左, fr 远右, fl 远左 //road_width默认100（小于100即画路边线时用到）
-    function getPoint(direction: string, angle: number, x: number, y: number) {
-      var radian = (Math.PI / 180) * (angle - 90);
-      var coefficient = direction === "nl" || direction === "fr" ? -1 : 1;
-      var point_x =
-        coefficient * states.road_width * 0.5 * Math.cos(radian) + x;
-      var point_y =
-        -coefficient * states.road_width * 0.5 * Math.sin(radian) + y;
-      return [~~point_x, ~~point_y];
-    }
+    //加载所有方案下的饱和度
+    const initSaturation = () => {
+      plans.canalize_plans.map((c, cidx) => {
+        c.flow_plans.map((f, fidx) => {
+          f.signal_plans.map((s, sidx) => {
+            var rf =
+              plans.canalize_plans[cidx].flow_plans[fidx].signal_plans[sidx]
+                .road_info;
 
-    function setPts(pts: any[], angle: number, x: number, y: number) {
-      var point = getPoint("nr", angle, x, y);
-      pts.push(point);
-      point = getPoint("nl", angle, x, y);
-      pts.push(point);
-    }
+            //先清空
+            rf.saturation_info.length = 0;
+
+            for (let i = 0; i < plans.road_count; i++) {
+              const si = [] as any[];
+              const rc = rf.canalize_info[i];
+              //获取合并后方向的key
+              const all_keys = mergeWays(rc);
+              all_keys.map((key: any, j: number) => {
+                let q = get_q(i, key, rf);
+                let number = getRatio(i, j, key, q, rf);
+                si.push({ key, number });
+              });
+              rf.saturation_info.push(si);
+            }
+          });
+        });
+      });
+    };
     /**基础方法 end*/
 
     onMounted(() => {
@@ -757,6 +774,7 @@ export default defineComponent({
       //渲染路
       Object.assign(road_info, rf);
       initRoads();
+      initSaturation();
     });
 
     onUnmounted(() => {

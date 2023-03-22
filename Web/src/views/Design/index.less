@@ -167,30 +167,30 @@
   right: 15px;
 
   .rect {
-    width: 60px;
+    width: 30px;
     text-align: center;
     color: #fff;
-    border: 1px solid #888;
+    border: 0.001rem solid #c7c2c2;
     margin-bottom: 5px;
   }
 
   &-A {
-    background-color: rgb(0, 255, 0);
+    background-color: #7cfc00;
   }
   &-B {
-    background-color: rgb(100, 255, 0);
+    background-color: #008000;
   }
   &-C {
-    background-color: rgb(150, 255, 0);
+    background-color: #2ad100;
   }
   &-D {
-    background-color: rgb(255, 200, 0);
+    background-color: #f8f40f;
   }
   &-E {
-    background-color: rgb(255, 100, 0);
+    background-color: #ffa500;
   }
   &-F {
-    background-color: rgb(255, 50, 0);
+    background-color: #ff0000;
   }
 }
 
@@ -208,4 +208,93 @@
   &:hover {
     color: #98bdfa;
   }
+}
+
+.main-canvas {
+  width: 700px;
+  height: 700px;
+  float: left;
+  background-color: #ffffff;
+  margin-left: 10px;
+}
+
+#canvas,
+.canvas {
+  width: 700px;
+  height: 700px;
+  float: left;
+  background-color: #ffffff;
+}
+
+.report {
+  padding: 100px 24px 0px;
+  width: 700px;
+  height: 600px;
+}
+
+.menu {
+  width: 520px;
+  height: 700px;
+  float: right;
+  background-color: #ffffff;
+  margin-left: 10px;
+  padding: 24px;
+
+  &-header {
+    display: flex;
+    margin: 6px 0;
+    padding: 4px 4px 4px 10px;
+    background-color: #e6f7ff;
+    border-radius: 3px;
+  }
+
+  &-title {
+    font-size: 14px;
+    color: #ff4d4f;
+    width: calc(100% - 20px);
+  }
+
+  &-content {
+    //字体大小
+    :deep(.ant-form-item-label > label),
+    :deep(.ant-select),
+    :deep(.ant-select-item),
+    :deep(.ant-input) {
+      font-size: 12px;
+    }
+  }
+
+  :deep(.ant-btn) {
+    font-size: 12px;
+  }
+}
+
+.switch {
+  text-align: right;
+
+  &-title {
+    font-size: 13px;
+    padding-top: 15px;
+  }
+}
+
+.func {
+  position: relative;
+  display: inline-block;
+  margin-left: -150px;
+  height: 700px;
+  width: 150px;
+}
+
+.text-info {
+  position: relative;
+  bottom: 44px;
+  left: 310px;
+}
+
+.error-msg {
+  font-size: 24px;
+  color: #ff4d4f;
+  text-align: center;
+  line-height: 700px;
 }

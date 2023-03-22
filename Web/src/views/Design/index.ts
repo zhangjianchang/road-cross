@@ -2,7 +2,7 @@ import _ from "lodash";
 import { reactive } from "vue";
 import { getQuadrantByAngle } from "../../utils/common";
 import { getRoadDefaultSign, RoadCross } from "./Canalize";
-import { plans_model } from "./data";
+import { DirectionsZh, plans_model } from "./data";
 import {
   flowColumnsPart,
   flowDataIndex,
@@ -30,8 +30,8 @@ export const menuList = [
   { index: 4, url: "Signal", name: "信号" },
   { index: 5, url: "Section", name: "断面" },
   { index: 6, url: "Saturation", name: "饱和度" },
-  { index: 7, url: "QueueAnalysis", name: "排队分析" },
-  { index: 8, url: "DelayAnalysis", name: "延误分析" },
+  { index: 8, url: "DelayAnalysis", name: "延误时间" },
+  { index: 7, url: "QueueAnalysis", name: "排队长度" },
   { index: 9, url: "ServiceLevel", name: "服务水平" },
 ];
 
@@ -63,6 +63,59 @@ export const roadStates = reactive({
 
 //所有方案
 export const plans = reactive(plans_model);
+
+/**公用部分 */
+//四个基本方向
+export const basicDirection = ["uturn", "left", "straight", "right"];
+
+//获取车道转向名称
+export const getDirectionZhName = (i: number, road_key: string) => {
+  return "方向" + (i + 1) + DirectionsZh[road_key];
+};
+
+//根据程度取颜色(饱和度)
+export function getBackground(number: number | string) {
+  number = Number(number);
+  if (number <= 0.1) {
+    return "rgb(0,255,0)";
+  } else if (number <= 0.2) {
+    return "rgb(100,255,0)";
+  } else if (number <= 0.3) {
+    return "rgb(150,255,0)";
+  } else if (number <= 0.4) {
+    return "rgb(200,255,0)";
+  } else if (number <= 0.5) {
+    return "rgb(255,255,0)";
+  } else if (number <= 0.6) {
+    return "rgb(255,200,0)";
+  } else if (number <= 0.7) {
+    return "rgb(255,150,0)";
+  } else if (number <= 0.8) {
+    return "rgb(255,100,0)";
+  } else if (number <= 0.9) {
+    return "rgb(255,50,0)";
+  } else {
+    return "rgb(255,0,0)";
+  }
+}
+
+export function getBackgroundByDelay(number: number | string) {
+  number = Number(number);
+  if (number <= 10) {
+    return "#7cfc00";
+  } else if (number <= 20) {
+    return "#008000";
+  } else if (number <= 35) {
+    return "#2ad100";
+  } else if (number <= 55) {
+    return "#f8f40f";
+  } else if (number <= 80) {
+    return "#ffa500";
+  } else {
+    return "#ff0000";
+  }
+}
+/**公用部分 */
 
 /**渠化相关 */
 //初始化渠化信息
@@ -294,3 +347,40 @@ export function get_λ(green: number, yellow: number, period: number) {
   const λ = (green + yellow - 3) / period;
   return λ < 0 ? 0 : λ;
 }
+
+//绘制之前合并同时并行道路
+export const mergeWays = (rc: any) => {
+  //绘制之前先确定合并
+  let all_keys = rc.road_sign.enter.map((rs: any) => rs.key); //全部方向
+  const multiple_way_keys = rc.road_sign.enter
+    .filter((rs: any) => basicDirection.indexOf(rs.key) === -1)
+    .map((rs: any) => rs.key); //两种及以上转向的方向
+
+  //剔除多方向已包含的方向
+  multiple_way_keys.map((mk: any) => {
+    const mks = mk.split("_");
+    mks.forEach((s: any) => {
+      let index = all_keys.indexOf(s);
+      if (index > -1) {
+        all_keys = all_keys.filter((k: any) => k != s);
+      }
+    });
+  });
+
+  //针对多方向再次合并
+  const sl_index = all_keys.indexOf("straight_left");
+  let sr_index = all_keys.indexOf("straight_right");
+  if (sl_index > -1 && sr_index > -1) {
+    all_keys.splice(sl_index, 1);
+    sr_index = all_keys.indexOf("straight_right");
+    all_keys.splice(sr_index, 1);
+    all_keys.push("left_straight_right");
+  }
+
+  //掉头类型合并
+  mergeReturnWays(rc);
+
+  return all_keys;
+};
+//TODO
+export const mergeReturnWays = (rc: any) => {};
