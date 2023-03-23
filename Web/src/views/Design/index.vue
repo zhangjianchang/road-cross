@@ -501,7 +501,6 @@ export default defineComponent({
     };
     //切换或点击流量时
     const changeFlow = (index: number, is_load = true) => {
-      console.log(index);
       roadStates.current_flow = index;
       roadStates.current_signal = 0;
       const rf =

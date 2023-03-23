@@ -307,7 +307,6 @@ export function insert_phase(road_info: any, p: number) {
     });
     phaseItem.directions.push(directions);
   }
-  console.log(phaseItem.directions);
   road_info.signal_info.phase_list.push(phaseItem);
   road_info.signal_info.period +=
     phaseItem.green + phaseItem.yellow + phaseItem.red;

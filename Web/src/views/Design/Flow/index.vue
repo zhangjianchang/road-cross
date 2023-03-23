@@ -764,7 +764,6 @@ export default defineComponent({
           ].signal_plans[0].road_info;
       }
       Object.assign(road_info, rf);
-      console.log(road_info);
       //默认值
       if (!road_info.flow_info.thickness) {
         road_info.flow_info.thickness = 5;
