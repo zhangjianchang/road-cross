@@ -731,7 +731,6 @@ export default defineComponent({
           });
         });
         states.reportData.push({ name: a.name, items: reportItems });
-        console.log(states.reportData);
       });
     };
     /**报表相关 end*/
