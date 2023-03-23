@@ -259,6 +259,7 @@ export default defineComponent({
             type: "category",
             axisLabel: {
               interval: 0, //显示全部
+              rotate: 40, //太多了斜着显示
             },
             data: [] as string[],
             axisPointer: { type: "shadow" },

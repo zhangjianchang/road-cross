@@ -250,6 +250,7 @@ export default defineComponent({
             type: "category",
             axisLabel: {
               interval: 0, //显示全部
+              rotate: 40, //太多了斜着显示
             },
             data: [] as string[],
             axisPointer: { type: "shadow" },
@@ -524,11 +525,8 @@ export default defineComponent({
       const PHF = flow_line.peak_period;
       const S = rf.flow_info.saturation[roadIndex][wayIndex].number;
       const x = get_x(V, PHF, S, λ); /**饱和度 */
-      const Q = S * λ; //TODO 存疑，确定是一个？
-      const T = 0.25;
-      const e = 0.5;
 
-      const queue = get_queue(C, λ, x, e, Q, T);
+      const queue = get_queue(q, PHF, d, C, λ, x, S, green);
       return queue;
     }
 
