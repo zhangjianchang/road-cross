@@ -54,6 +54,22 @@
               style="fill: #fff"
             />
           </marker>
+          <marker
+            id="non_direction_line"
+            markerUnits="strokeWidth"
+            markerWidth="6"
+            markerHeight="6"
+            viewBox="0 0 12 12"
+            refX="6"
+            refY="6"
+            orient="auto"
+          >
+            <path
+              xmlns="http://www.w3.org/2000/svg"
+              d="M2,2 L10,6 L2,10 L2,6 L2,2"
+              style="fill: rgb(255, 165, 0)"
+            />
+          </marker>
         </defs>
       </g>
       <!-- 图例 -->
@@ -226,8 +242,11 @@
           </a-collapse-panel>
           <a-collapse-panel key="3" header="进口设置">
             <div v-if="signal_info.phase_list.length > 0">
-              <a-form>
-                <a-form-item label="进口方向">
+              <a-form :label-col="labelMCol" :wrapper-col="wrapperMCol">
+                <a-form-item
+                  label="进口方向"
+                  style="margin-bottom: 10px !important"
+                >
                   <a-select
                     v-model:value="currentDirection"
                     size="small"
@@ -243,111 +262,95 @@
                     </a-select-option>
                   </a-select>
                 </a-form-item>
-              </a-form>
-            </div>
-            <a-divider />
-            <div v-if="signal_info.phase_list.length > 0">
-              <div>机动车</div>
-              <div>
-                <svg
-                  v-for="(item, index) in sign_pts[currentDirection]"
-                  :key="index"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 700 700"
-                  class="road-sign"
-                  @click="onDirectionClick(index)"
+                <a-form-item
+                  label="机动车"
+                  style="margin-bottom: 5px !important"
                 >
-                  <defs>
-                    <marker
-                      :id="
-                        'arrow' +
-                        currentPhase +
-                        '_' +
-                        currentDirection +
-                        '_' +
-                        index
-                      "
-                      markerUnits="strokeWidth"
-                      markerWidth="3"
-                      markerHeight="3"
-                      viewBox="0 0 12 12"
-                      refX="6"
-                      refY="6"
-                      orient="auto"
-                    >
-                      <path
-                        xmlns="http://www.w3.org/2000/svg"
-                        d="M2,2 L10,6 L2,10 L2,6 L2,2"
-                        style="fill: #a2a2a2"
-                      />
-                    </marker>
-                  </defs>
-                  <path
-                    :id="
-                      'direction' +
-                      currentPhase +
-                      '_' +
-                      currentDirection +
-                      '_' +
-                      index
-                    "
-                    :d="item.d"
-                    fill="none"
-                    stroke="#a2a2a2"
-                    stroke-width="100"
-                    :marker-end="
-                      'url(#arrow' +
-                      currentPhase +
-                      '_' +
-                      currentDirection +
-                      '_' +
-                      index +
-                      ')'
-                    "
-                  ></path>
-                </svg>
-              </div>
-              <!-- <div>非机动车</div>
-          <div>
-            <svg
-              v-for="(item, index) in sign_pts[currentDirection]"
-              :key="index"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 700 700"
-              class="road-sign"
-              @click="onDirectionClick(index)"
-            >
-              <defs>
-                <marker
-                  id="arrow"
-                  markerUnits="strokeWidth"
-                  markerWidth="3"
-                  markerHeight="3"
-                  viewBox="0 0 12 12"
-                  refX="6"
-                  refY="6"
-                  orient="auto"
-                >
-                  <path
+                  <svg
+                    v-for="(item, index) in sign_pts[currentDirection]"
+                    :key="index"
                     xmlns="http://www.w3.org/2000/svg"
-                    d="M2,2 L10,6 L2,10 L2,6 L2,2"
-                    style="fill: #a2a2a2"
-                  />
-                </marker>
-              </defs>
-              <path
-                :d="item.d"
-                fill="none"
-                stroke="#a2a2a2"
-                stroke-width="100"
-                marker-end="url(#arrow)"
-              ></path>
-            </svg>
-          </div>
-          <div>行人</div>
-          <div>1</div>
-          <div>待转</div>
-          <div>2</div> -->
+                    viewBox="0 0 700 700"
+                    class="road-sign"
+                    @click="onDirectionClick(index)"
+                  >
+                    <defs>
+                      <marker
+                        :id="`arrow_${currentPhase}_${currentDirection}_${index}`"
+                        markerUnits="strokeWidth"
+                        markerWidth="3"
+                        markerHeight="3"
+                        viewBox="0 0 12 12"
+                        refX="6"
+                        refY="6"
+                        orient="auto"
+                      >
+                        <path
+                          xmlns="http://www.w3.org/2000/svg"
+                          d="M2,2 L10,6 L2,10 L2,6 L2,2"
+                          style="fill: #a2a2a2"
+                        />
+                      </marker>
+                    </defs>
+                    <path
+                      :id="`direction_${currentPhase}_${currentDirection}_${index}`"
+                      :d="item.d"
+                      fill="none"
+                      stroke="#a2a2a2"
+                      stroke-width="100"
+                      :marker-end="`url(#arrow_${currentPhase}_${currentDirection}_${index})`"
+                    ></path>
+                  </svg>
+                </a-form-item>
+                <a-form-item
+                  label="非机动车"
+                  style="margin-bottom: 5px !important"
+                >
+                  <svg
+                    v-for="(item, index) in sign_non_pts[currentDirection]"
+                    :key="index"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 700 700"
+                    class="road-sign"
+                    @click="onNonDirectionClick(index)"
+                  >
+                    <defs>
+                      <marker
+                        :id="`non_arrow_${currentPhase}_${currentDirection}_${index}`"
+                        markerUnits="strokeWidth"
+                        markerWidth="3"
+                        markerHeight="3"
+                        viewBox="0 0 12 12"
+                        refX="6"
+                        refY="6"
+                        orient="auto"
+                      >
+                        <path
+                          xmlns="http://www.w3.org/2000/svg"
+                          d="M2,2 L10,6 L2,10 L2,6 L2,2"
+                          style="fill: #a2a2a2"
+                        />
+                      </marker>
+                    </defs>
+                    <path
+                      v-for="it in item.d.split(';')"
+                      :id="`non_direction_${currentPhase}_${currentDirection}_${index}`"
+                      :key="it"
+                      :d="it"
+                      fill="none"
+                      stroke="#a2a2a2"
+                      stroke-width="100"
+                      :marker-end="`url(#non_arrow_${currentPhase}_${currentDirection}_${index})`"
+                    />
+                  </svg>
+                </a-form-item>
+              </a-form>
+
+              <!-- <div>非机动车</div>
+                      <div>行人</div>
+                      <div>1</div>
+                      <div>待转</div>
+                      <div>2</div> -->
             </div>
           </a-collapse-panel>
         </a-collapse>
@@ -387,13 +390,14 @@
 import { defineComponent, onMounted, reactive, toRefs } from "vue";
 import Container from "../../../components/Container/index.vue";
 import { DragOutlined } from "@ant-design/icons-vue";
-import { getQByPathCurv } from "../../../utils/common";
+import { cal_point, getQByPathCurv, insect_pt } from "../../../utils/common";
 import { signalColor, getStartX, phaseColumns } from ".";
 import _ from "lodash";
 import { getCurvByAngle } from "../Flow";
 import { road_model } from "../data";
 import {
   create_signal_info,
+  getStraightTurnDetail,
   getTurnDetail_D,
   get_λ,
   insert_phase,
@@ -414,13 +418,17 @@ export default defineComponent({
       cvs: null as HTMLElement | null,
       cx: 350, //圆心x
       cy: 350, //圆心y
+      road_width: 120, //路宽
+      d: 180, //离圆心距离
+      far_d: 300, //离圆心距离(远端)
       svg_width: 590, //画布宽度
-      road_width: 160, //路宽
       phase_height: 80, //每个相位的间距
       curvature: 2, //路口弧度
-      cross_pts: [] as any[], //所有路口交叉点
       road_pts: [] as any[], //道路缩略
-      sign_pts: [] as any[], //路标（掉头右转之类）
+      sign_pts: [] as any[], //机动车路标
+      sign_non_pts: [] as any[], //非机动车路标
+      sign_ped_pts: [] as any[], //行人路标
+      sign_trans_pts: [] as any[], //待转路标
       currentPhase: 0, //当前选中相位
       currentTimeType: "", //当前修改时间类型（green/yellow/red）
       currentTimeTypeName: "", //当前修改时间类型（绿灯/黄灯/红灯）
@@ -470,6 +478,7 @@ export default defineComponent({
     const initDirections = () => {
       const road_count = road_info.road_attr.length;
       for (let i = 0; i < road_count; i++) {
+        //机动车
         const sign_pt = [];
         for (let m = 0; m < road_count; m++) {
           let j = i + m >= road_count ? i + m - road_count : i + m;
@@ -478,6 +487,23 @@ export default defineComponent({
           sign_pt.push(path);
         }
         states.sign_pts.push(sign_pt);
+
+        //非机动车
+        const sign_non_pt = [];
+        for (let m = 0; m < road_count; m++) {
+          let j = i + m >= road_count ? i + m - road_count : i + m;
+          let d = "";
+          if (i === j) {
+            d = getStraightTurnDetail(road_info, i);
+          } else {
+            d = getTurnDetail_D(road_info, i, j);
+          }
+          const path = { d };
+          sign_non_pt.push(path);
+        }
+        states.sign_non_pts.push(sign_non_pt);
+
+        //行人
       }
     };
 
@@ -710,16 +736,7 @@ export default defineComponent({
 
     //画相位路径
     function drawMain() {
-      states.cross_pts.length = 0;
       states.road_pts.length = 0;
-      for (var a = 0; a < road_info.road_attr.length; a++) {
-        var angle = road_info.road_attr[a].angle;
-        var radian = (Math.PI / 180) * angle; // 角度转弧度
-        var x3 = Math.cos(radian) * states.road_width + 350; // 交叉口圆半径100
-        var y3 = -Math.sin(radian) * states.road_width + 350;
-        //获取交叉口圆plus和路边相交的点
-        setPts(states.cross_pts, angle, x3, y3);
-      }
       for (let p = 0; p < road_info.signal_info.phase; p++) {
         drawPhase(p);
       }
@@ -750,73 +767,83 @@ export default defineComponent({
     function drawPhase(p: number) {
       //svg图像
       let d_str = "";
-      let roadIdx = 0;
       let roadEdgePoints = [];
-      for (let i = 0; i < states.cross_pts.length; i++) {
-        const pt = states.cross_pts[i];
+      for (let i = 0; i < road_info.road_attr.length; i++) {
+        //画主路径
+        const dr = Math.PI * 0.5;
+        const len = states.road_width;
+        //第一条路
+        let dw = getDW(i);
+        //夹角过小后移距离
+        let offset = getOffset(dw.diff_angle);
+        let d = states.far_d;
+        let pt_r10 = cal_point(dw, d, -dr, len); //起始点,道路左侧远端点
         if (i === 0) {
-          d_str += `M ${pt[0]} ${pt[1]} `;
-        } else if (i % 2 !== 0) {
-          /* 路边缘点 */
-          let angle = road_info.road_attr[roadIdx].angle;
-          const radian = (Math.PI / 180) * angle; // 角度转弧度
-          const x = Math.cos(radian) * 300 + 350; // 大圆半径300
-          const y = -Math.sin(radian) * 300 + 350;
-          let point = getPoint("fl", angle, x, y);
-          d_str += `L ${point[0]} ${point[1]} `;
-          point = getPoint("fr", angle, x, y);
-          d_str += `L ${point[0]} ${point[1]} `;
-          //连接黄色点
-          d_str += `L ${pt[0]} ${pt[1]} `;
-          /* Q */
-          const nextPt =
-            i + 1 === states.cross_pts.length
-              ? states.cross_pts[0]
-              : states.cross_pts[i + 1];
-          const Q = getQByPathCurv(pt, nextPt, states.curvature);
-          d_str += `Q ${Q} `;
-          if (i === states.cross_pts.length - 1) {
-            //最后一个点曲线连接
-            const firstPt = states.cross_pts[0];
-            d_str += `${firstPt[0]} ${firstPt[1]} `;
-          }
-          /*标记第几条路 */
-          roadIdx++;
+          d_str += `M${pt_r10.x},${pt_r10.y} `;
         } else {
-          d_str += ` ${pt[0]} ${pt[1]} `;
+          d_str += `L${pt_r10.x},${pt_r10.y} `;
         }
+
+        let pt_r11 = cal_point(dw, d, dr, len);
+        d_str += `L${pt_r11.x},${pt_r11.y} `;
+
+        d = states.d + offset;
+        let pt_r12 = cal_point(dw, d, dr, len);
+        d_str += `L${pt_r12.x},${pt_r12.y} `;
+        //第二条路
+        const next_i = i === road_info.road_attr.length - 1 ? 0 : i + 1;
+        dw = getDW(next_i);
+        d = states.far_d;
+        let pt_l11 = cal_point(dw, d, -dr, len);
+
+        d = states.d + offset;
+        let pt_l12 = cal_point(dw, d, -dr, len);
+
+        //连接两条路
+        let Q = insect_pt(
+          { point1: pt_r11, point2: pt_r12 },
+          { point1: pt_l11, point2: pt_l12 }
+        );
+        //连接第一条路右侧，Q点，第二条路左侧
+        if (Q) {
+          d_str += `Q${Q.x},${Q.y} ${pt_l12.x},${pt_l12.y} L${pt_l11.x},${pt_l11.y}`;
+        }
+
+        // const roadEdgePoint = setRoadEdgePoint(i);
+        // roadEdgePoints.push(roadEdgePoint);
       }
-      //添加路左右两侧点
-      for (let ag = 0; ag < road_info.road_attr.length; ag++) {
-        const roadEdgePoint = setRoadEdgePoint(ag);
-        roadEdgePoints.push(roadEdgePoint);
-      }
-      setPath(d_str, p, roadEdgePoints);
+      setPath(d_str, p);
       refreshLocation();
     }
-
-    const setRoadEdgePoint = (i: number) => {
-      var angle = road_info.road_attr[i].angle;
-      var radian = (Math.PI / 180) * angle;
-      var x = Math.cos(radian) * 250 + 350;
-      var y = -Math.sin(radian) * 250 + 350;
-      const insideWidth = states.road_width - 100;
-      const right_point = getPoint("fr", angle, x, y, insideWidth);
-      const left_point = getPoint("fl", angle, x, y, insideWidth);
-      return { right_point, left_point };
+    const getDW = (i: number) => {
+      const next_i = i === road_info.road_attr.length - 1 ? 0 : i + 1;
+      const angle1 = road_info.road_attr[i].angle;
+      const angle2 = road_info.road_attr[next_i].angle;
+      const radian = (Math.PI / 180) * angle1; // 角度转弧度
+      const dw = {
+        dir: { radian },
+        origin: { x: states.cx },
+        diff_angle:
+          angle2 - angle1 < 0 ? 360 + (angle2 - angle1) : angle2 - angle1,
+      };
+      return dw;
+    };
+    const getOffset = (diff_angle: number) => {
+      let offset = 0;
+      if (diff_angle < 50) {
+        offset = (90 - diff_angle) * 2.5;
+      } else if (diff_angle < 90) {
+        offset = (90 - diff_angle) * 1.5;
+      }
+      return offset > 120 ? 120 : offset;
     };
 
     //写路径至数组
-    function setPath(d_str: string, i: number, point: any[]) {
-      const path = {
-        id: "road_path",
-        d: d_str,
-      };
-      const g = {
-        transform: `translate(${130 * i + 20},10) scale(0.18)`,
-      };
+    function setPath(d_str: string, i: number) {
+      const path = { id: "road_path", d: d_str };
+      const g = { transform: `translate(${130 * i + 20},10) scale(0.18)` };
       const text = `${road_info.signal_info.phase_list[i].name}：${road_info.signal_info.phase_list[i].green}秒`;
-      states.road_pts.push({ g, path, point, text });
+      states.road_pts.push({ g, path, text });
     }
 
     //重新调整相位位置
@@ -900,14 +927,23 @@ export default defineComponent({
       }, 10);
     };
 
-    //点击方向
+    //点击机动车方向
     const onDirectionClick = (index: number) => {
       setDirection(index);
     };
 
     //非机动车点击方向
-    const onDirectionClick2 = (index: number) => {
-      setDirection(index);
+    const onNonDirectionClick = (index: number) => {
+      const phase_item = road_info.signal_info.phase_list[states.currentPhase];
+      const direction = phase_item.directions[states.currentDirection][index]; //方向数据
+      direction.non_is_enable = !direction.non_is_enable;
+      if (direction.non_is_enable) {
+        drawNonDirectionPath(index);
+        drawDirectionColor("non_direction", index, true);
+      } else {
+        deleteDirectionPath(index, "non_direction_line");
+        drawDirectionColor("non_direction", index, false);
+      }
     };
 
     //设置点击方向的颜色及划线
@@ -957,84 +993,131 @@ export default defineComponent({
       ].forEach((d: any, index: number) => {
         if (d.is_enable) {
           //颜色标记
-          drawDirectionColor(index, true);
+          drawDirectionColor("direction", index, true);
           //画路径
           drawDirectionPath(index);
         } else {
           //颜色取消标记
-          drawDirectionColor(index, false);
+          drawDirectionColor("direction", index, false);
           //删除路径
-          deleteDirectionPath(index);
+          deleteDirectionPath(index, "direction_line");
         }
       });
     };
 
+    //机动车方向路径
     const drawDirectionPath = (index: number) => {
+      const d_str = drawP2P(index, 60, false);
+      const id = "direction_line";
+      drawP2PPath(index, id, d_str);
+    };
+
+    //非机动车方向路径
+    const drawNonDirectionPath = (index: number) => {
+      const d_str = drawP2P(index, 40, true);
+      const id = "non_direction_line";
+      drawP2PPath(index, id, d_str);
+    };
+
+    //连线, is_non非机动车
+    const drawP2P = (index: number, width: number, is_non: boolean) => {
       const road_count = road_info.road_attr.length;
       const index1 = states.currentDirection;
       const index2 =
         index1 + index >= road_count
           ? index1 + index - road_count
           : index1 + index;
-      const point1 =
-        states.road_pts[states.currentPhase].point[index1].right_point;
-      const point2 =
-        states.road_pts[states.currentPhase].point[index2].left_point;
-      const curvature = getCurvByAngle(
-        0.06,
-        road_info.road_attr[index1].angle,
-        road_info.road_attr[index2].angle,
-        point1,
-        point2
+
+      const dr = Math.PI * 0.5;
+      const len = states.road_width - width;
+      const far = 60;
+      let d_str = "";
+      //第一条路
+      let dw = getDW(index1);
+      //夹角过小后移距离
+      let offset = getOffset(dw.diff_angle);
+      let d = states.far_d - far;
+      let pt_r11 = cal_point(dw, d, dr, len);
+
+      d = states.d + offset;
+      let pt_r12 = cal_point(dw, d, dr, len);
+      //第二条路
+      dw = getDW(index2);
+      d = states.far_d - far;
+      let pt_l11 = cal_point(dw, d, -dr, len);
+
+      d = states.d + offset;
+      let pt_l12 = cal_point(dw, d, -dr, len);
+
+      //连接两条路
+      let Q = insect_pt(
+        { point1: pt_r11, point2: pt_r12 },
+        { point1: pt_l11, point2: pt_l12 }
       );
-      const Q = getQByPathCurv(point1, point2, curvature);
-      const d_str = `M ${point1[0]} ${point1[1]} Q ${Q} ${point2[0]} ${point2[1]}`;
-      const id = "direction_line";
-      const tag =
-        "direction_line_" +
-        states.currentPhase +
-        "_" +
-        states.currentDirection +
-        "_" +
-        index;
-      const line = document.createElementNS(states.ns, "path");
-      line.setAttribute("tag", tag);
-      line.setAttribute("id", id);
-      line.setAttribute("d", d_str);
-      line.setAttribute("stroke", "#fff");
-      line.setAttribute("stroke-width", "5");
-      line.setAttribute("fill", `none`);
-      line.setAttribute("marker-end", `url(#${id})`);
-      document.querySelectorAll("g").forEach((g) => {
-        if (g.id === "phase_" + states.currentPhase) {
-          g.appendChild(line);
+
+      //非机动车过马路
+      if (is_non && index1 === index2) {
+        dw = getDW(index1);
+        d = states.d + offset - 40;
+        let pt_c = cal_point(dw, d, dr, 0);
+        let pt_1 = cal_point(dw, d, dr, len);
+        let pt_2 = cal_point(dw, d, -dr, len);
+        d_str = `M${pt_c.x},${pt_c.y} L${pt_1.x},${pt_1.y};M${pt_c.x},${pt_c.y} L${pt_2.x},${pt_2.y}`;
+      }
+      //连接第一条路右侧，Q点，第二条路左侧
+      else if (Q) {
+        d_str = `M${pt_r11.x},${pt_r11.y} L${pt_r12.x},${pt_r12.y} Q${Q.x},${Q.y} ${pt_l12.x},${pt_l12.y} L${pt_l11.x},${pt_l11.y}`;
+      } else {
+        if (index1 != index2) {
+          d_str += `M${pt_r11.x},${pt_r11.y} L${pt_r12.x},${pt_r12.y} L${pt_l12.x},${pt_l12.y} L${pt_l11.x},${pt_l11.y}`;
+        } else {
+          let pt_c = cal_point(dw, d - 100, dr, 0);
+          d_str += `M${pt_r11.x},${pt_r11.y} L${pt_r12.x},${pt_r12.y} Q${pt_c.x},${pt_c.y} ${pt_l12.x},${pt_l12.y} L${pt_l11.x},${pt_l11.y}`;
         }
+      }
+      return d_str;
+    };
+
+    //画连线路径
+    const drawP2PPath = (index: number, id: string, d_str: string) => {
+      const tag = `${id}_${states.currentPhase}_${states.currentDirection}_${index}`;
+      const color = id === "direction_line" ? "#fff" : "rgb(255, 165, 0)";
+      //非机动车同一方向会存在两条对向
+      d_str.split(";").map((d) => {
+        const line = document.createElementNS(states.ns, "path");
+        line.setAttribute("tag", tag);
+        line.setAttribute("id", id);
+        line.setAttribute("d", d);
+        line.setAttribute("stroke", color);
+        line.setAttribute("stroke-width", "10");
+        line.setAttribute("fill", `none`);
+        line.setAttribute("marker-end", `url(#${id})`);
+        document.querySelectorAll("g").forEach((g) => {
+          if (g.id === "phase_" + states.currentPhase) {
+            g.appendChild(line);
+          }
+        });
       });
     };
 
-    const deleteDirectionPath = (index: number) => {
-      const tag =
-        "direction_line_" +
-        states.currentPhase +
-        "_" +
-        states.currentDirection +
-        "_" +
-        index;
+    const deleteDirectionPath = (index: number, id: string) => {
+      const tag = `${id}_${states.currentPhase}_${states.currentDirection}_${index}`;
       document.querySelectorAll("path").forEach((e: any) => {
-        if (
-          e.id.indexOf("direction_line") > -1 &&
-          e.getAttribute("tag") === tag
-        ) {
+        if (e.id.indexOf(id) > -1 && e.getAttribute("tag") === tag) {
           e.remove();
         }
       });
     };
 
-    const drawDirectionColor = (index: number, is_enable: boolean) => {
-      const idx =
-        states.currentPhase + "_" + states.currentDirection + "_" + index; //相位+方向+点击转向
-      const currentDirection = document.querySelector(`#direction${idx}`);
-      const currentArrow = document.querySelector(`#arrow${idx}>path`);
+    const drawDirectionColor = (
+      id: string,
+      index: number,
+      is_enable: boolean
+    ) => {
+      const idx = `${states.currentPhase}_${states.currentDirection}_${index}`; //相位+方向+点击转向
+      const arrow_id = id === "direction" ? "arrow" : "non_arrow";
+      const currentDirection = document.querySelector(`#${id}_${idx}`);
+      const currentArrow = document.querySelector(`#${arrow_id}_${idx}>path`);
       const currentColor = is_enable ? "#4f48ad" : "#a2a2a2";
       currentDirection?.setAttribute("stroke", currentColor);
       currentArrow?.setAttribute("style", "fill:" + currentColor);
@@ -1052,7 +1135,9 @@ export default defineComponent({
 
     return {
       labelCol: { span: 10 },
-      wrapperCol: { span: 12 },
+      wrapperCol: { span: 14 },
+      labelMCol: { span: 3 },
+      wrapperMCol: { span: 21 },
       ...toRefs(states),
       ...toRefs(road_info),
       signalColor,
@@ -1063,6 +1148,7 @@ export default defineComponent({
       onItemPeriodBlur,
       onDirectionChange,
       onDirectionClick,
+      onNonDirectionClick,
       onGClick,
       onChangeSignal,
       onTimeConfirm,

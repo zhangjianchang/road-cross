@@ -336,7 +336,7 @@ import {
   colorSchemes,
 } from ".";
 import _ from "lodash";
-import { initEnterNum, initFlowDetail, plans, roadStates } from "..";
+import { create_flow_detail, plans, roadStates, update_flow_detail } from "..";
 import { road_model } from "../data";
 import { message } from "ant-design-vue";
 
@@ -378,8 +378,6 @@ export default defineComponent({
     async function setRoadFlow(rf: any) {
       //道路数据填充
       await initRoadInfo(rf);
-      //进口车道设置
-      initEnterNum(rf);
     }
 
     function render() {
@@ -454,11 +452,15 @@ export default defineComponent({
 
     //填充表格
     async function initRoadInfo(rf: any) {
-      if (!roadStates.is_flow_init) {
-        initFlowDetail(rf);
-      } else if (plans.road_count !== rf.flow_info.line_info.length) {
-        //道路数变化的时候需要重新加载
-        initFlowDetail(rf);
+      if (
+        !roadStates.is_flow_init &&
+        plans.road_count !== rf.flow_info.line_info.length
+      ) {
+        //初始化时加载,道路数变化时重新加载
+        create_flow_detail(rf);
+      } else {
+        //只变动了方向
+        update_flow_detail(rf);
       }
       roadStates.is_flow_init = true; //标记已经初始化过了
     }

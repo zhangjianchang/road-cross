@@ -193,7 +193,6 @@ import {
 } from "@ant-design/icons-vue";
 import { insect_pt, unique } from "../../../utils/common";
 import {
-  basicDirection,
   getBackground,
   getDirectionZhName,
   get_λ,
@@ -226,8 +225,6 @@ export default defineComponent({
       d: 120, //离圆心距离
       far_d: 240, //离圆心距离
       road_width: 80, //路宽
-      curvature: 2, //路口弧度
-      cross_pts: [] as any[], //所有路口交叉点
       road_sign_pts: [] as any[], //路标
       total_color: "#fff", //中心总颜色
       total_saturation: "0.00", //中心总数值

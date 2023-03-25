@@ -181,6 +181,33 @@ export function create_flow_detail(road_info: any) {
   initEnterNum(road_info);
 }
 
+//加载渠化信息
+export function update_flow_detail(road_info: any) {
+  //更新各方向之间的角度
+  road_info.flow_info.flow_detail.map((fd: any) => {
+    fd.turn.map((t: any) => {
+      const ij = t.tag.split("#");
+      const i = Number(ij[0]);
+      const j = Number(ij[1]);
+      t.d = getTurnDetail_D(road_info, i, j);
+    });
+  });
+  //更新进口车道饱和流量
+  road_info.flow_info.saturation.map((fs: any, index: number) => {
+    const enter_num = road_info.canalize_info[index].enter.num;
+    const fs_count = fs.length;
+    if (enter_num > fs_count) {
+      //新增了
+      for (let i = 0; i < enter_num - fs_count; i++) {
+        fs.push({ number: 1650 });
+      }
+    } else if (enter_num < fs_count) {
+      //减少了
+      fs.splice(0, fs_count - enter_num);
+    }
+  });
+}
+
 //加载流量相关
 export function initFlowDetail(road_info: any) {
   road_info.flow_info.flowColumns.length = 0;
@@ -274,6 +301,7 @@ export const getTurnDetail_D = (road_info: any, i: number, next_i: number) => {
   if (i === next_i) {
     states.d = -40;
     states.len = 120;
+    k = -k; //反向系数
   }
   //对面(目前只有4条路的时候会有这种情况)
   if (Math.abs(i - next_i) === states.road_count / 2) {
@@ -308,7 +336,7 @@ export const getTurnDetail_D = (road_info: any, i: number, next_i: number) => {
   );
 
   let d_str = "";
-  //连接第一条路右侧，Q点，第二条路左侧
+  //连接第一条路左侧，Q点，第二条路左侧
   if (Q && i !== next_i) {
     d_str = `M${pt_r11.x},${pt_r11.y} L${pt_r12.x},${pt_r12.y} Q${Q.x},${Q.y} ${pt_l12.x},${pt_l12.y} L${pt_l11.x},${pt_l11.y}`;
   } else {
@@ -319,18 +347,14 @@ export const getTurnDetail_D = (road_info: any, i: number, next_i: number) => {
 };
 
 const getDW = (road_info: any, i: number) => {
-  const next_i = i === road_info.road_attr.length - 1 ? 0 : i + 1;
-  const angle1 = road_info.road_attr[i].angle;
-  const angle2 = road_info.road_attr[next_i].angle;
-  const radian = (Math.PI / 180) * angle1; // 角度转弧度
+  const angle = road_info.road_attr[i].angle;
+  const radian = (Math.PI / 180) * angle; // 角度转弧度
   const dw = {
     dir: { radian },
     origin: { x: 350 }, //圆心x
-    diff_angle: angle2 - angle1 < 0 ? 360 + (angle2 - angle1) : angle2 - angle1,
   };
   return dw;
 };
-
 /**流量相关 */
 
 /**信号相关 */
@@ -391,6 +415,23 @@ export const getDirectionOerder = (direction: string) => {
   }
 };
 
+export const getStraightTurnDetail = (road_info: any, i: number) => {
+  const states = {
+    d: 0, //离圆心距离
+    len: 200, //路宽
+    road_count: road_info.road_attr.length, //路口数量
+  };
+  const dr = Math.PI * 0.5;
+  const dw = getDW(road_info, i);
+  const d = states.d;
+  let pt = cal_point(dw, d, dr, 0); //中心线
+  let pt_1 = cal_point(dw, d, dr, states.len); //左边
+  let pt_2 = cal_point(dw, d, -dr, states.len); //右边
+
+  let d_str = `M${pt.x},${pt.y} L${pt_1.x},${pt_1.y};`;
+  d_str += `M${pt.x},${pt.y} L${pt_2.x},${pt_2.y} `;
+  return d_str;
+};
 /**信号相关 */
 
 /**计算 */
