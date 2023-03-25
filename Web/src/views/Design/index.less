@@ -175,16 +175,16 @@
   }
 
   &-A {
-    background-color: #7cfc00;
-  }
-  &-B {
     background-color: #008000;
   }
-  &-C {
+  &-B {
     background-color: #2ad100;
   }
+  &-C {
+    background-color: #7cfc00;
+  }
   &-D {
-    background-color: #f8f40f;
+    background-color: #ffd700;
   }
   &-E {
     background-color: #ffa500;
@@ -211,6 +211,7 @@
 }
 
 .main-canvas {
+  position: relative;
   width: 700px;
   height: 700px;
   float: left;
@@ -218,12 +219,27 @@
   margin-left: 10px;
 }
 
-#canvas,
-.canvas {
+#canvas {
+  position: absolute;
   width: 700px;
   height: 700px;
-  float: left;
   background-color: #ffffff;
+}
+
+.func {
+  position: absolute;
+  display: inline-block;
+  height: 700px;
+  width: 150px;
+  right: 0;
+  z-index: 1;
+}
+
+.text-info {
+  position: absolute;
+  bottom: 25px;
+  left: 280px;
+  z-index: 1;
 }
 
 .report {
@@ -275,20 +291,6 @@
     font-size: 13px;
     padding-top: 15px;
   }
-}
-
-.func {
-  position: relative;
-  display: inline-block;
-  margin-left: -150px;
-  height: 700px;
-  width: 150px;
-}
-
-.text-info {
-  position: relative;
-  bottom: 44px;
-  left: 310px;
 }
 
 .error-msg {

@@ -225,7 +225,6 @@
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 700 700"
                       class="road-sign"
-                      v-if="col !== '0'"
                     >
                       <path
                         :id="'direction'"
@@ -235,29 +234,6 @@
                         stroke-width="100"
                         :marker-end="'url(#arrow)'"
                       ></path>
-                    </svg>
-                    <svg
-                      v-else
-                      viewBox="0 0 1500 1500"
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="road-sign"
-                    >
-                      <g
-                        :transform="`rotate(${
-                          270 - road_attr[index].angle
-                        } ${cx},${cy}) translate(${
-                          flow_info.flow_detail[index].turn[Number(col)]
-                            .translate
-                        })`"
-                      >
-                        <path
-                          :id="'direction'"
-                          :d="flow_info.flow_detail[index].turn[Number(col)].d"
-                          fill="#4f48ad"
-                          stroke="none"
-                          stroke-width="100"
-                        ></path>
-                      </g>
                     </svg>
                     <div
                       :class="

@@ -7,6 +7,7 @@
       v-show="!showAnalysis && !isNaN(Number(total_saturation))"
       class="main-canvas"
     >
+      <!-- 功能区 -->
       <div class="func">
         <div class="gradient-horizontal">
           <div class="gradient-horizontal-A rect">A</div>
@@ -17,64 +18,63 @@
           <div class="gradient-horizontal-F rect">F</div>
         </div>
       </div>
+      <!-- 底部功能区 -->
+      <div class="text-info">单位：s/pcu</div>
       <!-- 图示 -->
-      <div class="canvas">
-        <svg id="canvas">
-          <text v-for="(_, index) in road_attr" :key="index" x="330">
-            <textPath :xlink:href="'#road_' + (index + 1)">
-              方向{{ index + 1 }}
-            </textPath>
-          </text>
-          <!-- 路标 -->
-          <g
-            v-for="road in road_sign_pts"
-            :key="road.g"
-            :transform="road.g.transform"
-            class="road-sign"
-            :id="road.g.id"
-          >
-            <rect
-              v-if="road.rect.saturation != 0"
-              x="200"
-              y="-100"
-              rx="100"
-              ry="100"
-              width="640"
-              height="1200"
-              :fill="road.rect.background"
-              stroke="#ddd"
-              stroke-width="2"
-            />
-            <path
-              :d="road.sign.path"
-              fill="#fff"
-              v-if="road.rect.saturation != 0"
-            ></path>
-            <text
-              x="250"
-              y="1400"
-              fill="#000"
-              style="font-size: 260px"
-              v-if="road.rect.saturation != 0"
-            >
-              {{ road.rect.saturation.toFixed(1) }}
-            </text>
-          </g>
-          <circle
-            cx="350"
-            cy="350"
-            r="30"
-            :fill="total_color"
-            stroke="#eee"
-            stroke-width="1"
-            id="total_saturation"
+      <svg id="canvas">
+        <text v-for="(_, index) in road_attr" :key="index" x="330">
+          <textPath :xlink:href="'#road_' + (index + 1)">
+            方向{{ index + 1 }}
+          </textPath>
+        </text>
+        <!-- 路标 -->
+        <g
+          v-for="road in road_sign_pts"
+          :key="road.g"
+          :transform="road.g.transform"
+          class="road-sign"
+          :id="road.g.id"
+        >
+          <rect
+            v-if="road.rect.saturation != 0"
+            x="200"
+            y="-100"
+            rx="100"
+            ry="100"
+            width="640"
+            height="1200"
+            :fill="road.rect.background"
+            stroke="#ddd"
+            stroke-width="2"
           />
-          <text x="335" y="355" fill="#fff">
-            {{ total_saturation }}
+          <path
+            :d="road.sign.path"
+            fill="#fff"
+            v-if="road.rect.saturation != 0"
+          ></path>
+          <text
+            x="250"
+            y="1400"
+            fill="#000"
+            style="font-size: 260px"
+            v-if="road.rect.saturation != 0"
+          >
+            {{ road.rect.saturation.toFixed(1) }}
           </text>
-        </svg>
-        <div class="text-info">单位：s/pcu</div>
-      </div>
+        </g>
+        <circle
+          cx="350"
+          cy="350"
+          r="30"
+          :fill="total_color"
+          stroke="#eee"
+          stroke-width="1"
+          id="total_saturation"
+        />
+        <text x="335" y="355" fill="#fff">
+          {{ total_saturation }}
+        </text>
+      </svg>
     </div>
     <div v-show="showAnalysis" class="main-canvas">
       <div class="report" id="report"></div>
@@ -732,7 +732,7 @@ export default defineComponent({
           plans.canalize_plans[a.canalize_plan].flow_plans[a.flow_plan]
             .signal_plans[a.signal_plan].road_info;
         let reportItems = [] as any[];
-        rf.saturation_info.map((si, i) => {
+        rf.delay_info.map((si, i) => {
           si.map((s: any) => {
             reportItems.push({
               x: getDirectionZhName(i, s.key),
@@ -762,7 +762,7 @@ export default defineComponent({
                 .road_info;
 
             //先清空
-            rf.saturation_info.length = 0;
+            rf.delay_info.length = 0;
 
             for (let i = 0; i < plans.road_count; i++) {
               const si = [] as any[];
@@ -774,7 +774,7 @@ export default defineComponent({
                 let number = getRatio(i, j, key, q, rf);
                 si.push({ key, number });
               });
-              rf.saturation_info.push(si);
+              rf.delay_info.push(si);
             }
           });
         });

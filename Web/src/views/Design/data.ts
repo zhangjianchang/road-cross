@@ -34,6 +34,8 @@ export const road_model = {
   },
 
   saturation_info: [] as any[],
+  delay_info: [] as any[],
+  queue_info: [] as any[], 
 };
 
 //方案model

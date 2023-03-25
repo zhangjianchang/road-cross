@@ -392,8 +392,16 @@ import { signalColor, getStartX, phaseColumns } from ".";
 import _ from "lodash";
 import { getCurvByAngle } from "../Flow";
 import { road_model } from "../data";
-import { create_signal_info, get_λ, insert_phase, plans, roadStates } from "..";
+import {
+  create_signal_info,
+  getTurnDetail_D,
+  get_λ,
+  insert_phase,
+  plans,
+  roadStates,
+} from "..";
 import { message } from "ant-design-vue";
+import { openNotfication } from "../../../utils/message";
 
 export default defineComponent({
   components: { Container, DragOutlined },
@@ -465,9 +473,7 @@ export default defineComponent({
         const sign_pt = [];
         for (let m = 0; m < road_count; m++) {
           let j = i + m >= road_count ? i + m - road_count : i + m;
-          const road = road_info.road_attr[i];
-          const nextRoad = road_info.road_attr[j];
-          const d = `M${road.coordinate[0]} ${road.coordinate[1]} L${states.cx} ${states.cy} L${nextRoad.coordinate[0]} ${nextRoad.coordinate[1]}`;
+          const d = getTurnDetail_D(road_info, i, j);
           const path = { d };
           sign_pt.push(path);
         }
@@ -909,18 +915,39 @@ export default defineComponent({
       //当前相位
       const phase_item = road_info.signal_info.phase_list[states.currentPhase];
       const direction = phase_item.directions[states.currentDirection][index]; //方向数据
+
+      //渠化中是否存在这个方向
+      let is_exsit = false;
       //写数据
-      direction.is_enable = !direction.is_enable;
-      if (direction.is_enable) {
-        direction.green = phase_item.green;
-        direction.yellow = phase_item.yellow;
-        direction.red = phase_item.red;
+      const is_enable = !direction.is_enable; //用户点击结果
+      const key = direction.direction; //当前用户选中方向
+      //需要判断是否有两方向或三方向指示,如果有,需要全部统一赋值
+      const rc = road_info.canalize_info[states.currentDirection];
+      rc.road_sign.enter.map((item: any) => {
+        if (item.key.indexOf(key) > -1) {
+          //查找多方向其余联动方向
+          phase_item.directions[states.currentDirection].map((d: any) => {
+            if (item.key.indexOf(d.direction) > -1) {
+              d.is_enable = is_enable;
+              if (direction.is_enable) {
+                d.green = phase_item.green;
+                d.yellow = phase_item.yellow;
+                d.red = phase_item.red;
+              } else {
+                d.green = 0;
+                d.yellow = 0;
+                d.red = 0;
+              }
+            }
+          });
+          is_exsit = true;
+        }
+      });
+      if (is_exsit) {
+        setDirectionLine();
       } else {
-        direction.green = 0;
-        direction.yellow = 0;
-        direction.red = 0;
+        openNotfication("warning", "请在渠化页面中设置相关方向道路路标");
       }
-      setDirectionLine();
     };
 
     //点击后画线

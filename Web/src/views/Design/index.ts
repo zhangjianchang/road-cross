@@ -1,6 +1,6 @@
 import _ from "lodash";
 import { reactive } from "vue";
-import { getQuadrantByAngle } from "../../utils/common";
+import { cal_point, getQuadrantByAngle, insect_pt } from "../../utils/common";
 import { getRoadDefaultSign, RoadCross } from "./Canalize";
 import { DirectionsZh, plans_model } from "./data";
 import {
@@ -36,12 +36,14 @@ export const menuList = [
 ];
 
 export interface RoadInfo {
-  basic_info: {} | any;
-  road_attr: [] | any;
-  canalize_info: {} | any;
-  flow_info: {} | any;
-  saturation_info: [] | any;
-  signal_info: {} | any;
+  road_attr: [] | any; //路口数据
+  basic_info: {} | any; //基础信息
+  canalize_info: {} | any; //渠化信息
+  flow_info: {} | any; //流量信息
+  signal_info: {} | any; //信号信息
+  saturation_info: [] | any; //饱和度信息
+  delay_info: [] | any; //延误信息
+  queue_info: [] | any; //排队信息
 }
 
 //道路信息
@@ -101,19 +103,22 @@ export function getBackground(number: number | string) {
 
 export function getBackgroundByDelay(number: number | string) {
   number = Number(number);
-  if (number <= 10) {
-    return "#7cfc00";
-  } else if (number <= 20) {
-    return "#008000";
-  } else if (number <= 35) {
-    return "#2ad100";
-  } else if (number <= 55) {
-    return "#f8f40f";
-  } else if (number <= 80) {
-    return "#ffa500";
-  } else {
-    return "#ff0000";
-  }
+  if (number <= 10) return "#008000";
+  else if (number <= 20) return "#2ad100";
+  else if (number <= 35) return "#7cfc00";
+  else if (number <= 55) return "#ffd700";
+  else if (number <= 80) return "#ffa500";
+  else return "#ff0000";
+}
+
+export function getBackgroundBySaturation(number: number | string) {
+  number = Number(number);
+  if (number <= 0.25) return "#008000";
+  else if (number <= 0.5) return "#2ad100";
+  else if (number <= 0.7) return "#7cfc00";
+  else if (number <= 0.85) return "#ffd700";
+  else if (number <= 0.95) return "#ffa500";
+  else return "#ff0000";
 }
 /**公用部分 */
 
@@ -245,39 +250,87 @@ export function initEnterNum(road_info: any) {
 //加载各道路之间的方向
 const getTurnDetail = (road_info: any, i: number, j: number) => {
   const roadCount = road_info.road_attr.length;
-  const road = road_info.road_attr[i];
-  const nextRoad = road_info.road_attr[j];
-  const translate = getUturnTranslate(road_info, i);
+  const d = getTurnDetail_D(road_info, i, j);
   //转向属性
   const turn_detail = {
     number: i === j ? 0 : 450,
-    d:
-      i === j
-        ? uturn_path
-        : `M${road.coordinate[0]} ${road.coordinate[1]} Q${roadStates.cx} ${roadStates.cy} ${nextRoad.coordinate[0]} ${nextRoad.coordinate[1]}`,
+    d,
     tag: `${i}#${j}`, //标记从哪个车道到哪个车道
     order: j - i <= 0 ? j - i + roadCount : j - i, //排序（为了把掉头车道放在第一个）
-    translate,
   } as any;
   return turn_detail;
 };
 
-//掉头车道平移计算
-const getUturnTranslate = (road_info: any, i: number) => {
-  const angle = road_info.road_attr[i].angle;
-  const quadrant = getQuadrantByAngle(angle);
-  if (quadrant === 0) {
-    return `${-(roadStates.cx + 270 - angle)},${roadStates.cy - angle}`;
-  } else if (quadrant === 1) {
-    return `${-(roadStates.cx + 270 - angle)},${-(roadStates.cy - angle)}`;
-  } else if (quadrant === 2) {
-    return `${roadStates.cx - (270 - angle)},${-(270 - angle + roadStates.cy)}`;
-  } else if (quadrant === 3) {
-    return `${roadStates.cx - (270 - angle)},${270 - angle - roadStates.cy}`;
-  } else if (quadrant === 4) {
-    return `${-(roadStates.cx - angle)},${roadStates.cy}`;
+export const getTurnDetail_D = (road_info: any, i: number, next_i: number) => {
+  const states = {
+    d: 120, //离圆心距离
+    far_d: 240, //离圆心距离
+    len: 80, //路宽
+    road_count: road_info.road_attr.length, //路口数量
+  };
+  let k = 1;
+  const dr = Math.PI * 0.5;
+  //掉头
+  if (i === next_i) {
+    states.d = -40;
+    states.len = 120;
   }
+  //对面(目前只有4条路的时候会有这种情况)
+  if (Math.abs(i - next_i) === states.road_count / 2) {
+    states.len = 0;
+  }
+  //相邻
+  const j = next_i === states.road_count - 1 ? -1 : next_i;
+  if (i - j === 1) {
+    k = -k; //反向系数
+  }
+
+  //第一条路
+  let dw = getDW(road_info, i);
+  let d = states.far_d;
+  let pt_r11 = cal_point(dw, d, -dr * k, states.len);
+
+  d = states.d;
+  let pt_r12 = cal_point(dw, d, -dr * k, states.len);
+
+  //第二条路
+  dw = getDW(road_info, next_i);
+  d = states.far_d;
+  let pt_l11 = cal_point(dw, d, dr * k, states.len);
+
+  d = states.d;
+  let pt_l12 = cal_point(dw, d, dr * k, states.len);
+
+  //连接两条路
+  let Q = insect_pt(
+    { point1: pt_r11, point2: pt_r12 },
+    { point1: pt_l11, point2: pt_l12 }
+  );
+
+  let d_str = "";
+  //连接第一条路右侧，Q点，第二条路左侧
+  if (Q && i !== next_i) {
+    d_str = `M${pt_r11.x},${pt_r11.y} L${pt_r12.x},${pt_r12.y} Q${Q.x},${Q.y} ${pt_l12.x},${pt_l12.y} L${pt_l11.x},${pt_l11.y}`;
+  } else {
+    let pt_c = cal_point(dw, d - 200, dr, 0);
+    d_str = `M${pt_r11.x},${pt_r11.y} L${pt_r12.x},${pt_r12.y} Q${pt_c.x},${pt_c.y} ${pt_l12.x},${pt_l12.y} L${pt_l11.x},${pt_l11.y}`;
+  }
+  return d_str;
 };
+
+const getDW = (road_info: any, i: number) => {
+  const next_i = i === road_info.road_attr.length - 1 ? 0 : i + 1;
+  const angle1 = road_info.road_attr[i].angle;
+  const angle2 = road_info.road_attr[next_i].angle;
+  const radian = (Math.PI / 180) * angle1; // 角度转弧度
+  const dw = {
+    dir: { radian },
+    origin: { x: 350 }, //圆心x
+    diff_angle: angle2 - angle1 < 0 ? 360 + (angle2 - angle1) : angle2 - angle1,
+  };
+  return dw;
+};
+
 /**流量相关 */
 
 /**信号相关 */
