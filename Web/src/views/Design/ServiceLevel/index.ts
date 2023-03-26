@@ -20,3 +20,54 @@ export const getServiceByTypeAndRatio = (type: string, ratio: number) => {
     else return "F";
   }
 };
+
+export const lineColumns = [
+  {
+    title: "服务水平",
+    dataIndex: "serviceLevel",
+    width: 40,
+  },
+  {
+    title: "饱和度S",
+    dataIndex: "saturation",
+    width: 40,
+  },
+  {
+    title: "延误时间T(秒)",
+    dataIndex: "delay",
+    width: 40,
+  },
+];
+
+export const lineData = [
+  {
+    serviceLevel: "A",
+    saturation: "[0,0.25]",
+    delay: "[0,10]",
+  },
+  {
+    serviceLevel: "B",
+    saturation: "(0.25,0.5]",
+    delay: "(10,20]",
+  },
+  {
+    serviceLevel: "C",
+    saturation: "(0.5,0.7]",
+    delay: "(20,35]",
+  },
+  {
+    serviceLevel: "D",
+    saturation: "(0.7,0.85]",
+    delay: "(35,55]",
+  },
+  {
+    serviceLevel: "E",
+    saturation: "(0.85,0.95]",
+    delay: "(55,80]",
+  },
+  {
+    serviceLevel: "F",
+    saturation: "(0.95,+∞]",
+    delay: "(80,+∞]",
+  },
+];

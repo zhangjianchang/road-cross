@@ -54,6 +54,8 @@
     <!-- 参数 -->
     <div class="menu">
       <a-table
+        class="ant-table-striped"
+        :row-class-name="(_:any, index:number) => (index % 2 === 1 ? 'table-striped' : null)"
         :columns="columns"
         :data-source="road_attr"
         :pagination="false"
@@ -384,4 +386,5 @@ export default defineComponent({
 </script>
 <style scoped lang="less">
 @import url("./index.less");
+@import url("../index.less");
 </style>

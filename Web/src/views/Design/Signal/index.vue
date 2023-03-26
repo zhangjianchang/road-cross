@@ -182,7 +182,7 @@
               </a-form>
             </div>
           </a-collapse-panel>
-          <a-collapse-panel key="2" header="相位信息">
+          <a-collapse-panel key="2" header="相位设置">
             <div>
               <a-table
                 :dataSource="signal_info.phase_list"
@@ -246,11 +246,13 @@
                   />
                 </template>
                 <!-- 搭接相位 -->
-                <template #is_lap="{ record }">
+                <template #is_lap="{ record, index }">
                   <a-select
+                    v-if="index !== 0"
                     v-model:value="record.is_lap"
                     size="small"
                     class="middle-form-width"
+                    @change="onLapChange(record, index)"
                   >
                     <a-select-option :value="true"> 是 </a-select-option>
                     <a-select-option :value="false"> 否 </a-select-option>
@@ -1311,6 +1313,41 @@ export default defineComponent({
       currentArrow?.setAttribute("style", "fill:" + currentColor);
     };
 
+    //搭接相位
+    const onLapChange = (record: any, index: number) => {
+      //上一相位勾选的所有方向
+      const prev_all_enabled = [] as any[];
+      const prev_directions =
+        road_info.signal_info.phase_list[index - 1].directions;
+      prev_directions.map((d: any[], i: number) => {
+        d.map((dd) => {
+          if (dd.is_enable) {
+            prev_all_enabled.push(i + "_" + dd.direction);
+          }
+        });
+      });
+
+      //当前相位勾选的所有方向
+      const all_enabled = [] as any[];
+      const directions = record.directions;
+      directions.map((d: any[], i: number) => {
+        d.map((dd) => {
+          if (dd.is_enable) {
+            all_enabled.push(i + "_" + dd.direction);
+          }
+        });
+      });
+
+      //判断两个相位是否有相同方向
+      const flag = prev_all_enabled.some((p) => all_enabled.indexOf(p) > -1);
+      if (flag) {
+        message.success("搭接成功");
+      } else {
+        openNotfication("warning", "当前相位与上一相位无共同放行方向");
+        record.is_lap = false;
+      }
+    };
+
     //初始化加载
     onMounted(() => {
       const rf =
@@ -1341,6 +1378,7 @@ export default defineComponent({
       onGClick,
       onChangeSignal,
       onTimeConfirm,
+      onLapChange,
     };
   },
 });

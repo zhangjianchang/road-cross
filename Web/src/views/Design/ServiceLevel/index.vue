@@ -80,6 +80,17 @@
         <a-radio value="delay">延误时间</a-radio>
         <a-radio value="saturation">饱和度</a-radio>
       </a-radio-group>
+      <div class="mt-16">
+        <a-table
+          class="ant-table-striped"
+          :dataSource="lineData"
+          :columns="lineColumns"
+          :pagination="false"
+          :bordered="true"
+          :scroll="{ x: '100%' }"
+          :row-class-name="(_:any, index:number) => (index % 2 === 1 ? 'table-striped' : null)"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -109,7 +120,7 @@ import { echart_toolbox, echart_tooltip, road_model } from "../data";
 import { roadSigns } from "../Canalize";
 import { get_V, get_x } from "../Saturation";
 import { get_d } from "../DelayAnalysis";
-import { getServiceByTypeAndRatio } from ".";
+import { getServiceByTypeAndRatio, lineColumns, lineData } from ".";
 
 export default defineComponent({
   components: {
@@ -496,6 +507,8 @@ export default defineComponent({
       ...toRefs(states),
       ...toRefs(road_info),
       ...toRefs(roadStates),
+      lineColumns,
+      lineData,
       plans,
       labelCol: { span: 2 },
       wrapperCol: { span: 22 },
