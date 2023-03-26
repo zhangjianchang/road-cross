@@ -288,6 +288,7 @@ const getTurnDetail = (road_info: any, i: number, j: number) => {
   return turn_detail;
 };
 
+//机动车/非机动车穿越图标
 export const getTurnDetail_D = (road_info: any, i: number, next_i: number) => {
   const states = {
     d: 120, //离圆心距离
@@ -343,6 +344,34 @@ export const getTurnDetail_D = (road_info: any, i: number, next_i: number) => {
     let pt_c = cal_point(dw, d - 200, dr, 0);
     d_str = `M${pt_r11.x},${pt_r11.y} L${pt_r12.x},${pt_r12.y} Q${pt_c.x},${pt_c.y} ${pt_l12.x},${pt_l12.y} L${pt_l11.x},${pt_l11.y}`;
   }
+  return d_str;
+};
+
+//行人穿越图标，j=1中间=>右边，j=2中间=>左边
+export const getPedDetail_D = (road_info: any, i: number, j: number) => {
+  const states = {
+    d: 40, //离圆心距离
+    far_d: 200, //离圆心距离
+    far_d2: -200, //离圆心距离
+  };
+  const k = j === 1 ? 1 : -1;
+  let d_str = "";
+  const dr = Math.PI * 0.5;
+  const dw = getDW(road_info, i);
+
+  //竖线
+  let d = states.far_d;
+  let pt_s1 = cal_point(dw, d, k * dr, 60);
+  d = states.far_d2;
+  let pt_s2 = cal_point(dw, d, k * dr, 60);
+  d_str += `M${pt_s1.x},${pt_s1.y} L${pt_s2.x},${pt_s2.y};`;
+
+  //横线
+  d = states.d;
+  let pt_1 = cal_point(dw, d, -k * dr, 200);
+  let pt_2 = cal_point(dw, d, k * dr, 0);
+  d_str += `M${pt_1.x},${pt_1.y} L${pt_2.x},${pt_2.y}`;
+
   return d_str;
 };
 
@@ -424,12 +453,10 @@ export const getStraightTurnDetail = (road_info: any, i: number) => {
   const dr = Math.PI * 0.5;
   const dw = getDW(road_info, i);
   const d = states.d;
-  let pt = cal_point(dw, d, dr, 0); //中心线
   let pt_1 = cal_point(dw, d, dr, states.len); //左边
   let pt_2 = cal_point(dw, d, -dr, states.len); //右边
 
-  let d_str = `M${pt.x},${pt.y} L${pt_1.x},${pt_1.y};`;
-  d_str += `M${pt.x},${pt.y} L${pt_2.x},${pt_2.y} `;
+  let d_str = `M${pt_1.x},${pt_1.y} L${pt_2.x},${pt_2.y}`;
   return d_str;
 };
 /**信号相关 */

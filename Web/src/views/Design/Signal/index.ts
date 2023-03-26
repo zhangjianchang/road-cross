@@ -11,7 +11,9 @@ export const phaseModel = {
 };
 
 export const DirectionItemModel = {
-  is_enable: false, //是否启用，渲染线段
+  is_enable: false, //机动车是否启用，渲染线段
+  is_non_enable: false, //非机动车是否启用，渲染线段
+  is_ped_enable: false, //行人是否启用，渲染线段
   direction: "", //方向
   order: 0, //针对方向重新排序
   green: 0,
@@ -80,3 +82,29 @@ export function getStartX(signalList: any[], index: number, signal: string) {
       return startX;
   }
 }
+
+export const getArrowId = (id: string) => {
+  switch (id) {
+    case "direction":
+      return "arrow";
+    case "non_direction":
+      return "non_arrow";
+    case "ped_direction":
+      return "ped_arrow";
+    default:
+      return "";
+  }
+};
+
+export const getColor = (id: string) => {
+  switch (id) {
+    case "direction_line":
+      return "#ffffff";
+    case "non_direction_line":
+      return "#ffb90f";
+    case "ped_direction_line":
+      return "#00ff99";
+    default:
+      return "#ffffff";
+  }
+};

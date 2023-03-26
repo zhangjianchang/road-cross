@@ -38,6 +38,7 @@
         </text>
         <!-- 相位内部方向箭头 -->
         <defs>
+          <!-- 机动车箭头 -->
           <marker
             id="direction_line"
             markerUnits="strokeWidth"
@@ -51,9 +52,10 @@
             <path
               xmlns="http://www.w3.org/2000/svg"
               d="M2,2 L10,6 L2,10 L2,6 L2,2"
-              style="fill: #fff"
+              style="fill: #ffffff"
             />
           </marker>
+          <!-- 非机动车箭头 -->
           <marker
             id="non_direction_line"
             markerUnits="strokeWidth"
@@ -62,12 +64,29 @@
             viewBox="0 0 12 12"
             refX="6"
             refY="6"
-            orient="auto"
+            orient="auto-start-reverse"
           >
             <path
               xmlns="http://www.w3.org/2000/svg"
               d="M2,2 L10,6 L2,10 L2,6 L2,2"
-              style="fill: rgb(255, 165, 0)"
+              style="fill: #ffb90f"
+            />
+          </marker>
+          <!-- 行人箭头 -->
+          <marker
+            id="ped_direction_line"
+            markerUnits="strokeWidth"
+            markerWidth="6"
+            markerHeight="6"
+            viewBox="0 0 12 12"
+            refX="6"
+            refY="6"
+            orient="auto-start-reverse"
+          >
+            <path
+              xmlns="http://www.w3.org/2000/svg"
+              d="M2,2 L10,6 L2,10 L2,6 L2,2"
+              style="fill: #00ff99"
             />
           </marker>
         </defs>
@@ -323,7 +342,7 @@
                         viewBox="0 0 12 12"
                         refX="6"
                         refY="6"
-                        orient="auto"
+                        orient="auto-start-reverse"
                       >
                         <path
                           xmlns="http://www.w3.org/2000/svg"
@@ -333,10 +352,19 @@
                       </marker>
                     </defs>
                     <path
-                      v-for="it in item.d.split(';')"
+                      v-if="index === 0"
                       :id="`non_direction_${currentPhase}_${currentDirection}_${index}`"
-                      :key="it"
-                      :d="it"
+                      :d="item.d"
+                      fill="none"
+                      stroke="#a2a2a2"
+                      stroke-width="100"
+                      :marker-end="`url(#non_arrow_${currentPhase}_${currentDirection}_${index})`"
+                      :marker-start="`url(#non_arrow_${currentPhase}_${currentDirection}_${index})`"
+                    />
+                    <path
+                      v-else
+                      :id="`non_direction_${currentPhase}_${currentDirection}_${index}`"
+                      :d="item.d"
                       fill="none"
                       stroke="#a2a2a2"
                       stroke-width="100"
@@ -344,9 +372,66 @@
                     />
                   </svg>
                 </a-form-item>
+                <a-form-item label="行人" style="margin-bottom: 5px !important">
+                  <svg
+                    v-for="(item, index) in sign_ped_pts[currentDirection]"
+                    :key="index"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 700 700"
+                    class="road-sign"
+                    @click="onPedDirectionClick(index)"
+                  >
+                    <defs>
+                      <marker
+                        :id="`ped_arrow_${currentPhase}_${currentDirection}_${index}`"
+                        markerUnits="strokeWidth"
+                        markerWidth="3"
+                        markerHeight="3"
+                        viewBox="0 0 12 12"
+                        refX="6"
+                        refY="6"
+                        orient="auto-start-reverse"
+                      >
+                        <path
+                          xmlns="http://www.w3.org/2000/svg"
+                          d="M2,2 L10,6 L2,10 L2,6 L2,2"
+                          style="fill: #a2a2a2"
+                        />
+                      </marker>
+                    </defs>
+                    <path
+                      v-if="index === 0"
+                      :id="`ped_direction_${currentPhase}_${currentDirection}_${index}`"
+                      :d="item.d"
+                      fill="none"
+                      stroke="#a2a2a2"
+                      stroke-width="100"
+                      :marker-end="`url(#ped_arrow_${currentPhase}_${currentDirection}_${index})`"
+                      :marker-start="`url(#ped_arrow_${currentPhase}_${currentDirection}_${index})`"
+                    />
+                    <path
+                      v-if="index !== 0"
+                      :id="`ped_direction_${currentPhase}_${currentDirection}_${index}`"
+                      :d="item.d.split(';')[0]"
+                      fill="none"
+                      stroke="#a2a2a2"
+                      stroke-width="60"
+                    />
+                    <path
+                      v-if="index !== 0"
+                      :id="`ped_direction_${currentPhase}_${currentDirection}_${index}`"
+                      :d="item.d.split(';')[1]"
+                      fill="none"
+                      stroke="#a2a2a2"
+                      stroke-width="60"
+                      :marker-end="`url(#ped_arrow_${currentPhase}_${currentDirection}_${index})`"
+                      :marker-start="`url(#ped_arrow_${currentPhase}_${currentDirection}_${index})`"
+                    />
+                  </svg>
+                </a-form-item>
               </a-form>
 
-              <!-- <div>非机动车</div>
+              <!-- 
                       <div>行人</div>
                       <div>1</div>
                       <div>待转</div>
@@ -391,12 +476,13 @@ import { defineComponent, onMounted, reactive, toRefs } from "vue";
 import Container from "../../../components/Container/index.vue";
 import { DragOutlined } from "@ant-design/icons-vue";
 import { cal_point, getQByPathCurv, insect_pt } from "../../../utils/common";
-import { signalColor, getStartX, phaseColumns } from ".";
+import { signalColor, getStartX, phaseColumns, getArrowId, getColor } from ".";
 import _ from "lodash";
 import { getCurvByAngle } from "../Flow";
 import { road_model } from "../data";
 import {
   create_signal_info,
+  getPedDetail_D,
   getStraightTurnDetail,
   getTurnDetail_D,
   get_λ,
@@ -418,7 +504,7 @@ export default defineComponent({
       cvs: null as HTMLElement | null,
       cx: 350, //圆心x
       cy: 350, //圆心y
-      road_width: 120, //路宽
+      road_width: 110, //路宽
       d: 180, //离圆心距离
       far_d: 300, //离圆心距离(远端)
       svg_width: 590, //画布宽度
@@ -504,6 +590,18 @@ export default defineComponent({
         states.sign_non_pts.push(sign_non_pt);
 
         //行人
+        const sign_ped_pt = [];
+        for (let m = 0; m < 3; m++) {
+          let d = "";
+          if (m === 0) {
+            d = getStraightTurnDetail(road_info, i);
+          } else {
+            d = getPedDetail_D(road_info, i, m);
+          }
+          const path = { d };
+          sign_ped_pt.push(path);
+        }
+        states.sign_ped_pts.push(sign_ped_pt);
       }
     };
 
@@ -936,14 +1034,41 @@ export default defineComponent({
     const onNonDirectionClick = (index: number) => {
       const phase_item = road_info.signal_info.phase_list[states.currentPhase];
       const direction = phase_item.directions[states.currentDirection][index]; //方向数据
-      direction.non_is_enable = !direction.non_is_enable;
-      if (direction.non_is_enable) {
-        drawNonDirectionPath(index);
-        drawDirectionColor("non_direction", index, true);
+      direction.is_non_enable = !direction.is_non_enable;
+      if (direction.is_non_enable) {
+        markDirection(index, "non_direction");
       } else {
-        deleteDirectionPath(index, "non_direction_line");
-        drawDirectionColor("non_direction", index, false);
+        unmarkDirection(index, "non_direction");
       }
+    };
+
+    //行人点击方向
+    const onPedDirectionClick = (index: number) => {
+      const phase_item = road_info.signal_info.phase_list[states.currentPhase];
+      const direction = phase_item.directions[states.currentDirection][index]; //方向数据
+      direction.is_ped_enable = !direction.is_ped_enable;
+      if (direction.is_ped_enable) {
+        markDirection(index, "ped_direction");
+      } else {
+        unmarkDirection(index, "ped_direction");
+      }
+    };
+
+    //标记
+    const markDirection = (index: number, id: string) => {
+      if (id === "direction") {
+        drawDirectionPath(index);
+      } else if (id === "non_direction") {
+        drawNonDirectionPath(index); //画方向连线
+      } else if (id === "ped_direction") {
+        drawPedDirectionPath(index);
+      }
+      drawDirectionColor(id, index, true); //加深颜色
+    };
+    //取消标记
+    const unmarkDirection = (index: number, id: string) => {
+      deleteDirectionPath(index, id + "_line"); //取消方向连线
+      drawDirectionColor(id, index, false); //取消颜色
     };
 
     //设置点击方向的颜色及划线
@@ -991,16 +1116,23 @@ export default defineComponent({
       road_info.signal_info.phase_list[states.currentPhase].directions[
         states.currentDirection
       ].forEach((d: any, index: number) => {
+        // 机动车
         if (d.is_enable) {
-          //颜色标记
-          drawDirectionColor("direction", index, true);
-          //画路径
-          drawDirectionPath(index);
+          markDirection(index, "direction");
         } else {
-          //颜色取消标记
-          drawDirectionColor("direction", index, false);
-          //删除路径
-          deleteDirectionPath(index, "direction_line");
+          unmarkDirection(index, "direction");
+        }
+        //非机动车
+        if (d.is_non_enable) {
+          markDirection(index, "non_direction");
+        } else {
+          unmarkDirection(index, "non_direction");
+        }
+        //行人
+        if (d.is_ped_enable) {
+          markDirection(index, "ped_direction");
+        } else {
+          unmarkDirection(index, "ped_direction");
         }
       });
     };
@@ -1016,6 +1148,13 @@ export default defineComponent({
     const drawNonDirectionPath = (index: number) => {
       const d_str = drawP2P(index, 40, true);
       const id = "non_direction_line";
+      drawP2PPath(index, id, d_str);
+    };
+
+    //行人方向路径
+    const drawPedDirectionPath = (index: number) => {
+      const d_str = drawPedP2P(index);
+      const id = "ped_direction_line";
       drawP2PPath(index, id, d_str);
     };
 
@@ -1059,10 +1198,9 @@ export default defineComponent({
       if (is_non && index1 === index2) {
         dw = getDW(index1);
         d = states.d + offset - 40;
-        let pt_c = cal_point(dw, d, dr, 0);
         let pt_1 = cal_point(dw, d, dr, len);
         let pt_2 = cal_point(dw, d, -dr, len);
-        d_str = `M${pt_c.x},${pt_c.y} L${pt_1.x},${pt_1.y};M${pt_c.x},${pt_c.y} L${pt_2.x},${pt_2.y}`;
+        d_str = `M${pt_1.x},${pt_1.y} L${pt_2.x},${pt_2.y}`;
       }
       //连接第一条路右侧，Q点，第二条路左侧
       else if (Q) {
@@ -1078,20 +1216,68 @@ export default defineComponent({
       return d_str;
     };
 
+    //行人连线，j=0贯通1向右走2向左走
+    const drawPedP2P = (index: number) => {
+      const i = states.currentDirection;
+      const s = {
+        d: 180, //离圆心距离
+        far_d: 260, //离圆心距离
+        len: 70,
+      };
+      let d_str = "";
+      const k = index === 1 ? 1 : -1;
+      const dr = Math.PI * 0.5;
+      const dw = getDW(i);
+      const offset = getOffset(dw.diff_angle);
+      let d = s.d + offset;
+      let len = s.len;
+
+      if (index === 0) {
+        let pt_1 = cal_point(dw, d, dr, len);
+        let pt_2 = cal_point(dw, d, -dr, len);
+        d_str = `M${pt_1.x},${pt_1.y} L${pt_2.x},${pt_2.y}`;
+      } else {
+        //横线
+        let pt_1 = cal_point(dw, d, k * dr, len - 80);
+        let pt_2 = cal_point(dw, d, -k * dr, len);
+        d_str += `M${pt_1.x},${pt_1.y} L${pt_2.x},${pt_2.y};`;
+
+        //竖线
+        let pt_s1 = cal_point(dw, d, k * dr, 0);
+        d = s.far_d;
+        let pt_s2 = cal_point(dw, d, k * dr, 0);
+        d_str += `M${pt_s1.x},${pt_s1.y} L${pt_s2.x},${pt_s2.y};`;
+      }
+      return d_str;
+    };
+
     //画连线路径
     const drawP2PPath = (index: number, id: string, d_str: string) => {
       const tag = `${id}_${states.currentPhase}_${states.currentDirection}_${index}`;
-      const color = id === "direction_line" ? "#fff" : "rgb(255, 165, 0)";
-      //非机动车同一方向会存在两条对向
-      d_str.split(";").map((d) => {
+      const color = getColor(id);
+      //非机动车同一方向会存在两条对向（需要加箭头的线段;不需要加箭头的线段）
+      d_str.split(";").map((d, idx) => {
         const line = document.createElementNS(states.ns, "path");
         line.setAttribute("tag", tag);
         line.setAttribute("id", id);
         line.setAttribute("d", d);
+        line.setAttribute("fill", "none");
         line.setAttribute("stroke", color);
         line.setAttribute("stroke-width", "10");
-        line.setAttribute("fill", `none`);
-        line.setAttribute("marker-end", `url(#${id})`);
+        if (idx === 0) {
+          line.setAttribute("marker-end", `url(#${id})`);
+          if (index === 0 && id === "non_direction_line") {
+            //非机动车穿越马路双向箭头
+            line.setAttribute("marker-start", `url(#${id})`);
+            line.setAttribute("stroke-width", "10");
+          } else if (id === "ped_direction_line") {
+            //行人穿越马路双向箭头
+            line.setAttribute("marker-start", `url(#${id})`);
+            line.setAttribute("stroke-width", "6");
+          }
+        } else {
+          line.setAttribute("stroke", "#ffffff");
+        }
         document.querySelectorAll("g").forEach((g) => {
           if (g.id === "phase_" + states.currentPhase) {
             g.appendChild(line);
@@ -1114,12 +1300,14 @@ export default defineComponent({
       index: number,
       is_enable: boolean
     ) => {
-      const idx = `${states.currentPhase}_${states.currentDirection}_${index}`; //相位+方向+点击转向
-      const arrow_id = id === "direction" ? "arrow" : "non_arrow";
-      const currentDirection = document.querySelector(`#${id}_${idx}`);
-      const currentArrow = document.querySelector(`#${arrow_id}_${idx}>path`);
       const currentColor = is_enable ? "#4f48ad" : "#a2a2a2";
-      currentDirection?.setAttribute("stroke", currentColor);
+      const idx = `${states.currentPhase}_${states.currentDirection}_${index}`; //相位+方向+点击转向
+      const arrow_id = getArrowId(id);
+      const currentDirection = document.querySelectorAll(`#${id}_${idx}`);
+      currentDirection.forEach((item) => {
+        item?.setAttribute("stroke", currentColor);
+      });
+      const currentArrow = document.querySelector(`#${arrow_id}_${idx}>path`);
       currentArrow?.setAttribute("style", "fill:" + currentColor);
     };
 
@@ -1149,6 +1337,7 @@ export default defineComponent({
       onDirectionChange,
       onDirectionClick,
       onNonDirectionClick,
+      onPedDirectionClick,
       onGClick,
       onChangeSignal,
       onTimeConfirm,
