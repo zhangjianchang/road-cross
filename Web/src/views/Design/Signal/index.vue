@@ -431,13 +431,8 @@
                     />
                   </svg>
                 </a-form-item>
+                <!-- <a-form-item label="待转"> </a-form-item> -->
               </a-form>
-
-              <!-- 
-                      <div>行人</div>
-                      <div>1</div>
-                      <div>待转</div>
-                      <div>2</div> -->
             </div>
           </a-collapse-panel>
         </a-collapse>
@@ -477,10 +472,9 @@
 import { defineComponent, onMounted, reactive, toRefs } from "vue";
 import Container from "../../../components/Container/index.vue";
 import { DragOutlined } from "@ant-design/icons-vue";
-import { cal_point, getQByPathCurv, insect_pt } from "../../../utils/common";
+import { cal_point, insect_pt } from "../../../utils/common";
 import { signalColor, getStartX, phaseColumns, getArrowId, getColor } from ".";
 import _ from "lodash";
-import { getCurvByAngle } from "../Flow";
 import { road_model } from "../data";
 import {
   create_signal_info,

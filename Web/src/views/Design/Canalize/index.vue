@@ -806,6 +806,8 @@ import {
   getCrossLenByTwoRoad,
   roadSignKey,
   Draw,
+  getCrossLenByCanalize,
+  getCrossLenByPrevCanalize,
 } from "./index";
 import Container from "../../../components/Container/index.vue";
 import { DragOutlined } from "@ant-design/icons-vue";
@@ -871,7 +873,10 @@ export default defineComponent({
       for (var i = 0; i < road_info.canalize_info.length; i++) {
         var rc = road_info.canalize_info[i]; // road cross对象
         const addLen = getCrossLenByTwoRoad(road_info, i);
-        rc.cross_len_new = rc.cross_len + addLen;
+        const canalizeEnterLen = getCrossLenByCanalize(road_info, i);
+        const canalizeExitLen = getCrossLenByPrevCanalize(road_info, i);
+        rc.cross_len_new =
+          rc.cross_len + addLen + canalizeEnterLen + canalizeExitLen;
         var dw = JSON.parse(temp); // road cross对应的绘制对象
 
         dw.dir.angle = rc.angle;

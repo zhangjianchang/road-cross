@@ -398,3 +398,29 @@ export function getCrossLenByTwoRoad(road_info: any, index: number) {
   let len = angle >= 60 ? (k > 0.9 ? 0.4 * c : 0) : (70 - angle) * k;
   return len;
 }
+
+//通过渠化方式获取cross向后偏移距离
+export function getCrossLenByCanalize(road_info: any, index: number) {
+  let len = 0;
+  const rc = road_info.canalize_info[index];
+
+  if (rc.canalize.type === "划线渠化") {
+    const right_exit_count = Number(rc.canalize.right_exit_count);
+    len = (2 - right_exit_count) * 4;
+  }
+  return len;
+}
+
+
+//通过渠化方式获取cross向后偏移距离
+export function getCrossLenByPrevCanalize(road_info: any, index: number) {
+  let len = 0;
+  let i = index - 1 < 0 ? plans.road_count - 1 : index - 1;
+  const rc = road_info.canalize_info[i];
+
+  if (rc.canalize.type === "划线渠化") {
+    const right_enter_count = Number(rc.canalize.right_enter_count);
+    len = (2 - right_enter_count) * 4.5;
+  }
+  return len;
+}
