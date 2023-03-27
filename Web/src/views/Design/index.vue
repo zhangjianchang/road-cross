@@ -260,6 +260,9 @@ import {
 import _ from "lodash";
 import { plans_model, road_model } from "./data";
 import { openNotfication } from "../../utils/message";
+import { saveDesign, getDesignByGuid } from "../../request/api";
+import { object } from "vue-types";
+import { join } from "path";
 
 export default defineComponent({
   components: {
@@ -279,7 +282,7 @@ export default defineComponent({
   },
   setup() {
     const route = useRoute();
-    const id = (route.params.id ?? "").toString();
+    const guid = (route.params.guid ?? "").toString();
     //判断权限
     var token = localStorage.getItem("userInfo");
     if (!token) {
@@ -288,11 +291,7 @@ export default defineComponent({
     }
 
     //全局道路信息
-    const road_info = reactive(
-      plans.canalize_plans[roadStates.current_canalize].flow_plans[
-        roadStates.current_flow
-      ].signal_plans[roadStates.current_signal].road_info
-    );
+    const road_info = reactive(JSON.parse(JSON.stringify(road_model)));
     provide("road_info", road_info); //提供给子组件使用
 
     //子页面
@@ -546,51 +545,30 @@ export default defineComponent({
         openNotfication("warning", "请输入交叉口名称");
         return;
       }
-      if (!plans.road_count) {
-        openNotfication("warning", "请绘制道路后再进行保存");
-        return;
-      }
-      if (id) {
-        //TODO 重构
-        road_info.basic_info.updateDate = moment().format(
-          "YYYY-MM-DD HH:mm:ss"
-        );
-        roadStates.road_list.map((item: any) => {
-          if (item.id === plans.id) {
-            item = road_info;
-          }
-        });
-      } else {
-        road_info.basic_info.createDate = moment().format(
-          "YYYY-MM-DD HH:mm:ss"
-        );
-        road_info.basic_info.updateDate = moment().format(
-          "YYYY-MM-DD HH:mm:ss"
-        );
-        roadStates.road_list.push(road_info);
-        goRouterByParam(PageEnum.DesignEdit, { id: plans.id });
-      }
-      localStorage.setItem("road_list", JSON.stringify(roadStates.road_list));
-      message.success("保存成功");
+      const param = {
+        guid,
+        roadName: plans.road_name,
+        designJson: JSON.stringify(plans),
+      };
+      saveDesign(param).then((res: any) => {
+        message.success("保存成功");
+        goRouterByParam(PageEnum.DesignEdit, { guid: res.data });
+      });
     };
 
     onMounted(() => {
-      /*TODO: 缓存中的方案，后期改接口*/
-      const road_list_str = localStorage.getItem("road_list");
-      if (road_list_str) {
-        Object.assign(roadStates.road_list, JSON.parse(road_list_str!));
-      }
-      if (id) {
-        roadStates.road_list.map((item) => {
-          if (item.basic_info.id === id) {
-            Object.assign(road_info, item);
-          }
+      getDesignByGuid({ guid })
+        .then((res: any) => {
+          const designJson = JSON.parse(res.data.designJson);
+          Object.assign(plans, designJson);
+          const rf =
+            plans.canalize_plans[0].flow_plans[0].signal_plans[0].road_info;
+          Object.assign(road_info, rf);
+        })
+        .finally(() => {
+          //不管有没有请求都加载页面
+          basicRef.value.init();
         });
-      } else {
-        // plans.id = buildUUID();
-      }
-      basicRef.value.init();
-      /*TODO: 缓存中的方案，后期改接口*/
     });
 
     return {

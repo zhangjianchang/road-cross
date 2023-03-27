@@ -23,6 +23,22 @@
             stroke-width="15"
           />
         </pattern>
+        <pattern
+          id="slash2"
+          patternTransform="rotate(45)"
+          viewBox="0 0 10 10"
+          width="0.05"
+          height="0.05"
+        >
+          <line
+            x1="0"
+            y1="0"
+            x2="0"
+            y2="10"
+            stroke="#ffffff"
+            stroke-width="50"
+          />
+        </pattern>
       </defs>
     </svg>
     <!-- 参数 -->
@@ -876,7 +892,7 @@ export default defineComponent({
         const canalizeEnterLen = getCrossLenByCanalize(road_info, i);
         const canalizeExitLen = getCrossLenByPrevCanalize(road_info, i);
         rc.cross_len_new =
-          rc.cross_len + addLen + canalizeEnterLen + canalizeExitLen;
+          rc.cross_len + addLen + Math.max(canalizeEnterLen, canalizeExitLen);
         var dw = JSON.parse(temp); // road cross对应的绘制对象
 
         dw.dir.angle = rc.angle;
@@ -1932,14 +1948,14 @@ export default defineComponent({
         if (rc.canalize.type === "划线渠化") {
           const enter_index = rc.enter.num - rc.canalize.right_enter_count;
           //入口基点
-          var d = (rc.cross_len_new - 9) * dw.ratio;
+          var d = (rc.cross_len_new - 10) * dw.ratio;
           var len =
             (rc.median_strip.width + rc.enter.lane_width * enter_index) *
             dw.ratio;
           const pt1 = cal_point(dw, d, dr, len);
           drawPoint(pt1.x, pt1.y, "red");
 
-          d = (rc.cross_len_new - 16) * dw.ratio;
+          d = (rc.cross_len_new - 11) * dw.ratio;
           len =
             (rc.median_strip.width + rc.enter.lane_width * enter_index) *
             dw.ratio;
@@ -1948,19 +1964,40 @@ export default defineComponent({
 
           //出口基点
           const exit_index = rc.exit.num - rc.canalize.right_exit_count;
-          var d = (rc_n.cross_len_new - 9) * dw_n.ratio;
+          var d = (rc_n.cross_len_new - 10) * dw_n.ratio;
           var len =
             (rc_n.median_strip.width + rc_n.enter.lane_width * exit_index) *
             dw_n.ratio;
           const pt3 = cal_point(dw_n, d, -dr, len);
           drawPoint(pt3.x, pt3.y, "blue");
 
-          d = (rc.cross_len_new - 16) * dw_n.ratio;
+          d = (rc_n.cross_len_new - 11) * dw_n.ratio;
           len =
-            (rc.median_strip.width + rc.enter.lane_width * exit_index) *
+            (rc_n.median_strip.width + rc_n.enter.lane_width * exit_index) *
             dw_n.ratio;
           const pt4 = cal_point(dw_n, d, -dr, len);
           drawPoint(pt4.x, pt4.y, "yellow");
+
+          //两线交点
+          const pt5 = intersect_line_point(pt1, pt2, pt3, pt4);
+          var mid_pt = {
+            x: (pt1.x + pt3.x) * 0.5,
+            y: (pt1.y + pt3.y) * 0.5,
+          };
+          if (pt5) {
+            // 曲度插值法计算Q的中间点
+            var qpt = {
+              x: mid_pt.x + (pt5.x - mid_pt.x) * rc_n.enter.right_curv,
+              y: mid_pt.y + (pt5.y - mid_pt.y) * rc_n.enter.right_curv,
+            };
+            d_str += "Q" + qpt.x + "," + qpt.y + " " + pt.x + "," + pt.y + " ";
+            d_str = `M${pt1.x},${pt1.y} Q${qpt.x},${qpt.y} ${pt3.x},${pt3.y} L${pt5.x},${pt5.y} Z`;
+          }
+          const path = document.createElementNS(states.ns, "path");
+          path.setAttribute("d", d_str);
+          path.setAttribute("fill", "url(#slash2)");
+          path.setAttribute("deleteTag", "1");
+          states.cvs?.appendChild(path);
         }
       }
     }

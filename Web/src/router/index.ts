@@ -23,7 +23,7 @@ const routes = [
     component: Design,
   },
   {
-    path: "/design/edit/:id",
+    path: "/design/edit/:guid?",
     name: PageEnum.DesignEdit,
     component: Design,
   },

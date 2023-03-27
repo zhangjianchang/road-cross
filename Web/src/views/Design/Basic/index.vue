@@ -95,22 +95,14 @@ import {
   ExclamationCircleOutlined,
 } from "@ant-design/icons-vue";
 import { getAngle } from "../../../utils/common";
-import { plans, roadStates } from "..";
-import { useRoute } from "vue-router";
+import { plans } from "..";
+import { road_model } from "../data";
 
 export default defineComponent({
   components: { Container, CloseOutlined },
   setup() {
     //道路信息
-    const road_info = reactive(
-      plans.canalize_plans[roadStates.current_canalize].flow_plans[
-        roadStates.current_flow
-      ].signal_plans[roadStates.current_signal].road_info
-    );
-
-    const route = useRoute();
-    const id = (route.params.id ?? "").toString();
-
+    const road_info = reactive(JSON.parse(JSON.stringify(road_model)));
     const states = reactive({
       ns: "",
       cvs: null as HTMLElement | null,
@@ -165,7 +157,7 @@ export default defineComponent({
     //编辑页进来需要反显线段
     function initIines() {
       if (road_info.road_attr.length > 0) {
-        road_info.road_attr.map((road) => {
+        road_info.road_attr.map((road: any) => {
           road.id = `line_${states.index}`;
           road.arrowId = `arrow${states.index}`;
           createLine(road.coordinate);
@@ -362,6 +354,9 @@ export default defineComponent({
     }
 
     const init = () => {
+      const rf =
+        plans.canalize_plans[0].flow_plans[0].signal_plans[0].road_info;
+      Object.assign(road_info, rf);
       render();
       initIines();
     };

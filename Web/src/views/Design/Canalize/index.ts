@@ -165,7 +165,7 @@ export const RoadCross = {
       width: 2, // 车道宽度，米
       div_type: "划线", // 分割形式与宽度：划线-0.25m，护栏-1m，绿化带-1m
     },
-    right_curv: 1.0, // 右转曲度[0, 1]
+    right_curv: 0.5, // 右转曲度[0, 1]
   },
   exit: {
     // 出口
@@ -411,7 +411,6 @@ export function getCrossLenByCanalize(road_info: any, index: number) {
   return len;
 }
 
-
 //通过渠化方式获取cross向后偏移距离
 export function getCrossLenByPrevCanalize(road_info: any, index: number) {
   let len = 0;
@@ -420,7 +419,8 @@ export function getCrossLenByPrevCanalize(road_info: any, index: number) {
 
   if (rc.canalize.type === "划线渠化") {
     const right_enter_count = Number(rc.canalize.right_enter_count);
-    len = (2 - right_enter_count) * 4.5;
+    len = (2 - right_enter_count) * 3.5;
   }
+  console.log(len);
   return len;
 }

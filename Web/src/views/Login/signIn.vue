@@ -26,7 +26,7 @@
           <a-form-item label="确认密码" name="password" class="login-item">
             <a-input-password
               placeholder="请再次输入密码"
-              v-model:value="formState.password"
+              v-model:value="formState.rePassword"
               class="login-input"
             />
           </a-form-item>
@@ -53,15 +53,21 @@ import { defineComponent, reactive } from "vue";
 import { userLogin } from "../../request/api";
 import { PageEnum } from "../../router/data";
 import { goRouterByParam } from "../../utils/common";
+import { openNotfication } from "../../utils/message";
 
 export default defineComponent({
   setup() {
     const formState = reactive({
       username: "",
       password: "",
+      rePassword: "",
     });
 
     const handleSignIn = () => {
+      if (formState.password !== formState.rePassword) {
+        openNotfication("warning", "两次输入的密码不一致");
+        return;
+      }
       message.warning("内测阶段暂未开放用户注册功能");
     };
 
