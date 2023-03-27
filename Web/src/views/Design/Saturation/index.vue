@@ -650,7 +650,10 @@ export default defineComponent({
     let echart = echarts;
     //初始化echarts
     function initEcharts() {
-      let chart = echart.init(document.getElementById("report")!);
+      const report = document.getElementById("report")!;
+      //TODO 发到服务器会出现空白的情况，网络方案，暂采用
+      report.removeAttribute("_echarts_instance_");
+      let chart = echart.init(report);
       //填充配置和数据
       setEchartOption();
       //先清空
