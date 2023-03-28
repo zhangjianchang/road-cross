@@ -507,23 +507,46 @@ export default defineComponent({
     ) {
       //绿信比数据
       const period = rf.signal_info.period;
-      let green = 0;
-      let yellow = 0;
-      rf.signal_info.phase_list.forEach((p: any) => {
+      let greens = 0;
+      let yellows = 0;
+      rf.signal_info.phase_list.forEach((p: any, index: number) => {
+        let green = 0;
+        let yellow = 0;
         p.directions[roadIndex].forEach((d: any) => {
           if (road_key.indexOf(d.direction) > -1) {
-            green = Math.max(green, d.green);
-            yellow = d.yellow;
+            green = d.green;
+            yellow = yellow | d.yellow;
           }
         });
-      });
+        //多相位相加
+        greens += green;
+        yellows = yellows | yellow;
 
+        //确认搭接并且与上一方向有共同搭接转向
+        if (p.is_lap) {
+          let is_lap_s = false;
+          p.lap.map((lp: any) => {
+            console.log(roadIndex, lp.roadIndex);
+            if (
+              roadIndex === lp.roadIndex &&
+              road_key.indexOf(lp.roadKey) > -1
+            ) {
+              is_lap_s = true;
+            }
+          });
+          if (is_lap_s) {
+            //如果搭接相位，需加上上一相位的黄灯和红灯
+            const prev_p = rf.signal_info.phase_list[index - 1];
+            greens += prev_p.yellow + prev_p.red;
+          }
+        }
+      });
       const flow_line = rf.flow_info.line_info[roadIndex];
       const q = road_q;
       const d = flow_line.truck_ratio / 100;
       const V = get_V(q, d);
       const PHF = flow_line.peak_period;
-      const λ = get_λ(green, yellow, period);
+      const λ = get_λ(greens, yellows, period);
       const S = rf.flow_info.saturation[roadIndex][wayIndex].number;
       const x = get_x(V, PHF, S, λ);
       return x;

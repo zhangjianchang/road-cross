@@ -621,6 +621,7 @@ export default defineComponent({
       let bottom = 280 + legendHeight; //下边缘线
       //默认四个相位
       for (let p = 0; p < road_info.signal_info.phase; p++) {
+        const pl = road_info.signal_info.phase_list;
         let width = states.svg_width / road_info.signal_info.period; //每个刻度的宽度
         let x1, y1, x2, y2, w, h, time;
         for (let i = 0; i <= road_info.signal_info.period; i++) {
@@ -665,43 +666,42 @@ export default defineComponent({
         createLine(x1, y1, x2, y2, "red", "3");
         /**中心线 */
         /**绿色信号 */
-        x1 =
-          start_x + getStartX(road_info.signal_info.phase_list, p, "g") * width;
+        x1 = start_x + getStartX(pl, p, "g") * width;
         y1 = signal + p * states.phase_height;
-        w =
-          start_x +
-          getStartX(road_info.signal_info.phase_list, p, "y") * width -
-          x1;
-        h = 30;
-        createRect(p, x1, y1, w, h, "green");
-        time = road_info.signal_info.phase_list[p].green;
-        if (Number(time) > 0) {
-          createText(x1 + w / 2 - 3, y1 + h / 2 + 3, p, time, "green", true);
+        w = start_x + getStartX(pl, p, "y") * width - x1;
+        if (!pl[p].is_lap) {
+          //正常
+          h = 30;
+          createRect(p, x1, y1, w, h, "green");
+          time = pl[p].green;
+          if (Number(time) > 0) {
+            createText(x1 + w / 2 - 3, y1 + h / 2 + 3, p, time, "green", true);
+          }
+        } else {
+          //搭接相位
+          h = 12;
+          createRect(p, x1, y1, w, h, "green");
+          time = pl[p].green;
+          if (Number(time) > 0) {
+            createText(x1 + w / 2 - 3, y1 + h / 2 + 3, p, time, "green", true);
+          }
         }
         /**绿色信号 */
         /**黄色信号 */
-        x1 =
-          start_x + getStartX(road_info.signal_info.phase_list, p, "y") * width;
+        x1 = start_x + getStartX(pl, p, "y") * width;
         y1 = signal + p * states.phase_height;
-        w =
-          start_x +
-          getStartX(road_info.signal_info.phase_list, p, "r") * width -
-          x1;
+        w = start_x + getStartX(pl, p, "r") * width - x1;
         createRect(p, x1, y1, w, h, "yellow");
-        time = road_info.signal_info.phase_list[p].yellow;
+        time = pl[p].yellow;
         if (Number(time) > 0) {
           createText(x1 + w / 2 - 3, y1 + h / 2 + 3, p, time, "yellow", true);
         } /**黄色信号 */
         /**红色信号 */
-        x1 =
-          start_x + getStartX(road_info.signal_info.phase_list, p, "r") * width;
+        x1 = start_x + getStartX(pl, p, "r") * width;
         y1 = signal + p * states.phase_height;
-        w =
-          start_x +
-          getStartX(road_info.signal_info.phase_list, p + 1, "g") * width -
-          x1;
+        w = start_x + getStartX(pl, p + 1, "g") * width - x1;
         createRect(p, x1, y1, w, h, "red");
-        time = road_info.signal_info.phase_list[p].red;
+        time = pl[p].red;
         if (Number(time) > 0) {
           createText(x1 + w / 2 - 3, y1 + h / 2 + 3, p, time, "red", true);
         } /**红色信号 */
@@ -709,12 +709,12 @@ export default defineComponent({
         //相位
         x1 = start_x - 60;
         y1 = signal + 10 + p * states.phase_height;
-        createText(x1, y1, p, road_info.signal_info.phase_list[p].name);
+        createText(x1, y1, p, pl[p].name);
         //绿信比
         y1 = signal + 30 + p * states.phase_height;
         let λ = get_λ(
-          road_info.signal_info.phase_list[p].green,
-          road_info.signal_info.phase_list[p].yellow,
+          pl[p].green,
+          pl[p].yellow,
           road_info.signal_info.period
         ).toFixed(2);
         createText(x1, y1, p, `λ：${λ}`);
@@ -836,32 +836,9 @@ export default defineComponent({
       }
     }
 
-    //direction：方向，nr 近右,nl 近左, fr 远右, fl 远左 //road_width默认100（小于100即画路边线时用到）
-    function getPoint(
-      direction: string,
-      angle: number,
-      x: number,
-      y: number,
-      road_width = states.road_width
-    ) {
-      var radian = (Math.PI / 180) * (angle - 90);
-      var coefficient = direction === "nl" || direction === "fr" ? -1 : 1;
-      var point_x = coefficient * road_width * 0.5 * Math.cos(radian) + x;
-      var point_y = -coefficient * road_width * 0.5 * Math.sin(radian) + y;
-      return [~~point_x, ~~point_y];
-    }
-
-    function setPts(pts: any[], angle: number, x: number, y: number) {
-      var point = getPoint("nr", angle, x, y);
-      pts.push(point);
-      point = getPoint("nl", angle, x, y);
-      pts.push(point);
-    }
-
     function drawPhase(p: number) {
       //svg图像
       let d_str = "";
-      let roadEdgePoints = [];
       for (let i = 0; i < road_info.road_attr.length; i++) {
         //画主路径
         const dr = Math.PI * 0.5;
@@ -1023,6 +1000,10 @@ export default defineComponent({
 
     //点击机动车方向
     const onDirectionClick = (index: number) => {
+      //只要更换方向就取消所有方向的搭接相位
+      road_info.signal_info.phase_list.map((pl: any) => {
+        pl.is_lap = false;
+      });
       setDirection(index);
     };
 
@@ -1309,40 +1290,47 @@ export default defineComponent({
 
     //搭接相位
     const onLapChange = (record: any, index: number) => {
-      //上一相位勾选的所有方向
-      const prev_all_enabled = [] as any[];
-      const prev_directions =
-        road_info.signal_info.phase_list[index - 1].directions;
-      prev_directions.map((d: any[], i: number) => {
-        d.map((dd) => {
-          if (dd.is_enable) {
-            prev_all_enabled.push(i + "_" + dd.direction);
-          }
+      if (record.is_lap) {
+        //上一相位勾选的所有方向
+        const prev_all_enabled = [] as any[];
+        const prev_directions =
+          road_info.signal_info.phase_list[index - 1].directions;
+        prev_directions.map((d: any[], i: number) => {
+          d.map((dd) => {
+            if (dd.is_enable) {
+              prev_all_enabled.push(i + "_" + dd.direction);
+            }
+          });
         });
-      });
 
-      //当前相位勾选的所有方向
-      const all_enabled = [] as any[];
-      const directions = record.directions;
-      directions.map((d: any[], i: number) => {
-        d.map((dd) => {
-          if (dd.is_enable) {
-            all_enabled.push(i + "_" + dd.direction);
-          }
+        //当前相位勾选的所有方向
+        const all_enabled = [] as any[];
+        const directions = record.directions;
+        directions.map((d: any[], i: number) => {
+          d.map((dd) => {
+            if (dd.is_enable) {
+              all_enabled.push(i + "_" + dd.direction);
+            }
+          });
         });
-      });
 
-      //判断两个相位是否有相同方向
-      const lap = prev_all_enabled.filter((p) => all_enabled.indexOf(p) > -1);
-      if (lap.length > 0) {
-        message.success("搭接成功");
-        //搭接成功需要修改数据
-        lap.map((l) => {
-          console.log(l);
-        });
-      } else {
-        openNotfication("warning", "当前相位与上一相位无共同放行方向");
-        record.is_lap = false;
+        //判断两个相位是否有相同方向
+        const lap = prev_all_enabled.filter((p) => all_enabled.indexOf(p) > -1);
+        if (lap.length > 0) {
+          record.lap = [] as any[];
+          lap.map((lp) => {
+            record.lap.push({
+              roadIndex: Number(lp.split("_")[0]),
+              roadKey: lp.split("_")[1],
+            });
+          });
+          //渲染路
+          initRoads(road_info);
+          message.success("搭接成功");
+        } else {
+          openNotfication("warning", "当前相位与上一相位无共同放行方向");
+          record.is_lap = false;
+        }
       }
     };
 

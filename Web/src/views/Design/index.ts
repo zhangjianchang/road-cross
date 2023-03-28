@@ -87,9 +87,9 @@ export function getBackground(number: number | string) {
   } else if (number <= 0.4) {
     return "rgb(200,255,0)";
   } else if (number <= 0.5) {
-    return "rgb(255,255,0)";
+    return "rgb(255,215,0)";
   } else if (number <= 0.6) {
-    return "rgb(255,200,0)";
+    return "rgb(255,190,0)";
   } else if (number <= 0.7) {
     return "rgb(255,150,0)";
   } else if (number <= 0.8) {

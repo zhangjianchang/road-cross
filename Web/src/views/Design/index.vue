@@ -556,19 +556,23 @@ export default defineComponent({
       });
     };
 
+    const init = () => {
+      const rf =
+        plans.canalize_plans[0].flow_plans[0].signal_plans[0].road_info;
+      Object.assign(road_info, rf);
+      basicRef.value.init();
+    };
+
     onMounted(() => {
-      getDesignByGuid({ guid })
-        .then((res: any) => {
+      if (guid) {
+        getDesignByGuid({ guid }).then((res: any) => {
           const designJson = JSON.parse(res.data.designJson);
           Object.assign(plans, designJson);
-          const rf =
-            plans.canalize_plans[0].flow_plans[0].signal_plans[0].road_info;
-          Object.assign(road_info, rf);
-        })
-        .finally(() => {
-          //不管有没有请求都加载页面
-          basicRef.value.init();
+          init();
         });
+      } else {
+        init();
+      }
     });
 
     return {

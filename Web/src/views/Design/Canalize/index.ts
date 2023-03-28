@@ -421,6 +421,5 @@ export function getCrossLenByPrevCanalize(road_info: any, index: number) {
     const right_enter_count = Number(rc.canalize.right_enter_count);
     len = (2 - right_enter_count) * 3.5;
   }
-  console.log(len);
   return len;
 }
