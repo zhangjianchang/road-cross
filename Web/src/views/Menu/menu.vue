@@ -21,11 +21,9 @@
       </router-link>
     </div>
     <div class="login" v-if="!userInfo?.userName">
-      <router-link to="/login">
-        <a-tooltip color="#f50" placement="left" title="点击登录">
-          <user-outlined />
-        </a-tooltip>
-      </router-link>
+      <a-tooltip color="#f50" placement="left" title="点击登录">
+        <user-outlined @click="handleLogin" />
+      </a-tooltip>
       <!-- <router-link to="/contact">创建账号</router-link> -->
     </div>
     <div v-else>
@@ -50,7 +48,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent, onMounted, ref } from "vue";
 import { UserOutlined } from "@ant-design/icons-vue";
 import { PageEnum } from "../../router/data";
 import { goRouterByParam } from "../../utils/common";
@@ -59,24 +57,47 @@ export default defineComponent({
   components: { UserOutlined },
   setup() {
     const userInfo = ref({}) as any;
-    var strUser = localStorage.getItem("userInfo");
-    if (strUser) {
-      userInfo.value = JSON.parse(strUser);
-    }
+
+    const init = () => {
+      var strUser = localStorage.getItem("userInfo");
+      if (strUser) {
+        userInfo.value = JSON.parse(strUser);
+      }
+    };
+
     //路由跳转
     const handleRouterClick = (routerName: string) => {
-      goRouterByParam(routerName);
+      init();
+      if (userInfo.value) {
+        goRouterByParam(routerName);
+      }
     };
+
+    const handleLogin = () => {
+      //先加载
+      init();
+      if (!userInfo.value) {
+        goRouterByParam(PageEnum.Login);
+      }
+    };
+
+    //登出
     const handleLogout = () => {
       localStorage.removeItem("userInfo");
       localStorage.removeItem("token");
       goRouterByParam(PageEnum.Login);
     };
+
+    onMounted(() => {
+      init();
+    });
+
     return {
       userInfo,
       PageEnum,
       handleRouterClick,
       handleLogout,
+      handleLogin,
     };
   },
 });

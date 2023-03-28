@@ -25,16 +25,13 @@
           <template #description>我已录入的全部道路</template>
         </a-card-meta>
       </a-card>
-      <!-- <div class="footer">
-      <a-button block type="primary" @click="handleLogout">安全退出</a-button>
-    </div> -->
     </div>
   </Container>
 </template>
 
 <script lang="ts">
 import { message } from "ant-design-vue";
-import { defineComponent } from "vue";
+import { defineComponent, onMounted } from "vue";
 import Container from "../../components/Container/index.vue";
 import { PageEnum } from "../../router/data";
 import { goRouterByParam } from "../../utils/common";
@@ -42,11 +39,12 @@ import { goRouterByParam } from "../../utils/common";
 export default defineComponent({
   components: { Container },
   setup() {
-    const handleLogout = () => {
-      localStorage.removeItem("userInfo");
-      localStorage.removeItem("token");
+    //判断权限
+    var token = localStorage.getItem("userInfo");
+    if (!token) {
+      message.warning("请先登录");
       goRouterByParam(PageEnum.Login);
-    };
+    }
 
     const handleSetting = () => {
       message.warning("正在开发中");
@@ -56,9 +54,12 @@ export default defineComponent({
       goRouterByParam(PageEnum.DesignRoadList);
     };
 
+    onMounted(() => {
+      // window.location.reload();
+    });
+
     return {
       handleSetting,
-      handleLogout,
       handleMyList,
     };
   },

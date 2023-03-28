@@ -1333,9 +1333,13 @@ export default defineComponent({
       });
 
       //判断两个相位是否有相同方向
-      const flag = prev_all_enabled.some((p) => all_enabled.indexOf(p) > -1);
-      if (flag) {
+      const lap = prev_all_enabled.filter((p) => all_enabled.indexOf(p) > -1);
+      if (lap.length > 0) {
         message.success("搭接成功");
+        //搭接成功需要修改数据
+        lap.map((l) => {
+          console.log(l);
+        });
       } else {
         openNotfication("warning", "当前相位与上一相位无共同放行方向");
         record.is_lap = false;

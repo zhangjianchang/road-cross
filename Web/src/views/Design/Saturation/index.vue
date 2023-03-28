@@ -512,8 +512,8 @@ export default defineComponent({
       rf.signal_info.phase_list.forEach((p: any) => {
         p.directions[roadIndex].forEach((d: any) => {
           if (road_key.indexOf(d.direction) > -1) {
-            green = green | d.green;
-            yellow = yellow | d.yellow;
+            green = Math.max(green, d.green);
+            yellow = d.yellow;
           }
         });
       });

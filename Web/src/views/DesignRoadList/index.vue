@@ -41,6 +41,13 @@ import { goRouterByParam } from "../../utils/common";
 export default defineComponent({
   components: { Container },
   setup() {
+    //判断权限
+    var token = localStorage.getItem("userInfo");
+    if (!token) {
+      message.warning("请先登录");
+      goRouterByParam(PageEnum.Login);
+    }
+
     const states = reactive({
       list: [] as any[],
       loading: false,
