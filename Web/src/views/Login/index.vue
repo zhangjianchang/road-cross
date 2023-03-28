@@ -61,28 +61,20 @@ export default defineComponent({
         username: formState.username,
         password: Md5.hashStr(formState.password),
       };
-      userLogin(param)
-        .then((res: any) => {
-          if (res.code === 100) {
-            message.success("登录成功");
-            localStorage.setItem("userInfo", JSON.stringify(res.data));
-            localStorage.setItem("token", res.data.token);
-            goRouterByParam(PageEnum.UserCenter);
-          } else {
-            notification["error"]({
-              message: "错误提醒",
-              description: res.msg,
-              duration: 10,
-            });
-          }
-        })
-        .catch(() => {
+      userLogin(param).then((res: any) => {
+        if (res.code === 100) {
+          message.success("登录成功");
+          localStorage.setItem("userInfo", JSON.stringify(res.data));
+          localStorage.setItem("token", res.data.token);
+          goRouterByParam(PageEnum.UserCenter);
+        } else {
           notification["error"]({
             message: "错误提醒",
-            description: "系统异常，请稍后重试",
+            description: res.msg,
             duration: 10,
           });
-        });
+        }
+      });
     };
 
     const gotoSignIn = () => {
