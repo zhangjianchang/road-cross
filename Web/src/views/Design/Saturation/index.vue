@@ -85,7 +85,7 @@
           @change="handleChangeAnalysis"
         />
       </div>
-      <div v-for="(analysis, index) in analysisList" :key="index">
+      <div v-for="(analysis, index) in plans.saturationAnalysis" :key="index">
         <div class="menu-header">
           <div class="menu-title">
             方案{{ index + 1 }}
@@ -195,6 +195,7 @@ import { insect_pt, unique } from "../../../utils/common";
 import {
   getBackground,
   getDirectionZhName,
+  get_green_yellow,
   get_λ,
   mergeWays,
   plans,
@@ -230,14 +231,6 @@ export default defineComponent({
       total_saturation: "0.00", //中心总数值
       ratio: 4, //比例尺
       showAnalysis: false,
-      analysisList: [
-        {
-          name: "方案1",
-          canalize_plan: 0,
-          flow_plan: 0,
-          signal_plan: 0,
-        },
-      ],
       analysisOption: {
         //提示的样式
         tooltip: echart_tooltip,
@@ -391,6 +384,8 @@ export default defineComponent({
 
     //画路标
     function drawRoadSign() {
+      //先清空
+      states.road_sign_pts.length = 0;
       for (let i = 0; i < plans.road_count; i++) {
         var rc = road_info.canalize_info[i];
         const dw = {
@@ -507,46 +502,16 @@ export default defineComponent({
     ) {
       //绿信比数据
       const period = rf.signal_info.period;
-      let greens = 0;
-      let yellows = 0;
-      rf.signal_info.phase_list.forEach((p: any, index: number) => {
-        let green = 0;
-        let yellow = 0;
-        p.directions[roadIndex].forEach((d: any) => {
-          if (road_key.indexOf(d.direction) > -1) {
-            green = d.green;
-            yellow = yellow | d.yellow;
-          }
-        });
-        //多相位相加
-        greens += green;
-        yellows = yellows | yellow;
+      const g_y = get_green_yellow(rf, roadIndex, road_key);
+      let green = g_y.green;
+      let yellow = g_y.yellow;
 
-        //确认搭接并且与上一方向有共同搭接转向
-        if (p.is_lap) {
-          let is_lap_s = false;
-          p.lap.map((lp: any) => {
-            console.log(roadIndex, lp.roadIndex);
-            if (
-              roadIndex === lp.roadIndex &&
-              road_key.indexOf(lp.roadKey) > -1
-            ) {
-              is_lap_s = true;
-            }
-          });
-          if (is_lap_s) {
-            //如果搭接相位，需加上上一相位的黄灯和红灯
-            const prev_p = rf.signal_info.phase_list[index - 1];
-            greens += prev_p.yellow + prev_p.red;
-          }
-        }
-      });
       const flow_line = rf.flow_info.line_info[roadIndex];
       const q = road_q;
       const d = flow_line.truck_ratio / 100;
       const V = get_V(q, d);
       const PHF = flow_line.peak_period;
-      const λ = get_λ(greens, yellows, period);
+      const λ = get_λ(green, yellow, period);
       const S = rf.flow_info.saturation[roadIndex][wayIndex].number;
       const x = get_x(V, PHF, S, λ);
       return x;
@@ -607,7 +572,7 @@ export default defineComponent({
 
     /**页面操作事件 start*/
     const handleAddNew = () => {
-      if (states.analysisList.length === 3) {
+      if (plans.saturationAnalysis.length === 3) {
         openNotfication("warning", "最多提供三个对比方案");
         return;
       }
@@ -617,9 +582,9 @@ export default defineComponent({
         flow_plan: 0,
         signal_plan: 0,
       };
-      states.analysisList.push(analysis);
+      plans.saturationAnalysis.push(analysis);
       //重新按序起名
-      states.analysisList.map((item, index) => {
+      plans.saturationAnalysis.map((item, index) => {
         item.name = "方案" + (index + 1);
       });
       //加载echarts
@@ -628,7 +593,7 @@ export default defineComponent({
 
     //切换数据为当前方案
     const handleChange = (index: number) => {
-      const current = states.analysisList[index];
+      const current = plans.saturationAnalysis[index];
       const rf =
         plans.canalize_plans[current.canalize_plan].flow_plans[
           current.flow_plan
@@ -638,21 +603,22 @@ export default defineComponent({
 
     //执行切换
     const onChangeSatuation = (rf: any) => {
+      states.total_saturation = "";
       Object.assign(road_info, rf);
       render();
     };
 
     //删除方案
     const handleDelete = (index: number) => {
-      if (states.analysisList.length === 1) {
+      if (plans.saturationAnalysis.length === 1) {
         openNotfication("warning", "至少保留一个方案");
         return;
       }
-      states.analysisList = states.analysisList.filter(
+      plans.saturationAnalysis = plans.saturationAnalysis.filter(
         (_, idx) => idx !== index
       );
       //重新按序起名
-      states.analysisList.map((item, index) => {
+      plans.saturationAnalysis.map((item, index) => {
         item.name = "方案" + (index + 1);
       });
 
@@ -691,7 +657,7 @@ export default defineComponent({
 
       //填充legend
       let legendData = [] as string[];
-      legendData = states.analysisList.map((item) => item.name);
+      legendData = plans.saturationAnalysis.map((item) => item.name);
       legendData.push("平均值");
       states.analysisOption.legend.data = legendData;
 
@@ -740,7 +706,7 @@ export default defineComponent({
     //计算数据
     const initPlansData = () => {
       states.reportData.length = 0;
-      states.analysisList.forEach((a) => {
+      plans.saturationAnalysis.forEach((a) => {
         var rf =
           plans.canalize_plans[a.canalize_plan].flow_plans[a.flow_plan]
             .signal_plans[a.signal_plan].road_info;
@@ -796,6 +762,8 @@ export default defineComponent({
         ].signal_plans[roadStates.current_signal].road_info;
       //渲染路
       Object.assign(road_info, rf);
+      console.log(JSON.parse(JSON.stringify(road_info)));
+
       initRoads();
       initSaturation();
     });

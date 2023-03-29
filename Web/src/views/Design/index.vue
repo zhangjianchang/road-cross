@@ -184,35 +184,46 @@
           {{ menu.name }}
         </div>
       </div>
-      <div class="content-main">
-        <!-- 方向 -->
-        <Basic v-if="currentUrl === MenuListEnum.Basic" ref="basicRef" />
-        <!-- 渠化 -->
-        <Canalize
-          v-else-if="currentUrl === MenuListEnum.Canalize"
-          ref="canalizeRef"
-        />
-        <!-- 流量 -->
-        <Flow v-else-if="currentUrl === MenuListEnum.Flow" ref="flowRef" />
-        <!-- 信号 -->
-        <Signal
-          v-else-if="currentUrl === MenuListEnum.Signal"
-          ref="signalRef"
-        />
-        <!-- 断面 -->
-        <Section v-else-if="currentUrl === MenuListEnum.Section" />
-        <!-- 饱和度 -->
-        <Saturation
-          v-else-if="currentUrl === MenuListEnum.Saturation"
-          ref="saturationRef"
-        />
-        <!-- 排队分析 -->
-        <QueueAnalysis v-else-if="currentUrl === MenuListEnum.QueueAnalysis" />
-        <!-- 延误分析 -->
-        <DelayAnalysis v-else-if="currentUrl === MenuListEnum.DelayAnalysis" />
-        <!-- 服务水平 -->
-        <ServiceLevel v-else-if="currentUrl === MenuListEnum.ServiceLevel" />
-      </div>
+      <a-spin :spinning="loading">
+        <div class="content-main">
+          <!-- 方向 -->
+          <Basic v-if="currentUrl === MenuListEnum.Basic" ref="basicRef" />
+          <!-- 渠化 -->
+          <Canalize
+            v-else-if="currentUrl === MenuListEnum.Canalize"
+            ref="canalizeRef"
+          />
+          <!-- 流量 -->
+          <Flow v-else-if="currentUrl === MenuListEnum.Flow" ref="flowRef" />
+          <!-- 信号 -->
+          <Signal
+            v-else-if="currentUrl === MenuListEnum.Signal"
+            ref="signalRef"
+          />
+          <!-- 断面 -->
+          <Section v-else-if="currentUrl === MenuListEnum.Section" />
+          <!-- 饱和度 -->
+          <Saturation
+            v-else-if="currentUrl === MenuListEnum.Saturation"
+            ref="saturationRef"
+          />
+          <!-- 延误分析 -->
+          <DelayAnalysis
+            v-else-if="currentUrl === MenuListEnum.DelayAnalysis"
+            ref="delayRef"
+          />
+          <!-- 排队分析 -->
+          <QueueAnalysis
+            v-else-if="currentUrl === MenuListEnum.QueueAnalysis"
+            ref="queueRef"
+          />
+          <!-- 服务水平 -->
+          <ServiceLevel
+            v-else-if="currentUrl === MenuListEnum.ServiceLevel"
+            ref="serviceRef"
+          />
+        </div>
+      </a-spin>
     </div>
   </Container>
 </template>
@@ -235,6 +246,7 @@ import {
   create_road_cross,
   create_flow_detail,
   create_signal_info,
+  update_road_corss,
 } from "./index";
 import { message } from "ant-design-vue";
 import Container from "../../components/Container/index.vue";
@@ -247,9 +259,7 @@ import Saturation from "./Saturation/index.vue"; //饱和度
 import QueueAnalysis from "./QueueAnalysis/index.vue"; //排队分析
 import DelayAnalysis from "./DelayAnalysis/index.vue"; //延误分析
 import ServiceLevel from "./ServiceLevel/index.vue"; //服务水平
-import { buildUUID } from "../../utils/uuid";
 import { useRoute } from "vue-router";
-import moment from "moment";
 import { goRouterByParam } from "../../utils/common";
 import { PageEnum } from "../../router/data";
 import {
@@ -261,8 +271,6 @@ import _ from "lodash";
 import { plans_model, road_model } from "./data";
 import { openNotfication } from "../../utils/message";
 import { saveDesign, getDesignByGuid } from "../../request/api";
-import { object } from "vue-types";
-import { join } from "path";
 
 export default defineComponent({
   components: {
@@ -292,7 +300,6 @@ export default defineComponent({
 
     //全局道路信息
     const road_info = reactive(JSON.parse(JSON.stringify(road_model)));
-    provide("road_info", road_info); //提供给子组件使用
 
     //子页面
     const basicRef = ref();
@@ -300,6 +307,9 @@ export default defineComponent({
     const flowRef = ref();
     const signalRef = ref();
     const saturationRef = ref();
+    const delayRef = ref();
+    const queueRef = ref();
+    const serviceRef = ref();
     roadStates.currentUrl = MenuListEnum.Basic;
 
     //切换菜单
@@ -333,6 +343,8 @@ export default defineComponent({
         roadStates.showSelect.showCanalize = true;
         roadStates.showSelect.showFlow = false;
         roadStates.showSelect.showSignal = false;
+        //流量页面需要依赖渠化页面信息
+        update_road_corss(road_info);
       } else if (roadStates.currentUrl === MenuListEnum.Signal) {
         roadStates.showSelect.showCanalize = true;
         roadStates.showSelect.showFlow = true;
@@ -354,7 +366,8 @@ export default defineComponent({
       const canalize_plan = _.cloneDeep(plans_model.canalize_plans[0]);
       canalize_plan.index = index;
       canalize_plan.name = "渠化方案" + (index + 1);
-      setRoadInfo(is_copy, canalize_plan.flow_plans[0].signal_plans[0]);
+      const signal_plan = canalize_plan.flow_plans[0].signal_plans[0];
+      setRoadInfo(is_copy, signal_plan, "canalize");
       plans.canalize_plans.push(canalize_plan);
 
       //手动触发初始化
@@ -388,7 +401,7 @@ export default defineComponent({
         plans_model.canalize_plans[0].flow_plans[0]
       );
       flow_plan.name = "流量方案" + (index + 1);
-      setRoadInfo(is_copy, flow_plan.signal_plans[0]);
+      setRoadInfo(is_copy, flow_plan.signal_plans[0], "flow");
       flow_plans.push(flow_plan);
 
       //手动触发初始化
@@ -431,7 +444,7 @@ export default defineComponent({
         plans_model.canalize_plans[0].flow_plans[0].signal_plans[0]
       );
       signal_plan.name = "信号方案" + (index + 1);
-      setRoadInfo(is_copy, signal_plan);
+      setRoadInfo(is_copy, signal_plan, "signal");
       signal_plans.push(signal_plan);
 
       changeSignal(index);
@@ -463,8 +476,8 @@ export default defineComponent({
           : roadStates.current_flow;
     };
 
-    //设置全局路口信息
-    const setRoadInfo = (is_copy: boolean, signal_plan: any) => {
+    //设置全局路口信息 from,哪个模块在新增
+    const setRoadInfo = (is_copy: boolean, signal_plan: any, from: string) => {
       if (is_copy) {
         signal_plan.road_info = _.cloneDeep(road_info);
       } else {
@@ -474,9 +487,23 @@ export default defineComponent({
         rf.road_attr = signal_plan.road_info.road_attr;
         rf.basic_info = signal_plan.road_info.basic_info;
         //渠化信息
-        create_road_cross(rf);
+        if (from === "canalize") {
+          create_road_cross(rf);
+        } else {
+          rf.canalize_info =
+            plans.canalize_plans[
+              roadStates.current_canalize
+            ].flow_plans[0].signal_plans[0].road_info.canalize_info;
+        }
         //流量信息
-        create_flow_detail(rf);
+        if (from === "canalize" || from === "flow") {
+          create_flow_detail(rf);
+        } else {
+          rf.flow_info =
+            plans.canalize_plans[roadStates.current_canalize].flow_plans[
+              roadStates.current_flow
+            ].signal_plans[0].road_info.flow_info;
+        }
         //信号信息
         create_signal_info(rf);
 
@@ -537,23 +564,38 @@ export default defineComponent({
       } else if (roadStates.currentUrl === MenuListEnum.Saturation) {
         //饱和度需要做出的反应
         saturationRef.value.onChangeSatuation(rf);
+      } else if (roadStates.currentUrl === MenuListEnum.DelayAnalysis) {
+        //饱和度需要做出的反应
+        delayRef.value.onChangeDelay(rf);
+      } else if (roadStates.currentUrl === MenuListEnum.QueueAnalysis) {
+        //饱和度需要做出的反应
+        queueRef.value.onChangeQueue(rf);
+      } else if (roadStates.currentUrl === MenuListEnum.ServiceLevel) {
+        //饱和度需要做出的反应
+        serviceRef.value.onChangeService(rf);
       }
     };
+
     //保存
     const onSave = () => {
       if (!plans.road_name) {
         openNotfication("warning", "请输入交叉口名称");
         return;
       }
+      roadStates.loading = true;
       const param = {
         guid,
         roadName: plans.road_name,
         designJson: JSON.stringify(plans),
       };
-      saveDesign(param).then((res: any) => {
-        message.success("保存成功");
-        goRouterByParam(PageEnum.DesignEdit, { guid: res.data });
-      });
+      saveDesign(param)
+        .then((res: any) => {
+          message.success("保存成功");
+          goRouterByParam(PageEnum.DesignEdit, { guid: res.data });
+        })
+        .finally(() => {
+          roadStates.loading = false;
+        });
     };
 
     const init = () => {
@@ -565,11 +607,16 @@ export default defineComponent({
 
     onMounted(() => {
       if (guid) {
-        getDesignByGuid({ guid }).then((res: any) => {
-          const designJson = JSON.parse(res.data.designJson);
-          Object.assign(plans, designJson);
-          init();
-        });
+        roadStates.loading = true;
+        getDesignByGuid({ guid })
+          .then((res: any) => {
+            const designJson = JSON.parse(res.data.designJson);
+            Object.assign(plans, designJson);
+            init();
+          })
+          .finally(() => {
+            roadStates.loading = false;
+          });
       } else {
         init();
       }
@@ -584,6 +631,9 @@ export default defineComponent({
       flowRef,
       signalRef,
       saturationRef,
+      delayRef,
+      queueRef,
+      serviceRef,
       MenuListEnum,
       menuList,
       handleChangeMenu,

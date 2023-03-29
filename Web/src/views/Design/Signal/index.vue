@@ -669,8 +669,8 @@ export default defineComponent({
         x1 = start_x + getStartX(pl, p, "g") * width;
         y1 = signal + p * states.phase_height;
         w = start_x + getStartX(pl, p, "y") * width - x1;
+        //正常
         if (!pl[p].is_lap) {
-          //正常
           h = 30;
           createRect(p, x1, y1, w, h, "green");
           time = pl[p].green;
@@ -678,33 +678,128 @@ export default defineComponent({
             createText(x1 + w / 2 - 3, y1 + h / 2 + 3, p, time, "green", true);
           }
         } else {
-          //搭接相位
-          h = 12;
+          // 搭接相位
+          /**上一相位绿色 */
+          x1 = start_x + getStartX(pl, p - 1, "g") * width;
+          y1 = signal + p * states.phase_height;
+          w = start_x + getStartX(pl, p, "y") * width - x1;
+          h = 13;
           createRect(p, x1, y1, w, h, "green");
-          time = pl[p].green;
+          const prev_p_time =
+            pl[p - 1].green + pl[p - 1].yellow + pl[p - 1].red;
+          time = pl[p].green + prev_p_time;
           if (Number(time) > 0) {
             createText(x1 + w / 2 - 3, y1 + h / 2 + 3, p, time, "green", true);
           }
+          /**上一相位绿色 */
+          /**当前相位绿色 */
+          x1 = start_x + getStartX(pl, p, "g") * width;
+          y1 += 17;
+          w = start_x + getStartX(pl, p, "y") * width - x1;
+          createRect(p, x1, y1, w, h, "green");
+          time = pl[p].green;
+          if (Number(time) > 0) {
+            createText(
+              x1 + w / 2 - 3,
+              y1 + h / 2 + 3,
+              p,
+              time,
+              "green",
+              true,
+              true
+            );
+          }
+          /**当前相位绿色 */
         }
         /**绿色信号 */
         /**黄色信号 */
         x1 = start_x + getStartX(pl, p, "y") * width;
         y1 = signal + p * states.phase_height;
         w = start_x + getStartX(pl, p, "r") * width - x1;
-        createRect(p, x1, y1, w, h, "yellow");
         time = pl[p].yellow;
-        if (Number(time) > 0) {
-          createText(x1 + w / 2 - 3, y1 + h / 2 + 3, p, time, "yellow", true);
-        } /**黄色信号 */
+        h = 30;
+        if (!pl[p].is_lap) {
+          createRect(p, x1, y1, w, h, "yellow");
+          if (Number(time) > 0) {
+            createText(
+              x1 + w / 2 - 3,
+              y1 + h / 2 + 3,
+              p,
+              time,
+              "yellow",
+              true,
+              true
+            );
+          }
+        } else {
+          /**上一相位黄色 */
+          h = 13;
+          createRect(p, x1, y1, w, h, "yellow");
+          if (Number(time) > 0) {
+            createText(x1 + w / 2 - 3, y1 + h / 2 + 3, p, time, "yellow", true);
+          }
+          /**上一相位黄色 */
+          /**当前相位黄色 */
+          y1 += 17;
+          createRect(p, x1, y1, w, h, "yellow");
+          if (Number(time) > 0) {
+            createText(
+              x1 + w / 2 - 3,
+              y1 + h / 2 + 3,
+              p,
+              time,
+              "yellow",
+              true,
+              true
+            );
+          }
+          /**当前相位黄色 */
+        }
+        /**黄色信号 */
         /**红色信号 */
         x1 = start_x + getStartX(pl, p, "r") * width;
         y1 = signal + p * states.phase_height;
         w = start_x + getStartX(pl, p + 1, "g") * width - x1;
-        createRect(p, x1, y1, w, h, "red");
         time = pl[p].red;
-        if (Number(time) > 0) {
-          createText(x1 + w / 2 - 3, y1 + h / 2 + 3, p, time, "red", true);
-        } /**红色信号 */
+        if (!pl[p].is_lap) {
+          createRect(p, x1, y1, w, h, "red");
+          if (Number(time) > 0) {
+            createText(
+              x1 + w / 2 - 3,
+              y1 + h / 2 + 3,
+              p,
+              time,
+              "red",
+              true,
+              true
+            );
+          }
+        } else {
+          /**上一相位红色 */
+          h = 13;
+          createRect(p, x1, y1, w, h, "red");
+          if (Number(time) > 0) {
+            createText(x1 + w / 2 - 3, y1 + h / 2 + 3, p, time, "red", true);
+          }
+          /**上一相位红色 */
+          /**当前相位红色 */
+          y1 += 17;
+          createRect(p, x1, y1, w, h, "red");
+          if (Number(time) > 0) {
+            createText(
+              x1 + w / 2 - 3,
+              y1 + h / 2 + 3,
+              p,
+              time,
+              "red",
+              true,
+              true
+            );
+          }
+          /**当前相位红色 */
+        }
+
+        /**红色信号 */
         /**文字 */
         //相位
         x1 = start_x - 60;
@@ -774,6 +869,7 @@ export default defineComponent({
      * @param content 内容
      * @param type green/yellow/red
      * @param is_time 是否为相位对应时间
+     * @param can_click 是否可点击
      */
     function createText(
       x: number,
@@ -781,24 +877,28 @@ export default defineComponent({
       i: number,
       content: string,
       type = "",
-      is_time = false
+      is_time = false,
+      can_click = false
     ) {
       let text = document.createElementNS(states.ns, "text");
       text.setAttribute("id", `text_${i}`);
       text.setAttribute("x", x.toString());
       text.setAttribute("y", y.toString());
       if (is_time) {
+        text.setAttribute("style", `font-size:12px;font-weight:800`);
+      } else {
+        text.setAttribute("style", `font-size:12px`);
+      }
+      if (can_click) {
         text.setAttribute(
           "style",
-          `font-size:12px;cursor:pointer;font-weight:800`
+          `font-size:12px;font-weight:800;cursor:pointer;`
         );
         text.addEventListener(
           "click",
           () => onClickTime(i, type, content),
           false
         );
-      } else {
-        text.setAttribute("style", `font-size:12px`);
       }
       text.appendChild(document.createTextNode(content));
       states.cvs?.appendChild(text);
@@ -937,7 +1037,7 @@ export default defineComponent({
         let s = road_info.signal_info.phase_list.length;
         for (let i = s; i < road_info.signal_info.phase; i++) {
           insert_phase(road_info, i);
-          drawPhase(i);
+          // drawPhase(i);
         }
       } else {
         //减少
@@ -949,6 +1049,7 @@ export default defineComponent({
       }
       refreshLocation();
       calculatePeriod();
+      initRoads(road_info);
     };
 
     //是否显示图例
@@ -1005,6 +1106,8 @@ export default defineComponent({
         pl.is_lap = false;
       });
       setDirection(index);
+      //设置好数据后重新渲染时序图
+      drawScale();
     };
 
     //非机动车点击方向
@@ -1324,13 +1427,16 @@ export default defineComponent({
               roadKey: lp.split("_")[1],
             });
           });
+          message.success("搭接成功");
           //渲染路
           initRoads(road_info);
-          message.success("搭接成功");
         } else {
           openNotfication("warning", "当前相位与上一相位无共同放行方向");
           record.is_lap = false;
         }
+      } else {
+        //渲染路
+        initRoads(road_info);
       }
     };
 

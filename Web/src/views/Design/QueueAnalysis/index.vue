@@ -90,7 +90,7 @@
           @change="handleChangeAnalysis"
         />
       </div>
-      <div v-for="(analysis, index) in analysisList" :key="index">
+      <div v-for="(analysis, index) in plans.queueAnalysis" :key="index">
         <div class="menu-header">
           <div class="menu-title">
             方案{{ index + 1 }}
@@ -199,6 +199,7 @@ import { insect_pt, unique } from "../../../utils/common";
 import {
   getBackgroundByDelay,
   getDirectionZhName,
+  get_green_yellow,
   get_λ,
   mergeWays,
   plans,
@@ -238,14 +239,6 @@ export default defineComponent({
       total_saturation: "0.00", //中心总数值
       ratio: 4, //比例尺
       showAnalysis: false,
-      analysisList: [
-        {
-          name: "方案1",
-          canalize_plan: 0,
-          flow_plan: 0,
-          signal_plan: 0,
-        },
-      ],
       analysisOption: {
         //提示的样式
         tooltip: echart_tooltip,
@@ -399,6 +392,8 @@ export default defineComponent({
 
     //画路标
     function drawRoadSign() {
+      //先清空
+      states.road_sign_pts.length = 0;
       for (let i = 0; i < plans.road_count; i++) {
         var rc = road_info.canalize_info[i];
         const dw = {
@@ -515,18 +510,12 @@ export default defineComponent({
       rf: any
     ) {
       //绿信比数据
-      let green = 0;
-      let yellow = 0;
-      rf.signal_info.phase_list.forEach((p: any) => {
-        p.directions[roadIndex].forEach((d: any) => {
-          if (road_key.indexOf(d.direction) > -1) {
-            green = green | d.green;
-            yellow = yellow | d.yellow;
-          }
-        });
-      });
+      const g_y = get_green_yellow(rf, roadIndex, road_key);
+      let green = g_y.green;
+      let yellow = g_y.yellow;
       const C = rf.signal_info.period;
-      const λ = get_λ(green, yellow, C); /**饱和度 */
+      const λ = get_λ(green, yellow, C);
+
       const flow_line = rf.flow_info.line_info[roadIndex];
       const q = road_q;
       const d = flow_line.truck_ratio / 100;
@@ -594,7 +583,7 @@ export default defineComponent({
 
     /**页面操作事件 start*/
     const handleAddNew = () => {
-      if (states.analysisList.length === 3) {
+      if (plans.queueAnalysis.length === 3) {
         openNotfication("warning", "最多提供三个对比方案");
         return;
       }
@@ -604,9 +593,9 @@ export default defineComponent({
         flow_plan: 0,
         signal_plan: 0,
       };
-      states.analysisList.push(analysis);
+      plans.queueAnalysis.push(analysis);
       //重新按序起名
-      states.analysisList.map((item, index) => {
+      plans.queueAnalysis.map((item, index) => {
         item.name = "方案" + (index + 1);
       });
       //加载echarts
@@ -615,31 +604,31 @@ export default defineComponent({
 
     //切换数据为当前方案
     const handleChange = (index: number) => {
-      const current = states.analysisList[index];
+      const current = plans.queueAnalysis[index];
       const rf =
         plans.canalize_plans[current.canalize_plan].flow_plans[
           current.flow_plan
         ].signal_plans[current.signal_plan].road_info;
-      onChangeSatuation(rf);
+      onChangeQueue(rf);
     };
 
     //执行切换
-    const onChangeSatuation = (rf: any) => {
+    const onChangeQueue = (rf: any) => {
       Object.assign(road_info, rf);
       render();
     };
 
     //删除方案
     const handleDelete = (index: number) => {
-      if (states.analysisList.length === 1) {
+      if (plans.queueAnalysis.length === 1) {
         openNotfication("warning", "至少保留一个方案");
         return;
       }
-      states.analysisList = states.analysisList.filter(
+      plans.queueAnalysis = plans.queueAnalysis.filter(
         (_, idx) => idx !== index
       );
       //重新按序起名
-      states.analysisList.map((item, index) => {
+      plans.queueAnalysis.map((item, index) => {
         item.name = "方案" + (index + 1);
       });
 
@@ -678,7 +667,7 @@ export default defineComponent({
 
       //填充legend
       let legendData = [] as string[];
-      legendData = states.analysisList.map((item) => item.name);
+      legendData = plans.queueAnalysis.map((item) => item.name);
       legendData.push("平均值");
       states.analysisOption.legend.data = legendData;
 
@@ -727,7 +716,7 @@ export default defineComponent({
     //计算数据
     const initPlansData = () => {
       states.reportData.length = 0;
-      states.analysisList.forEach((a) => {
+      plans.queueAnalysis.forEach((a) => {
         var rf =
           plans.canalize_plans[a.canalize_plan].flow_plans[a.flow_plan]
             .signal_plans[a.signal_plan].road_info;
@@ -821,7 +810,7 @@ export default defineComponent({
       handleDelete,
       handleChange,
       handleChangeAnalysis,
-      onChangeSatuation,
+      onChangeQueue,
     };
   },
 });

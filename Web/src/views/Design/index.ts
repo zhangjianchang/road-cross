@@ -3,12 +3,7 @@ import { reactive } from "vue";
 import { cal_point, getQuadrantByAngle, insect_pt } from "../../utils/common";
 import { getRoadDefaultSign, RoadCross } from "./Canalize";
 import { DirectionsZh, plans_model } from "./data";
-import {
-  flowColumnsPart,
-  flowDataIndex,
-  lineInfoModel,
-  uturn_path,
-} from "./Flow";
+import { flowColumnsPart, flowDataIndex, lineInfoModel } from "./Flow";
 import { DirectionItemModel, phaseModel } from "./Signal";
 
 export enum MenuListEnum {
@@ -48,6 +43,7 @@ export interface RoadInfo {
 
 //道路信息
 export const roadStates = reactive({
+  loading: false,
   cx: 350, //圆心x
   cy: 350, //圆心y
   road_list: [] as any[], //TODO缓存方案，后期删
@@ -148,6 +144,7 @@ export function update_road_corss(road_info: any) {
       rc = road_info.canalize_info[i]; //存在则取原有数据
     } else {
       rc = JSON.parse(JSON.stringify(RoadCross)); // 不存在则取模板对象
+      rc.name = "方向" + (i + 1);
       create_sign(rc);
     }
     var angle = parseFloat(dir[i]); // 角度
@@ -181,7 +178,7 @@ export function create_flow_detail(road_info: any) {
   initEnterNum(road_info);
 }
 
-//加载渠化信息
+//加载流量信息
 export function update_flow_detail(road_info: any) {
   //更新各方向之间的角度
   road_info.flow_info.flow_detail.map((fd: any) => {
@@ -462,6 +459,44 @@ export const getStraightTurnDetail = (road_info: any, i: number) => {
 /**信号相关 */
 
 /**计算 */
+export const get_green_yellow = (
+  rf: any,
+  roadIndex: number,
+  roadKey: string
+) => {
+  let greens = 0;
+  let yellows = 0;
+  rf.signal_info.phase_list.forEach((p: any, index: number) => {
+    let green = 0;
+    let yellow = 0;
+    p.directions[roadIndex].forEach((d: any) => {
+      if (roadKey.indexOf(d.direction) > -1) {
+        green = d.green;
+        yellow = yellow | d.yellow;
+      }
+    });
+    //多相位相加
+    greens += green;
+    yellows = yellows | yellow;
+
+    //确认搭接并且与上一方向有共同搭接转向
+    if (p.is_lap) {
+      let is_lap_s = false;
+      p.lap.map((lp: any) => {
+        if (roadIndex === lp.roadIndex && roadKey.indexOf(lp.roadKey) > -1) {
+          is_lap_s = true;
+        }
+      });
+      if (is_lap_s) {
+        //如果搭接相位，需加上上一相位的黄灯和红灯
+        const prev_p = rf.signal_info.phase_list[index - 1];
+        greens += prev_p.yellow + prev_p.red;
+      }
+    }
+  });
+  return { green: greens, yellow: yellows };
+};
+
 //绿信比
 export function get_λ(green: number, yellow: number, period: number) {
   const λ = (green + yellow - 3) / period;

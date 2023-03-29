@@ -96,7 +96,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, onUnmounted, reactive, toRefs } from "vue";
+import { defineComponent, onMounted, reactive, toRefs } from "vue";
 import Container from "../../../components/Container/index.vue";
 import {
   DragOutlined,
@@ -104,19 +104,16 @@ import {
   DeleteOutlined,
   SwapOutlined,
 } from "@ant-design/icons-vue";
-import { insect_pt, unique } from "../../../utils/common";
+import { insect_pt } from "../../../utils/common";
 import {
   getBackgroundByDelay,
   getBackgroundBySaturation,
-  getDirectionZhName,
   get_λ,
   mergeWays,
   plans,
   roadStates,
 } from "..";
-import { openNotfication } from "../../../utils/message";
-import * as echarts from "echarts";
-import { echart_toolbox, echart_tooltip, road_model } from "../data";
+import { road_model } from "../data";
 import { roadSigns } from "../Canalize";
 import { get_V, get_x } from "../Saturation";
 import { get_d } from "../DelayAnalysis";
@@ -142,8 +139,6 @@ export default defineComponent({
       d: 120, //离圆心距离
       far_d: 240, //离圆心距离
       road_width: 80, //路宽
-      curvature: 2, //路口弧度
-      cross_pts: [] as any[], //所有路口交叉点
       road_sign_pts: [] as any[], //路标
       total_color: "#fff", //中心总颜色
       total_saturation: "0.00", //中心总数值
@@ -480,6 +475,16 @@ export default defineComponent({
       render();
     };
 
+    const onChangeService = () => {
+      const rf =
+        plans.canalize_plans[roadStates.current_canalize].flow_plans[
+          roadStates.current_flow
+        ].signal_plans[roadStates.current_signal].road_info;
+      //渲染路
+      Object.assign(road_info, rf);
+      render();
+    };
+
     onMounted(() => {
       const rf =
         plans.canalize_plans[roadStates.current_canalize].flow_plans[
@@ -489,19 +494,6 @@ export default defineComponent({
       Object.assign(road_info, rf);
       initRoads();
     });
-
-    function drawPoint(x: number, y: number, color: string) {
-      var g = document.createElementNS(states.ns, "g");
-      g.setAttribute("stroke", color);
-      g.setAttribute("stroke-width", "2");
-      g.setAttribute("fill", "black");
-      var circle = document.createElementNS(states.ns, "circle");
-      circle.setAttribute("cx", x.toString());
-      circle.setAttribute("cy", y.toString());
-      circle.setAttribute("r", "2");
-      g.appendChild(circle);
-      states.cvs?.appendChild(g);
-    }
 
     return {
       ...toRefs(states),
@@ -514,6 +506,7 @@ export default defineComponent({
       wrapperCol: { span: 22 },
       getServiceByTypeAndRatio,
       onChangeAnalysisType,
+      onChangeService,
     };
   },
 });

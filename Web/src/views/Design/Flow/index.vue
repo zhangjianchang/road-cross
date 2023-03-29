@@ -68,7 +68,7 @@
                         v-model:value="flow_info.colorScheme"
                         size="small"
                         class="form-width"
-                        @change="onChangeFlow"
+                        @change="onChangeFlow(undefined)"
                       >
                         <a-select-option
                           v-for="index in [0, 1, 2]"
@@ -88,7 +88,7 @@
                         :max="8"
                         size="small"
                         class="form-width"
-                        @change="onChangeFlow"
+                        @change="onChangeFlow(undefined)"
                       />
                     </a-form-item>
                   </a-col>
@@ -101,7 +101,7 @@
                         :step="1"
                         size="small"
                         class="form-width"
-                        @change="onChangeFlow"
+                        @change="onChangeFlow(undefined)"
                       />
                     </a-form-item>
                   </a-col>
@@ -114,7 +114,7 @@
                         :step="1"
                         size="small"
                         class="form-width"
-                        @change="onChangeFlow"
+                        @change="onChangeFlow(undefined)"
                       />
                     </a-form-item>
                   </a-col>
@@ -127,7 +127,7 @@
                         :step="2"
                         size="small"
                         class="form-width"
-                        @change="onChangeFlow"
+                        @change="onChangeFlow(undefined)"
                       />
                     </a-form-item>
                   </a-col>
@@ -140,7 +140,7 @@
                         :step="2"
                         size="small"
                         class="form-width"
-                        @change="onChangeFlow"
+                        @change="onChangeFlow(undefined)"
                       />
                     </a-form-item>
                   </a-col>
@@ -168,7 +168,7 @@
                     v-model:value="canalize_info[index].name"
                     size="small"
                     class="form-width"
-                    @blur="onChangeFlow"
+                    @blur="onChangeFlow(undefined)"
                   />
                 </template>
                 <!-- 大车比率 -->
@@ -252,7 +252,7 @@
                         :step="10"
                         size="small"
                         class="small-form-width"
-                        @blur="onChangeFlow"
+                        @blur="onChangeFlow(undefined)"
                         @focus="
                           onFocusFlow(
                             flow_info.flow_detail[index].turn[Number(col)].tag
@@ -371,13 +371,58 @@ export default defineComponent({
     const initRoads = (rf: any) => {
       states.ns = "http://www.w3.org/2000/svg";
       states.cvs = document.getElementById("canvas");
-      setRoadFlow(rf); //设置关键数据
       onChangeFlow(rf); //渲染
+    };
+
+    //页面属性变动
+    const onChangeFlow = async (rf: any) => {
+      if (!rf) {
+        rf =
+          plans.canalize_plans[roadStates.current_canalize].flow_plans[
+            roadStates.current_flow
+          ].signal_plans[0].road_info;
+      }
+      await setRoadFlow(rf); //设置关键数据
+      Object.assign(road_info, rf);
+
+      //默认值
+      if (!road_info.flow_info.thickness) {
+        road_info.flow_info.thickness = 5;
+      }
+      if (!road_info.flow_info.width) {
+        road_info.flow_info.width = 100;
+      }
+      if (!road_info.flow_info.space) {
+        road_info.flow_info.space = 24;
+      }
+      if (!road_info.flow_info.font_size1) {
+        road_info.flow_info.font_size1 = 14;
+      }
+      if (!road_info.flow_info.font_size2) {
+        road_info.flow_info.font_size2 = 16;
+      }
+      clearRoadPath();
+      render();
     };
 
     async function setRoadFlow(rf: any) {
       //道路数据填充
       await initRoadInfo(rf);
+    }
+
+    //填充表格
+    async function initRoadInfo(rf: any) {
+      if (
+        !roadStates.is_flow_init ||
+        plans.road_count !== rf.flow_info.line_info.length
+      ) {
+        //初始化时加载,道路数变化时重新加载
+        create_flow_detail(rf);
+      } else {
+        //只变动了方向
+        update_flow_detail(rf);
+      }
+      roadStates.is_flow_init = true; //标记已经初始化过了
     }
 
     function render() {
@@ -448,21 +493,6 @@ export default defineComponent({
         const road_line = { right_line, left_line, middle_line, color };
         states.road_lines.push(road_line);
       }
-    }
-
-    //填充表格
-    async function initRoadInfo(rf: any) {
-      if (
-        !roadStates.is_flow_init &&
-        plans.road_count !== rf.flow_info.line_info.length
-      ) {
-        //初始化时加载,道路数变化时重新加载
-        create_flow_detail(rf);
-      } else {
-        //只变动了方向
-        update_flow_detail(rf);
-      }
-      roadStates.is_flow_init = true; //标记已经初始化过了
     }
 
     //绘制道路
@@ -731,35 +761,6 @@ export default defineComponent({
       ct.number = states.updateNumber;
       onChangeFlow(road_info);
       states.visible = false;
-    };
-
-    //页面属性变动
-    const onChangeFlow = (rf: any) => {
-      if (!rf) {
-        rf =
-          plans.canalize_plans[roadStates.current_canalize].flow_plans[
-            roadStates.current_flow
-          ].signal_plans[0].road_info;
-      }
-      Object.assign(road_info, rf);
-      //默认值
-      if (!road_info.flow_info.thickness) {
-        road_info.flow_info.thickness = 5;
-      }
-      if (!road_info.flow_info.width) {
-        road_info.flow_info.width = 100;
-      }
-      if (!road_info.flow_info.space) {
-        road_info.flow_info.space = 24;
-      }
-      if (!road_info.flow_info.font_size1) {
-        road_info.flow_info.font_size1 = 14;
-      }
-      if (!road_info.flow_info.font_size2) {
-        road_info.flow_info.font_size2 = 16;
-      }
-      clearRoadPath();
-      render();
     };
 
     //流量框聚焦

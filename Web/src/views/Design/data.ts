@@ -35,12 +35,11 @@ export const road_model = {
 
   saturation_info: [] as any[],
   delay_info: [] as any[],
-  queue_info: [] as any[], 
+  queue_info: [] as any[],
 };
 
 //方案model
 export const plans_model = {
-  id: buildUUID(),
   road_name: "", //交叉口名称
   road_count: 0, //交叉口数量
   canalize_plans: [
@@ -60,6 +59,33 @@ export const plans_model = {
           ],
         },
       ],
+    },
+  ],
+  //饱和度对比方案
+  saturationAnalysis: [
+    {
+      name: "方案1",
+      canalize_plan: 0,
+      flow_plan: 0,
+      signal_plan: 0,
+    },
+  ],
+  //延误对比方案
+  delayAnalysis: [
+    {
+      name: "方案1",
+      canalize_plan: 0,
+      flow_plan: 0,
+      signal_plan: 0,
+    },
+  ],
+  //排队对比方案
+  queueAnalysis: [
+    {
+      name: "方案1",
+      canalize_plan: 0,
+      flow_plan: 0,
+      signal_plan: 0,
     },
   ],
 };
