@@ -1,13 +1,14 @@
 import { createRouter, createWebHashHistory } from "vue-router";
 import Home from "../views/Home/index.vue";
 import Design from "../views/Design/index.vue";
-import DesignRoadList from "../views/DesignRoadList/index.vue";
 import Doc from "../views/Doc/index.vue";
 import Authorize from "../views/Authorize/index.vue";
 import Contact from "../views/Contact/index.vue";
 import Login from "../views/Login/index.vue";
 import SignIn from "../views/Login/signIn.vue";
 import UserCenter from "../views/UserCenter/index.vue";
+import Settings from "../views/UserCenter/Settings/index.vue";
+import DesignRoadList from "../views/UserCenter/DesignRoadList/index.vue";
 
 import { PageEnum } from "./data";
 
@@ -61,6 +62,11 @@ const routes = [
     path: "/userCenter",
     name: PageEnum.UserCenter,
     component: UserCenter,
+  },
+  {
+    path: "/settings",
+    name: PageEnum.Settings,
+    component: Settings,
   },
 ];
 

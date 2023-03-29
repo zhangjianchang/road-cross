@@ -50,7 +50,6 @@
 <script lang="ts">
 import { message } from "ant-design-vue";
 import { defineComponent, reactive } from "vue";
-import { userLogin } from "../../request/api";
 import { PageEnum } from "../../router/data";
 import { goRouterByParam } from "../../utils/common";
 import { openNotfication } from "../../utils/message";

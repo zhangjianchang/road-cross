@@ -44,6 +44,25 @@ namespace Api.BLL
             }
         }
 
+        /// <summary>
+        /// 重置密码
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        internal static bool ReSetPassword(LoginInfo user)
+        {
+            var userInfo = GetUserDetail(user.UserName, user.OriginalPassword);
+            if (userInfo == null)
+            {
+                throw new Exception("原始密码错误");
+            }
+            string password = user.Password.ToUpper().ToMD5();
+            JabMySqlHelper.ExecuteNonQuery(Config.DBConnection,
+                    $"Update user_info set Password=@Password where UserName=@UserName;",
+                new MySqlParameter("@UserName", user.UserName),
+                new MySqlParameter("@Password", password));
+            return true;
+        }
 
         public static List<Object> GetUserList()
         {

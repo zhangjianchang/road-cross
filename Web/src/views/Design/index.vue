@@ -292,7 +292,7 @@ export default defineComponent({
     const route = useRoute();
     const guid = (route.params.guid ?? "").toString();
     //判断权限
-    var token = localStorage.getItem("userInfo");
+    var token = localStorage.getItem("token");
     if (!token) {
       message.warning("请先登录");
       goRouterByParam(PageEnum.Login);
@@ -618,6 +618,7 @@ export default defineComponent({
             roadStates.loading = false;
           });
       } else {
+        Object.assign(plans, _.cloneDeep(plans_model));
         init();
       }
     });

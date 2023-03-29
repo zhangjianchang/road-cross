@@ -1,4 +1,5 @@
 import router from "../router";
+import { PageEnum } from "../router/data";
 
 //param自定义参数，openType打开类型 _blank/_self
 export function goRouterByParam(
@@ -12,10 +13,21 @@ export function goRouterByParam(
       params: param,
     });
     window.open(href, openType);
-    //路由跳转后都强刷页面
-    // location.reload();
+    if (name === PageEnum.Design) {
+      //路由跳转后强刷页面
+      location.reload();
+    }
   } catch {}
 }
+
+// 页面宽度初始化
+export const scrollX = (columns: any) => {
+  let scrollX = 100;
+  columns.forEach((t: any) => {
+    scrollX += Number(t.width);
+  });
+  return { x: scrollX };
+};
 
 // 数组去重
 export function unique(arr: any[]) {

@@ -29,7 +29,7 @@
     <div v-else>
       <a-dropdown placement="bottomLeft" size="large">
         <a class="ant-dropdown-link" @click.prevent>
-          {{ userInfo.userName }}
+          {{ userInfo.chineseName }}
         </a>
         <template #overlay>
           <a-menu>
@@ -52,6 +52,8 @@ import { defineComponent, onMounted, ref } from "vue";
 import { UserOutlined } from "@ant-design/icons-vue";
 import { PageEnum } from "../../router/data";
 import { goRouterByParam } from "../../utils/common";
+import { useRoute } from "vue-router";
+import { message } from "ant-design-vue";
 
 export default defineComponent({
   components: { UserOutlined },
@@ -67,8 +69,15 @@ export default defineComponent({
 
     //路由跳转
     const handleRouterClick = (routerName: string) => {
-      init();
-      if (userInfo.value) {
+      //判断权限
+      var token = localStorage.getItem("token");
+      if (
+        !token &&
+        (routerName === PageEnum.Design || routerName === PageEnum.UserCenter)
+      ) {
+        message.warning("请先登录");
+        goRouterByParam(PageEnum.Login);
+      } else {
         goRouterByParam(routerName);
       }
     };

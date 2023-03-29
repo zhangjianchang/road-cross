@@ -10,7 +10,7 @@
           />
         </template>
         <a-card-meta title="设置">
-          <template #description>个人信息及偏好设置</template>
+          <template #description>个人信息及授权码激活</template>
         </a-card-meta>
       </a-card>
       <a-card hoverable class="card" @click="handleMyList">
@@ -40,14 +40,14 @@ export default defineComponent({
   components: { Container },
   setup() {
     //判断权限
-    var token = localStorage.getItem("userInfo");
+    var token = localStorage.getItem("token");
     if (!token) {
       message.warning("请先登录");
       goRouterByParam(PageEnum.Login);
     }
 
     const handleSetting = () => {
-      message.warning("正在开发中");
+      goRouterByParam(PageEnum.Settings);
     };
 
     const handleMyList = () => {

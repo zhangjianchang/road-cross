@@ -1,5 +1,16 @@
 <template>
   <Container class="main-container">
+    <div class="breadcrumb">
+      <a-breadcrumb>
+        <a-breadcrumb-item
+          href=""
+          @click="goRouterByParam(PageEnum.UserCenter)"
+        >
+          个人中心
+        </a-breadcrumb-item>
+        <a-breadcrumb-item>项目列表</a-breadcrumb-item>
+      </a-breadcrumb>
+    </div>
     <a-table
       :dataSource="list"
       :columns="designColumns"
@@ -33,16 +44,16 @@
 import { message } from "ant-design-vue";
 import { defineComponent, onMounted, reactive, toRefs } from "vue";
 import { designColumns } from ".";
-import Container from "../../components/Container/index.vue";
-import { deleteDesign, getDesignList } from "../../request/api";
-import { PageEnum } from "../../router/data";
-import { goRouterByParam } from "../../utils/common";
+import Container from "../../../components/Container/index.vue";
+import { deleteDesign, getDesignList } from "../../../request/api";
+import { PageEnum } from "../../../router/data";
+import { goRouterByParam } from "../../../utils/common";
 
 export default defineComponent({
   components: { Container },
   setup() {
     //判断权限
-    var token = localStorage.getItem("userInfo");
+    var token = localStorage.getItem("token");
     if (!token) {
       message.warning("请先登录");
       goRouterByParam(PageEnum.Login);
@@ -89,10 +100,13 @@ export default defineComponent({
       handleCreate,
       handleEdit,
       handleDelete,
+      goRouterByParam,
+      PageEnum,
     };
   },
 });
 </script>
 <style scoped lang="less">
+@import "../index.less";
 @import "./index.less";
 </style>

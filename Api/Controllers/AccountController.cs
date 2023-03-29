@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using Api.BLL;
 using Api.Entity;
 using Api.Utilities;
+using System;
 
 namespace Api.Controllers
 {
@@ -52,6 +53,21 @@ namespace Api.Controllers
             }
             UserBLL.SetPassword(user.UserName, user.Password);
             return MyResult.OK();
+        }
+
+        [HttpPost("reSetPwd")]
+        public MyResult ReSetPassword(LoginInfo user)
+        {
+            try
+            {
+                user.UserName = Request.Headers["userName"];
+                UserBLL.ReSetPassword(user);
+                return MyResult.OK();
+            }
+            catch (Exception ex)
+            {
+                return MyResult.Error(ex.Message);
+            }
         }
 
         [HttpGet("logout")]
