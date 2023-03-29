@@ -1,13 +1,20 @@
 <template>
   <div>
-    <a-row :gutter="[16, 16]">
-      <a-col :span="2"> 登录账号 </a-col>
-      <a-col :span="22">{{ data.userName }}</a-col>
-      <a-col :span="2"> 用户名 </a-col>
-      <a-col :span="22">{{ data.chineseName }}</a-col>
-      <a-col :span="2"> 账号类型 </a-col>
-      <a-col :span="22">{{ data.roleName }}</a-col>
-    </a-row>
+    <a-form
+      :label-col="{ span: 2 }"
+      :wrapper-col="{ span: 22 }"
+      labelAlign="left"
+    >
+      <a-form-item label="登录账号">
+        {{ data.userName }}
+      </a-form-item>
+      <a-form-item label="用户名">
+        {{ data.chineseName }}
+      </a-form-item>
+      <a-form-item label="账号类型">
+        {{ data.roleName }}
+      </a-form-item>
+    </a-form>
   </div>
 </template>
 

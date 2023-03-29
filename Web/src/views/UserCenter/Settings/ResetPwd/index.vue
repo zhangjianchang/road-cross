@@ -6,6 +6,7 @@
       :wrapper-col="{ span: 22 }"
       :rules="rules"
       ref="formRef"
+      labelAlign="left"
     >
       <a-form-item label="原密码" name="originalPassword">
         <a-input-password

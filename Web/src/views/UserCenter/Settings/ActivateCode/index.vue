@@ -23,6 +23,7 @@
       :wrapper-col="{ span: 22 }"
       :rules="rules"
       ref="formRef"
+      labelAlign="left"
     >
       <a-form-item label="激活码" name="code">
         <a-input
