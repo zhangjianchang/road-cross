@@ -28,8 +28,8 @@ export const flowColumnsPart = [
   {
     title: "路名",
     dataIndex: "road_name",
-    width: 30,
-    align: "center",
+    width: 80,
+    // align: "center",
     slots: { customRender: "road_name" },
   },
 ];

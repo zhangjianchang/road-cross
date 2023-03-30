@@ -55,7 +55,7 @@
       </defs> -->
     </svg>
     <!-- 参数 -->
-    <div class="menu">
+    <div class="menu" v-if="!code_info || can_edit">
       <div class="form">
         <a-collapse v-model:activeKey="activeKey">
           <a-collapse-panel key="1" header="绘图属性">
@@ -295,6 +295,11 @@
         </a-collapse>
       </div>
     </div>
+    <div class="menu" v-else>
+      <div style="padding-top: 320px; text-align: center">
+        <a-button type="primary" @click="handleEdit"> 编辑 </a-button>
+      </div>
+    </div>
     <a-modal
       v-if="is_flow_init"
       v-model:visible="visible"
@@ -336,7 +341,13 @@ import {
   colorSchemes,
 } from ".";
 import _ from "lodash";
-import { create_flow_detail, plans, roadStates, update_flow_detail } from "..";
+import {
+  create_flow_detail,
+  handleEdit,
+  plans,
+  roadStates,
+  update_flow_detail,
+} from "..";
 import { road_model } from "../data";
 import { message } from "ant-design-vue";
 
@@ -841,6 +852,7 @@ export default defineComponent({
       onRowClick,
       onFocusFlow,
       onNumberConfirm,
+      handleEdit,
     };
   },
 });

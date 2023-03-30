@@ -1,8 +1,7 @@
 <template>
   <div class="basic-main">
-    <div class="func">
-      <!-- 功能区 -->
-    </div>
+    <!-- 功能区 -->
+    <div class="func"></div>
     <!-- 图示 -->
     <svg id="canvas">
       <!-- 填充黄斜线 -->
@@ -41,8 +40,8 @@
         </pattern>
       </defs>
     </svg>
-    <!-- 参数 -->
-    <div class="menu">
+    <!-- 操作区 -->
+    <div class="menu" v-if="!roadStates.code_info || roadStates.can_edit">
       <div class="form" v-if="canalize_info.length > 0">
         <a-collapse v-model:activeKey="activeKey">
           <a-collapse-panel key="1" header="交叉口属性">
@@ -782,6 +781,11 @@
         </a-collapse>
       </div>
     </div>
+    <div class="menu" v-else>
+      <div style="padding-top: 320px; text-align: center">
+        <a-button type="primary" @click="handleEdit"> 编辑 </a-button>
+      </div>
+    </div>
     <a-modal
       :visible="modalVisible"
       width="1000px"
@@ -815,7 +819,6 @@
 import { defineComponent, onMounted, reactive, toRefs } from "vue";
 import {
   canalizeTypeOption,
-  getRoadDefaultSign,
   medianStripTypeOption,
   roadSigns,
   setIsolationStyle,
@@ -831,6 +834,7 @@ import { intersect_line_point, line_pt3 } from "../../../utils/common";
 import {
   create_road_cross,
   create_sign,
+  handleEdit,
   plans,
   roadStates,
   update_road_corss,
@@ -2357,6 +2361,7 @@ export default defineComponent({
     return {
       ...toRefs(states),
       ...toRefs(road_info),
+      roadStates,
       labelCol: { span: 8 },
       wrapperCol: { span: 12 },
       roadSigns,
@@ -2369,6 +2374,7 @@ export default defineComponent({
       onLoad,
       onLoadEdit,
       onLoadChange,
+      handleEdit,
     };
   },
 });

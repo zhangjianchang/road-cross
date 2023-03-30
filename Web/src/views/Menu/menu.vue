@@ -20,7 +20,12 @@
         联系我们
       </router-link>
     </div>
-    <div class="login" v-if="!userInfo?.userName">
+    <div class="code" v-if="code_info">
+      剩余可用：{{ code_info.remainingDays }}天，{{
+        code_info.remainingTimes
+      }}次
+    </div>
+    <div v-if="!user_info?.userName">
       <a-tooltip color="#f50" placement="left" title="点击登录">
         <user-outlined @click="handleLogin" />
       </a-tooltip>
@@ -29,7 +34,7 @@
     <div v-else>
       <a-dropdown placement="bottomLeft" size="large">
         <a class="ant-dropdown-link" @click.prevent>
-          {{ userInfo.chineseName }}
+          {{ user_info.chineseName }}
         </a>
         <template #overlay>
           <a-menu>
@@ -48,23 +53,26 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref } from "vue";
+import { defineComponent, onMounted, reactive, ref, toRefs } from "vue";
 import { UserOutlined } from "@ant-design/icons-vue";
 import { PageEnum } from "../../router/data";
 import { goRouterByParam } from "../../utils/common";
-import { useRoute } from "vue-router";
 import { message } from "ant-design-vue";
+import { getCodeInfo, userLogout } from "../../request/api";
+import { roadStates } from "../Design";
+import { userStates } from "../UserCenter";
 
 export default defineComponent({
   components: { UserOutlined },
   setup() {
-    const userInfo = ref({}) as any;
-
     const init = () => {
       var strUser = localStorage.getItem("userInfo");
       if (strUser) {
-        userInfo.value = JSON.parse(strUser);
+        userStates.user_info = JSON.parse(strUser);
       }
+      getCodeInfo().then((res: any) => {
+        roadStates.code_info = res.data;
+      });
     };
 
     //路由跳转
@@ -82,19 +90,23 @@ export default defineComponent({
       }
     };
 
+    //登录
     const handleLogin = () => {
       //先加载
       init();
-      if (!userInfo.value) {
+      if (!userStates.user_info) {
         goRouterByParam(PageEnum.Login);
       }
     };
 
     //登出
     const handleLogout = () => {
-      localStorage.removeItem("userInfo");
-      localStorage.removeItem("token");
-      goRouterByParam(PageEnum.Login);
+      userLogout().then(() => {
+        localStorage.removeItem("userInfo");
+        localStorage.removeItem("token");
+        userStates.user_info = undefined;
+        goRouterByParam(PageEnum.Login);
+      });
     };
 
     onMounted(() => {
@@ -102,7 +114,8 @@ export default defineComponent({
     });
 
     return {
-      userInfo,
+      ...toRefs(userStates),
+      ...toRefs(roadStates),
       PageEnum,
       handleRouterClick,
       handleLogout,

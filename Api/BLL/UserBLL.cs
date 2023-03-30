@@ -44,6 +44,37 @@ namespace Api.BLL
             }
         }
 
+        public static UserInfo GetUserDetail(string userName)
+        {
+            DataTable dt = JabMySqlHelper.ExecuteDataTable(
+                Config.DBConnection,
+                @"SELECT
+                    e.UserName,e.ChineseName,e.WaitSet,
+                    r.RoleName,
+                    r.RoleId
+                FROM user_info e
+                INNER JOIN user_role r ON e.RoleID = r.roleid 
+                WHERE e.UserName = @UserName LIMIT 1",
+                new MySqlParameter("@UserName", userName));
+
+            if (dt != null && dt.Rows.Count > 0)
+            {
+                var row = dt.Rows[0];
+                return new UserInfo
+                {
+                    UserName = Converter.TryToString(row["UserName"]),
+                    ChineseName = Converter.TryToString(row["ChineseName"]),
+                    RoleName = Converter.TryToString(row["RoleName"]),
+                    RoleId = Converter.TryToInt32(row["RoleId"]),
+                    WaitSet = Converter.TryToInt16(row["WaitSet"]),
+                };
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         /// <summary>
         /// 重置密码
         /// </summary>

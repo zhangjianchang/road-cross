@@ -59,7 +59,7 @@ export function get(url: string, params: any) {
  * @param {String} url [请求的url地址]
  * @param {Object} params [请求时携带的参数]
  */
-export function post(url: string, params: any) {
+export function post(url: string, params?: any) {
   return new Promise((resolve, reject) => {
     axios
       .post(url, params)
@@ -67,12 +67,12 @@ export function post(url: string, params: any) {
         if (res.data.code === 100) {
           resolve(res.data);
         } else {
-          openNotfication("warning", res.data.msg);
+          openNotfication("error", res.data.msg);
           reject(res.data);
         }
       })
       .catch((err) => {
-        openNotfication("warning", err.message);
+        openNotfication("error", err.message);
         reject(err.data);
       });
   });

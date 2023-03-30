@@ -3,18 +3,8 @@
     <div v-if="userInfo.roleId === 1">
       您是系统管理员，可使用系统全部功能，无需激活
     </div>
-    <div v-else-if="userInfo.roleId === 5">
-      <div class="success-text">您的授权码已激活!</div>
-      <a-table
-        class="mt-5"
-        bordered
-        size="small"
-        :columns="codeColumns"
-        :dataSource="memberInfo"
-        :scroll="scrollX(codeColumns)"
-        :loading="loading"
-        :pagination="false"
-      />
+    <div v-else-if="data.isActivated" class="success-text">
+      您的授权码已激活!
     </div>
     <a-form
       v-else
@@ -29,7 +19,7 @@
         <a-input
           placeholder="请输入激活码"
           v-model:value="data.code"
-          class="pwd-input"
+          class="code-input"
         />
         <a-button
           type="primary"
@@ -41,14 +31,26 @@
         </a-button>
       </a-form-item>
     </a-form>
+    <a-table
+      v-if="userInfo.roleId !== 1 && memberInfo.length > 0"
+      class="mt-5"
+      bordered
+      size="small"
+      :columns="codeColumns"
+      :dataSource="memberInfo"
+      :scroll="scrollX(codeColumns)"
+      :loading="loading"
+      :pagination="false"
+    />
   </div>
 </template>
 
 <script lang="ts">
 import { message } from "ant-design-vue";
 import { defineComponent, onMounted, reactive, ref, toRefs } from "vue";
+import { settingStates } from "..";
+import { activeCode, getCodeInfosByUser } from "../../../../request/api";
 import { scrollX } from "../../../../utils/common";
-import { openNotfication } from "../../../../utils/message";
 import { codeColumns } from "./data";
 
 export default defineComponent({
@@ -57,10 +59,10 @@ export default defineComponent({
     const formRef = ref();
     const states = reactive({
       loading: false,
-      memberInfo: [{ code: "111111111111112" }] as any[],
-      userInfo: {} as any,
+      memberInfo: [] as any[],
       data: {
         code: "",
+        isActivated: false,
       },
       rules: {
         code: [{ required: true, message: "请输入激活码", trigger: "blur" }],
@@ -69,21 +71,30 @@ export default defineComponent({
 
     const handleActivate = () => {
       formRef.value.validate().then(() => {
-        openNotfication("warning", "授权码不正确");
+        activeCode({ code: states.data.code }).then(() => {
+          message.success("激活成功");
+          initData();
+        });
       });
     };
 
-    const init = () => {
-      const userInfo = localStorage.getItem("userInfo");
-      states.userInfo = JSON.parse(userInfo!);
+    const initData = () => {
+      getCodeInfosByUser().then((res: any) => {
+        states.memberInfo.length = 0;
+        Object.assign(states.memberInfo, res.data);
+        states.data.isActivated = states.memberInfo.some(
+          (m) => m.status === "200"
+        );
+      });
     };
 
     onMounted(() => {
-      init();
+      initData();
     });
 
     return {
       ...toRefs(states),
+      ...toRefs(settingStates),
       formRef,
       codeColumns,
       scrollX,

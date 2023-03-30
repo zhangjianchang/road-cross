@@ -6,40 +6,27 @@
       labelAlign="left"
     >
       <a-form-item label="登录账号">
-        {{ data.userName }}
+        {{ userInfo.userName }}
       </a-form-item>
       <a-form-item label="用户名">
-        {{ data.chineseName }}
+        {{ userInfo.chineseName }}
       </a-form-item>
       <a-form-item label="账号类型">
-        {{ data.roleName }}
+        {{ userInfo.roleName }}
       </a-form-item>
     </a-form>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, reactive, toRefs } from "vue";
+import { defineComponent, toRefs } from "vue";
+import { settingStates } from "..";
 
 export default defineComponent({
   components: {},
   setup() {
-    const states = reactive({
-      activeKey: 1,
-      data: {} as any,
-    });
-
-    const init = () => {
-      const userInfo = localStorage.getItem("userInfo");
-      states.data = JSON.parse(userInfo!);
-    };
-
-    onMounted(() => {
-      init();
-    });
-
     return {
-      ...toRefs(states),
+      ...toRefs(settingStates),
     };
   },
 });

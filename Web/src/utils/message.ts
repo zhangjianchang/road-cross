@@ -5,7 +5,7 @@ export const openNotfication = (
   description: string,
   message = "错误提醒"
 ) => {
-  notification[type === "success" ? "success" : "warning"]({
+  notification[type === "warning" ? "warning" : "error"]({
     message,
     description,
     duration: 10,

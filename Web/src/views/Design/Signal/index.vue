@@ -129,7 +129,7 @@
       </g>
     </svg>
     <!-- 参数 -->
-    <div class="menu">
+    <div class="menu" v-if="!roadStates.code_info || roadStates.can_edit">
       <div class="form">
         <a-collapse v-model:activeKey="activeKey">
           <a-collapse-panel key="1" header="基础信息">
@@ -438,6 +438,11 @@
         </a-collapse>
       </div>
     </div>
+    <div class="menu" v-else>
+      <div style="padding-top: 320px; text-align: center">
+        <a-button type="primary" @click="handleEdit"> 编辑 </a-button>
+      </div>
+    </div>
     <a-modal
       v-if="signal_info.phase_list.length > 0"
       v-model:visible="visible"
@@ -482,6 +487,7 @@ import {
   getStraightTurnDetail,
   getTurnDetail_D,
   get_λ,
+  handleEdit,
   insert_phase,
   plans,
   roadStates,
@@ -1457,6 +1463,7 @@ export default defineComponent({
       wrapperMCol: { span: 21 },
       ...toRefs(states),
       ...toRefs(road_info),
+      roadStates,
       signalColor,
       phaseColumns,
       onShowLegendChange,
@@ -1471,6 +1478,7 @@ export default defineComponent({
       onChangeSignal,
       onTimeConfirm,
       onLapChange,
+      handleEdit,
     };
   },
 });

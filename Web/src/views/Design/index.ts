@@ -1,5 +1,6 @@
 import _ from "lodash";
 import { reactive } from "vue";
+import { useCode } from "../../request/api";
 import { cal_point, getQuadrantByAngle, insect_pt } from "../../utils/common";
 import { getRoadDefaultSign, RoadCross } from "./Canalize";
 import { DirectionsZh, plans_model } from "./data";
@@ -43,6 +44,8 @@ export interface RoadInfo {
 
 //道路信息
 export const roadStates = reactive({
+  code_info: undefined as any, //授权信息，决定了如何使用
+  can_edit: false,
   loading: false,
   cx: 350, //圆心x
   cy: 350, //圆心y
@@ -539,3 +542,12 @@ export const mergeWays = (rc: any) => {
 };
 //TODO
 export const mergeReturnWays = (rc: any) => {};
+
+/*********************************操作授权码*********************/
+export const handleEdit = () => {
+  useCode({ code: roadStates.code_info.code }).then((res: any) => {
+    roadStates.code_info = res.data;
+    roadStates.can_edit = true;
+  });
+};
+/*********************************操作授权码*********************/

@@ -40,6 +40,22 @@ namespace Api.Controllers
             }
         }
 
+        [HttpPost("getUserInfo")]
+        public MyResult GetUserInfo()
+        {
+            try
+            {
+                string userName = Request.Headers["userName"];
+                // 读取用户信息
+                UserInfo userInfo = UserBLL.GetUserDetail(userName);
+                return MyResult.OK(userInfo);
+            }
+            catch (Exception ex)
+            {
+                return MyResult.Error(ex.Message);
+            }
+        }
+
         [HttpPost("setPassword")]
         public MyResult SetPassword([FromBody] LoginInfo user)
         {
@@ -70,9 +86,10 @@ namespace Api.Controllers
             }
         }
 
-        [HttpGet("logout")]
-        public MyResult Get(string token)
+        [HttpPost("logout")]
+        public MyResult Logout()
         {
+            string token = Request.Headers["authorization"];
             if (string.IsNullOrWhiteSpace(token))
             {
                 return MyResult.Error("参数错误！");
@@ -81,15 +98,16 @@ namespace Api.Controllers
             return MyResult.OK();
         }
 
-        [HttpGet("checkToken")]
-        public MyResult CheckToken(string token)
+        [HttpPost("checkToken")]
+        public MyResult CheckToken()
         {
+            string token = Request.Headers["authorization"];
             if (string.IsNullOrWhiteSpace(token))
             {
                 return MyResult.Error("参数错误！");
             }
             object value = CacheHelper.CacheValue(token);
-            return value == null ? MyResult.Error() : MyResult.OK();
+            return value == null ? MyResult.Error("登录过期，请重新登录") : MyResult.OK();
         }
     }
 }

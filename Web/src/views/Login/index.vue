@@ -47,7 +47,7 @@ import { userLogin } from "../../request/api";
 import { PageEnum } from "../../router/data";
 import { goRouterByParam } from "../../utils/common";
 import { Md5 } from "ts-md5";
-import { buildUUID } from "../../utils/uuid";
+import { userStates } from "../UserCenter";
 
 export default defineComponent({
   setup() {
@@ -66,6 +66,7 @@ export default defineComponent({
           message.success("登录成功");
           localStorage.setItem("userInfo", JSON.stringify(res.data));
           localStorage.setItem("token", res.data.token);
+          userStates.user_info = res.data;
           goRouterByParam(PageEnum.UserCenter);
         } else {
           notification["error"]({

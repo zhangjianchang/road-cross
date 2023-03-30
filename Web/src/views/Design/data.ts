@@ -1,5 +1,4 @@
 import _ from "lodash";
-import { buildUUID } from "../../utils/uuid";
 
 //道路model
 export const road_model = {

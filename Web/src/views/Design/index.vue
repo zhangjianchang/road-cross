@@ -319,11 +319,21 @@ export default defineComponent({
         return;
       }
       if (
-        item.url != MenuListEnum.Basic &&
-        item.url != MenuListEnum.Canalize &&
+        item.url !== MenuListEnum.Basic &&
+        item.url !== MenuListEnum.Canalize &&
         road_info.canalize_info.length === 0
       ) {
         openNotfication("warning", "请先初始化渠化信息");
+        return;
+      }
+      if (
+        !roadStates.can_edit &&
+        (item.url === MenuListEnum.Saturation ||
+          item.url === MenuListEnum.DelayAnalysis ||
+          item.url === MenuListEnum.QueueAnalysis ||
+          item.url === MenuListEnum.ServiceLevel)
+      ) {
+        openNotfication("warning", "请购买授权码激活后使用");
         return;
       }
       roadStates.currentUrl = item.url;
@@ -599,10 +609,16 @@ export default defineComponent({
     };
 
     const init = () => {
+      //道路信息
       const rf =
         plans.canalize_plans[0].flow_plans[0].signal_plans[0].road_info;
       Object.assign(road_info, rf);
       basicRef.value.init();
+      //授权信息
+      const codeInfoStr = localStorage.getItem("codeInfo");
+      if (codeInfoStr) {
+        roadStates.code_info = JSON.parse(codeInfoStr);
+      }
     };
 
     onMounted(() => {
