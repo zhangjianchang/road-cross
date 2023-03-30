@@ -41,7 +41,7 @@
       </defs>
     </svg>
     <!-- 操作区 -->
-    <div class="menu" v-if="!roadStates.code_info || roadStates.can_edit">
+    <div class="menu" v-if="!userStates.code_info || userStates.can_edit">
       <div class="form" v-if="canalize_info.length > 0">
         <a-collapse v-model:activeKey="activeKey">
           <a-collapse-panel key="1" header="交叉口属性">
@@ -841,6 +841,7 @@ import {
 } from "..";
 import { road_model } from "../data";
 import { openNotfication } from "../../../utils/message";
+import { userStates } from "../../UserCenter";
 
 export default defineComponent({
   components: { Container, DragOutlined },
@@ -2362,6 +2363,7 @@ export default defineComponent({
       ...toRefs(states),
       ...toRefs(road_info),
       roadStates,
+      userStates,
       labelCol: { span: 8 },
       wrapperCol: { span: 12 },
       roadSigns,

@@ -15,7 +15,7 @@ export function goRouterByParam(
     window.open(href, openType);
     if (name === PageEnum.Design) {
       //路由跳转后强刷页面
-      location.reload();
+      // location.reload();
     }
   } catch {}
 }

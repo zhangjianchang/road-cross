@@ -59,7 +59,7 @@ export default defineComponent({
         goRouterByParam(PageEnum.Login);
       } else {
         checkToken()
-          .then((res) => {
+          .then(() => {
             getUserInfo().then((res: any) => {
               settingStates.userInfo = res.data;
             });

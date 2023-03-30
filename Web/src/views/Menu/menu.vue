@@ -58,20 +58,21 @@ import { UserOutlined } from "@ant-design/icons-vue";
 import { PageEnum } from "../../router/data";
 import { goRouterByParam } from "../../utils/common";
 import { message } from "ant-design-vue";
-import { getCodeInfo, userLogout } from "../../request/api";
-import { roadStates } from "../Design";
+import { getCodeInfo, getUserInfo, userLogout } from "../../request/api";
 import { userStates } from "../UserCenter";
 
 export default defineComponent({
   components: { UserOutlined },
   setup() {
     const init = () => {
-      var strUser = localStorage.getItem("userInfo");
-      if (strUser) {
-        userStates.user_info = JSON.parse(strUser);
-      }
+      getUserInfo().then((res: any) => {
+        userStates.user_info = res.data;
+        if (res.data.roleId === 1) {
+          userStates.can_edit = true;
+        }
+      });
       getCodeInfo().then((res: any) => {
-        roadStates.code_info = res.data;
+        userStates.code_info = res.data;
       });
     };
 
@@ -105,6 +106,8 @@ export default defineComponent({
         localStorage.removeItem("userInfo");
         localStorage.removeItem("token");
         userStates.user_info = undefined;
+        userStates.code_info = undefined;
+        userStates.can_edit = false;
         goRouterByParam(PageEnum.Login);
       });
     };
@@ -115,7 +118,6 @@ export default defineComponent({
 
     return {
       ...toRefs(userStates),
-      ...toRefs(roadStates),
       PageEnum,
       handleRouterClick,
       handleLogout,

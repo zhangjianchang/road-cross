@@ -55,7 +55,7 @@
       </defs> -->
     </svg>
     <!-- 参数 -->
-    <div class="menu" v-if="!code_info || can_edit">
+    <div class="menu" v-if="!userStates.code_info || userStates.can_edit">
       <div class="form">
         <a-collapse v-model:activeKey="activeKey">
           <a-collapse-panel key="1" header="绘图属性">
@@ -350,6 +350,7 @@ import {
 } from "..";
 import { road_model } from "../data";
 import { message } from "ant-design-vue";
+import { userStates } from "../../UserCenter";
 
 export default defineComponent({
   components: { Container },
@@ -844,6 +845,7 @@ export default defineComponent({
       ...toRefs(states),
       ...toRefs(road_info),
       ...toRefs(roadStates),
+      userStates,
       labelCol: { span: 10 },
       wrapperCol: { span: 12 },
       lineColumns,

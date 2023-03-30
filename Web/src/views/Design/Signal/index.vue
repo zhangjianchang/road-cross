@@ -129,7 +129,7 @@
       </g>
     </svg>
     <!-- 参数 -->
-    <div class="menu" v-if="!roadStates.code_info || roadStates.can_edit">
+    <div class="menu" v-if="!userStates.code_info || userStates.can_edit">
       <div class="form">
         <a-collapse v-model:activeKey="activeKey">
           <a-collapse-panel key="1" header="基础信息">
@@ -494,6 +494,7 @@ import {
 } from "..";
 import { message } from "ant-design-vue";
 import { openNotfication } from "../../../utils/message";
+import { userStates } from "../../UserCenter";
 
 export default defineComponent({
   components: { Container, DragOutlined },
@@ -1464,6 +1465,7 @@ export default defineComponent({
       ...toRefs(states),
       ...toRefs(road_info),
       roadStates,
+      userStates,
       signalColor,
       phaseColumns,
       onShowLegendChange,

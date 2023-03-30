@@ -43,7 +43,7 @@
 <script lang="ts">
 import { message, notification } from "ant-design-vue";
 import { defineComponent, reactive } from "vue";
-import { userLogin } from "../../request/api";
+import { getCodeInfo, userLogin } from "../../request/api";
 import { PageEnum } from "../../router/data";
 import { goRouterByParam } from "../../utils/common";
 import { Md5 } from "ts-md5";
@@ -67,6 +67,10 @@ export default defineComponent({
           localStorage.setItem("userInfo", JSON.stringify(res.data));
           localStorage.setItem("token", res.data.token);
           userStates.user_info = res.data;
+          //加载授权信息
+          getCodeInfo().then((res: any) => {
+            userStates.code_info = res.data;
+          });
           goRouterByParam(PageEnum.UserCenter);
         } else {
           notification["error"]({

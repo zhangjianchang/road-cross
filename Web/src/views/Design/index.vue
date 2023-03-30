@@ -271,6 +271,7 @@ import _ from "lodash";
 import { plans_model, road_model } from "./data";
 import { openNotfication } from "../../utils/message";
 import { saveDesign, getDesignByGuid } from "../../request/api";
+import { userStates } from "../UserCenter";
 
 export default defineComponent({
   components: {
@@ -327,7 +328,8 @@ export default defineComponent({
         return;
       }
       if (
-        !roadStates.can_edit &&
+        !userStates.code_info &&
+        !userStates.can_edit &&
         (item.url === MenuListEnum.Saturation ||
           item.url === MenuListEnum.DelayAnalysis ||
           item.url === MenuListEnum.QueueAnalysis ||
@@ -614,11 +616,6 @@ export default defineComponent({
         plans.canalize_plans[0].flow_plans[0].signal_plans[0].road_info;
       Object.assign(road_info, rf);
       basicRef.value.init();
-      //授权信息
-      const codeInfoStr = localStorage.getItem("codeInfo");
-      if (codeInfoStr) {
-        roadStates.code_info = JSON.parse(codeInfoStr);
-      }
     };
 
     onMounted(() => {
