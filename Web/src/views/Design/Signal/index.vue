@@ -275,7 +275,7 @@
                     @change="onDirectionChange"
                   >
                     <a-select-option
-                      v-for="(item, index) in road_attr"
+                      v-for="(item, index) in plans.road_attr"
                       :key="item"
                       :value="index"
                     >
@@ -539,9 +539,28 @@ export default defineComponent({
       } else {
         setTimeout(() => {
           for (let i = 0; i < road_info.signal_info.phase_list.length; i++) {
-            for (let j = 0; j < road_info.road_attr.length; j++) {
+            for (let j = 0; j < plans.road_count; j++) {
               states.currentPhase = i;
               states.currentDirection = j;
+              //渠化中如果不存在该方向，则取消用户上次点击的数据
+              const road_signs = [] as string[];
+              //全部基础方向
+              road_info.canalize_info[j].road_sign.enter.map((r: any) => {
+                r.key.split("_").forEach((rs: any) => {
+                  road_signs.push(rs);
+                });
+              });
+              //修正用户数据
+              road_info.signal_info.phase_list[i].directions[j].map(
+                (d: any) => {
+                  if (road_signs.indexOf(d.direction) === -1 && d.is_enable) {
+                    d.is_enable = false;
+                    d.green = 0;
+                    d.yellow = 0;
+                    d.red = 0;
+                  }
+                }
+              );
               setDirectionLine();
             }
           }
@@ -565,7 +584,7 @@ export default defineComponent({
 
     //加载各道路之间的方向
     const initDirections = () => {
-      const road_count = road_info.road_attr.length;
+      const road_count = plans.road_count;
       for (let i = 0; i < road_count; i++) {
         //机动车
         const sign_pt = [];
@@ -946,7 +965,7 @@ export default defineComponent({
     function drawPhase(p: number) {
       //svg图像
       let d_str = "";
-      for (let i = 0; i < road_info.road_attr.length; i++) {
+      for (let i = 0; i < plans.road_count; i++) {
         //画主路径
         const dr = Math.PI * 0.5;
         const len = states.road_width;
@@ -969,7 +988,7 @@ export default defineComponent({
         let pt_r12 = cal_point(dw, d, dr, len);
         d_str += `L${pt_r12.x},${pt_r12.y} `;
         //第二条路
-        const next_i = i === road_info.road_attr.length - 1 ? 0 : i + 1;
+        const next_i = i === plans.road_count - 1 ? 0 : i + 1;
         dw = getDW(next_i);
         d = states.far_d;
         let pt_l11 = cal_point(dw, d, -dr, len);
@@ -994,9 +1013,9 @@ export default defineComponent({
       refreshLocation();
     }
     const getDW = (i: number) => {
-      const next_i = i === road_info.road_attr.length - 1 ? 0 : i + 1;
-      const angle1 = road_info.road_attr[i].angle;
-      const angle2 = road_info.road_attr[next_i].angle;
+      const next_i = i === plans.road_count - 1 ? 0 : i + 1;
+      const angle1 = plans.road_attr[i].angle;
+      const angle2 = plans.road_attr[next_i].angle;
       const radian = (Math.PI / 180) * angle1; // 角度转弧度
       const dw = {
         dir: { radian },
@@ -1247,7 +1266,7 @@ export default defineComponent({
 
     //连线, is_non非机动车
     const drawP2P = (index: number, width: number, is_non: boolean) => {
-      const road_count = road_info.road_attr.length;
+      const road_count = plans.road_count;
       const index1 = states.currentDirection;
       const index2 =
         index1 + index >= road_count
@@ -1464,6 +1483,7 @@ export default defineComponent({
       wrapperMCol: { span: 21 },
       ...toRefs(states),
       ...toRefs(road_info),
+      plans,
       roadStates,
       userStates,
       signalColor,

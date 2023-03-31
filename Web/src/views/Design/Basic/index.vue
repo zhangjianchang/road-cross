@@ -14,7 +14,7 @@
       <!-- 箭头 -->
       <defs>
         <marker
-          v-for="(item, index) in road_attr"
+          v-for="(item, index) in plans.road_attr"
           :key="index"
           :id="item.arrowId"
           markerUnits="strokeWidth"
@@ -57,7 +57,7 @@
         class="ant-table-striped"
         :row-class-name="(_:any, index:number) => (index % 2 === 1 ? 'table-striped' : null)"
         :columns="columns"
-        :data-source="road_attr"
+        :data-source="plans.road_attr"
         :pagination="false"
         :scroll="{ x: '100%' }"
         bordered
@@ -69,7 +69,7 @@
           type="primary"
           class="redraw-button"
           @click="onRedraw"
-          :disabled="road_attr.length === 0"
+          :disabled="plans.road_count === 0"
         >
           重新绘制
         </a-button>
@@ -79,14 +79,7 @@
 </template>
 
 <script lang="ts">
-import {
-  createVNode,
-  defineComponent,
-  inject,
-  onMounted,
-  reactive,
-  toRefs,
-} from "vue";
+import { createVNode, defineComponent, onMounted, reactive, toRefs } from "vue";
 import { isPointInCircle, getCoordinate, setLineXY, columns } from "./index";
 import Container from "../../../components/Container/index.vue";
 import { Modal, notification } from "ant-design-vue";
@@ -156,8 +149,8 @@ export default defineComponent({
 
     //编辑页进来需要反显线段
     function initIines() {
-      if (road_info.road_attr.length > 0) {
-        road_info.road_attr.map((road: any) => {
+      if (plans.road_count > 0) {
+        plans.road_attr.map((road: any) => {
           road.id = `line_${states.index}`;
           road.arrowId = `arrow${states.index}`;
           createLine(road.coordinate);
@@ -177,7 +170,7 @@ export default defineComponent({
         return;
       }
       // 绘制路口，路口数量2-5
-      if (road_info.road_attr.length >= 5) {
+      if (plans.road_count >= 5) {
         notification["warning"]({
           message: "错误提醒",
           description: "系统最多只支持五条相交道路",
@@ -194,7 +187,7 @@ export default defineComponent({
       //根据坐标获取角度
       let angle = getAngle(states.cx, states.cy, coordinate[0], coordinate[1]);
       //存数据至全局变量
-      road_info.road_attr.push({
+      plans.road_attr.push({
         position: `X:${coordinate[0]}\n Y:${coordinate[1]}`,
         id: `line_${states.index}`,
         arrowId: `arrow${states.index}`,
@@ -224,9 +217,7 @@ export default defineComponent({
       const event = window.event || e;
       states.currentLine = event.target;
       states.dragId = states.currentLine.id;
-      road_info.road_attr = road_info.road_attr.filter(
-        (r) => r.id !== states.dragId
-      );
+      plans.road_attr = plans.road_attr.filter((r) => r.id !== states.dragId);
       setRoadDir([], true);
       e.target.remove();
       e.preventDefault();
@@ -312,7 +303,7 @@ export default defineComponent({
           coordinate[0],
           coordinate[1]
         );
-        road_info.road_attr.map((c) => {
+        plans.road_attr.map((c) => {
           if (c.id === states.dragId) {
             c.position = `X:${coordinate[0]}\n\n Y:${coordinate[1]}`;
             c.coordinate = coordinate;
@@ -320,13 +311,13 @@ export default defineComponent({
           }
         });
       }
-      road_info.road_attr.sort(function (
+      plans.road_attr.sort(function (
         a: { angle: number },
         b: { angle: number }
       ) {
         return a.angle - b.angle;
       });
-      plans.road_count = road_info.road_attr.length;
+      plans.road_count = plans.road_attr.length;
     }
 
     //根据当前点位获取在圆上的点
@@ -368,7 +359,7 @@ export default defineComponent({
 
     return {
       ...toRefs(states),
-      ...toRefs(road_info),
+      plans,
       init,
       columns,
       onRedraw,

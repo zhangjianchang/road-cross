@@ -32,17 +32,6 @@ export const menuList = [
   { index: 9, url: "ServiceLevel", name: "服务水平" },
 ];
 
-export interface RoadInfo {
-  road_attr: [] | any; //路口数据
-  basic_info: {} | any; //基础信息
-  canalize_info: {} | any; //渠化信息
-  flow_info: {} | any; //流量信息
-  signal_info: {} | any; //信号信息
-  saturation_info: [] | any; //饱和度信息
-  delay_info: [] | any; //延误信息
-  queue_info: [] | any; //排队信息
-}
-
 //道路信息
 export const roadStates = reactive({
   loading: false,
@@ -123,7 +112,7 @@ export function getBackgroundBySaturation(number: number | string) {
 /**渠化相关 */
 //初始化渠化信息
 export function create_road_cross(road_info: any) {
-  var dir = road_info.road_attr.map((r: { angle: any }) => r.angle);
+  var dir = plans.road_attr.map((r: { angle: any }) => r.angle);
   road_info.canalize_info.length = 0;
   var temp = JSON.stringify(RoadCross); // 数据结构模板
   for (var i = 0; i < dir.length; i++) {
@@ -138,7 +127,7 @@ export function create_road_cross(road_info: any) {
 
 //加载渠化信息
 export function update_road_corss(road_info: any) {
-  var dir = road_info.road_attr.map((r: { angle: any }) => r.angle);
+  var dir = plans.road_attr.map((r: { angle: any }) => r.angle);
   const canalize_info_list = [];
   for (var i = 0; i < dir.length; i++) {
     let rc = {} as any;
@@ -211,7 +200,7 @@ export function update_flow_detail(road_info: any) {
 export function initFlowDetail(road_info: any) {
   road_info.flow_info.flowColumns.length = 0;
   Object.assign(road_info.flow_info.flowColumns, flowColumnsPart);
-  for (let i = 0; i < road_info.road_attr.length; i++) {
+  for (let i = 0; i < plans.road_count; i++) {
     let dataIndex = i.toString();
     road_info.flow_info.flowColumns.push({
       title: "转向" + (i + 1),
@@ -225,7 +214,7 @@ export function initFlowDetail(road_info: any) {
   //先清空
   road_info.flow_info.line_info.length = 0;
   road_info.flow_info.flow_detail.length = 0;
-  const roadCount = road_info.road_attr.length;
+  const roadCount = plans.road_count;
   for (let i = 0; i < roadCount; i++) {
     let line_info = _.cloneDeep(lineInfoModel);
     line_info.direction = "方向" + (i + 1);
@@ -275,7 +264,7 @@ export function initEnterNum(road_info: any) {
 
 //加载各道路之间的方向
 const getTurnDetail = (road_info: any, i: number, j: number) => {
-  const roadCount = road_info.road_attr.length;
+  const roadCount = plans.road_count;
   const d = getTurnDetail_D(road_info, i, j);
   //转向属性
   const turn_detail = {
@@ -293,7 +282,7 @@ export const getTurnDetail_D = (road_info: any, i: number, next_i: number) => {
     d: 120, //离圆心距离
     far_d: 240, //离圆心距离
     len: 80, //路宽
-    road_count: road_info.road_attr.length, //路口数量
+    road_count: plans.road_count, //路口数量
   };
   let k = 1;
   const dr = Math.PI * 0.5;
@@ -375,7 +364,7 @@ export const getPedDetail_D = (road_info: any, i: number, j: number) => {
 };
 
 const getDW = (road_info: any, i: number) => {
-  const angle = road_info.road_attr[i].angle;
+  const angle = plans.road_attr[i].angle;
   const radian = (Math.PI / 180) * angle; // 角度转弧度
   const dw = {
     dir: { radian },
@@ -394,7 +383,7 @@ export function create_signal_info(road_info: any) {
 
 export function insert_phase(road_info: any, p: number) {
   //数据
-  let roadCount = road_info.road_attr.length;
+  let roadCount = plans.road_count;
   let phaseItem = _.cloneDeep(phaseModel);
   phaseItem.index = p;
   phaseItem.name = `第${p + 1}相位`;
@@ -447,7 +436,7 @@ export const getStraightTurnDetail = (road_info: any, i: number) => {
   const states = {
     d: 0, //离圆心距离
     len: 200, //路宽
-    road_count: road_info.road_attr.length, //路口数量
+    road_count: plans.road_count, //路口数量
   };
   const dr = Math.PI * 0.5;
   const dw = getDW(road_info, i);

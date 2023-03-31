@@ -247,6 +247,7 @@ import {
   create_flow_detail,
   create_signal_info,
   update_road_corss,
+  update_flow_detail,
 } from "./index";
 import { message } from "ant-design-vue";
 import Container from "../../components/Container/index.vue";
@@ -315,17 +316,32 @@ export default defineComponent({
 
     //切换菜单
     const handleChangeMenu = (item: any) => {
-      if (item.url != MenuListEnum.Basic && road_info.road_attr.length < 2) {
+      if (item.url != MenuListEnum.Basic && plans.road_count < 2) {
         openNotfication("warning", "相交道路不能少于两条");
         return;
       }
       if (
         item.url !== MenuListEnum.Basic &&
-        item.url !== MenuListEnum.Canalize &&
-        road_info.canalize_info.length === 0
+        item.url !== MenuListEnum.Canalize
       ) {
-        openNotfication("warning", "请先初始化渠化信息");
-        return;
+        //切换其余页面时需要初始化渠化信息
+        if (road_info.canalize_info.length === 0) {
+          create_road_cross(road_info);
+        } else {
+          update_road_corss(road_info);
+        }
+      }
+      if (
+        item.url !== MenuListEnum.Basic &&
+        item.url !== MenuListEnum.Canalize &&
+        item.url !== MenuListEnum.Flow
+      ) {
+        //切换其余页面时需要初始化流量信息
+        if (road_info.flow_info.flow_detail.length === 0) {
+          create_flow_detail(road_info);
+        } else {
+          update_flow_detail(road_info);
+        }
       }
       if (
         !userStates.code_info &&
@@ -495,9 +511,6 @@ export default defineComponent({
       } else {
         //模板内容
         const rf = _.cloneDeep(road_model);
-        //基础信息
-        rf.road_attr = signal_plan.road_info.road_attr;
-        rf.basic_info = signal_plan.road_info.basic_info;
         //渠化信息
         if (from === "canalize") {
           create_road_cross(rf);

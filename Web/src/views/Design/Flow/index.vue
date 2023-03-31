@@ -448,9 +448,9 @@ export default defineComponent({
     function setRoadPoint() {
       states.road_lines.length = 0;
       states.road_texts.length = 0;
-      let roadCount = road_info.road_attr.length;
+      let roadCount = plans.road_count;
       for (var i = 0; i < roadCount; i++) {
-        var angle = road_info.road_attr[i].angle;
+        var angle = plans.road_attr[i].angle;
         var radian = (Math.PI / 180) * angle; // 角度转弧度
         var width = 250 - road_info.flow_info.width;
         var x2 = Math.cos(radian) * 250 + states.r; // 外层200
@@ -521,7 +521,7 @@ export default defineComponent({
       for (let i = 0; i < states.road_lines.length; i++) {
         const flow_count = getFlowCountR(i);
         const line_width = getLineWidth(
-          road_info.road_attr.length,
+          plans.road_count,
           flow_count,
           width
         );
@@ -541,14 +541,14 @@ export default defineComponent({
         }
         //取同一侧道路中点用来标记入口车道总数
         let midPoint = getMiddlePoint(point_r1, point_r2);
-        let angle = 360 - road_info.road_attr[i].angle;
+        let angle = 360 - plans.road_attr[i].angle;
         if (content !== 0) {
           setText(i, midPoint, angle, content, "rightMRoad");
         }
         //取两侧道路中点标记道路
         const point_l1 = road.middle_line.ml_line[1];
         midPoint = getMiddlePoint(point_l1, point_r1);
-        angle = 270 - road_info.road_attr[i].angle;
+        angle = 270 - plans.road_attr[i].angle;
         content = road_info.canalize_info[i].name;
         setText(i, midPoint, angle, content, "roadName", -15, 70);
       }
@@ -559,7 +559,7 @@ export default defineComponent({
       for (let i = 0; i < states.road_lines.length; i++) {
         let flow_count = getFlowCountL(i);
         let line_width = getLineWidth(
-          road_info.road_attr.length,
+          plans.road_count,
           flow_count,
           width
         );
@@ -588,7 +588,7 @@ export default defineComponent({
           );
           //取两线中点用来标记数字
           const midPoint = getMiddlePoint(point_l1, point_l2);
-          let angle = 360 - road_info.road_attr[i].angle;
+          let angle = 360 - plans.road_attr[i].angle;
           setText(i, midPoint, angle, content, "leftMRoad");
         }
       }
@@ -600,8 +600,8 @@ export default defineComponent({
         const road1 = states.road_lines[i]; //第一条路
         for (let j = i + 1; j <= states.road_lines.length + i; j++) {
           let road2_index = j;
-          if (j > road_info.road_attr.length - 1) {
-            road2_index = j - road_info.road_attr.length;
+          if (j > plans.road_count - 1) {
+            road2_index = j - plans.road_count;
           }
           //流量为0跳过绘制
           const number = road_info.flow_info.flow_detail[i].turn.find(
@@ -611,7 +611,7 @@ export default defineComponent({
             continue;
           }
           const road2 = states.road_lines[road2_index]; //连接第二条路
-          const angle = 360 - road_info.road_attr[i].angle;
+          const angle = 360 - plans.road_attr[i].angle;
 
           const point1 = road1.right_line[k][0];
           const point2 = road2.left_line[k][0];

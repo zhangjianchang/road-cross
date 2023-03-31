@@ -97,10 +97,6 @@ export const canalizeTypeOption = [
   { label: "否", value: "否" },
   { label: "划线渠化", value: "划线渠化" },
   { label: "固体渠化", value: "固体渠化" },
-  // { label: "划线渠化-无单独出口", value: "划线渠化-无单独出口" },
-  // { label: "划线渠化-有单独出口", value: "划线渠化-有单独出口" },
-  // { label: "固体渠化-无单独出口", value: "固体渠化-无单独出口" },
-  // { label: "固体渠化-有单独出口", value: "固体渠化-有单独出口" },
 ];
 
 export const medianStripTypeOption = [
@@ -367,16 +363,16 @@ export function getCrossLenByTwoRoad(road_info: any, index: number) {
   const is_last = index === plans.road_count - 1;
   const next_index = is_last ? 0 : index + 1;
   let angle1 =
-    Number(road_info.road_attr[next_index].angle) -
-    Number(road_info.road_attr[index].angle);
+    Number(plans.road_attr[next_index].angle) -
+    Number(plans.road_attr[index].angle);
   angle1 = is_last ? angle1 + 360 : angle1;
 
   //和上一条路相比需要后移的数量
   const is_first = index === 0;
   const prev_index = is_first ? plans.road_count - 1 : index - 1;
   let angle2 =
-    Number(road_info.road_attr[index].angle) -
-    Number(road_info.road_attr[prev_index].angle);
+    Number(plans.road_attr[index].angle) -
+    Number(plans.road_attr[prev_index].angle);
   angle2 = is_first ? angle2 + 360 : angle2;
 
   //取夹角更小的
@@ -407,6 +403,9 @@ export function getCrossLenByCanalize(road_info: any, index: number) {
   if (rc.canalize.type === "划线渠化") {
     const right_exit_count = Number(rc.canalize.right_exit_count);
     len = (2 - right_exit_count) * 4;
+  } else if (rc.canalize.type === "固体渠化") {
+    const right_exit_count = Number(rc.canalize.right_exit_count);
+    len = (2 - right_exit_count) * 4;
   }
   return len;
 }
@@ -420,6 +419,9 @@ export function getCrossLenByPrevCanalize(road_info: any, index: number) {
   if (rc.canalize.type === "划线渠化") {
     const right_enter_count = Number(rc.canalize.right_enter_count);
     len = (2 - right_enter_count) * 3.5;
+  } else if (rc.canalize.type === "固体渠化") {
+    const right_exit_count = Number(rc.canalize.right_exit_count);
+    len = (2 - right_exit_count) * 4;
   }
   return len;
 }
