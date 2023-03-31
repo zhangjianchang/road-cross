@@ -81,7 +81,6 @@ export default defineComponent({
     const handleGenterate = () => {
       formRef.value.validate().then(() => {
         generateCode(states.param).then((res: any) => {
-          console.log(res);
           states.data = res.data;
         });
       });

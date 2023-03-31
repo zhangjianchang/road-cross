@@ -2,14 +2,6 @@ import _ from "lodash";
 
 //道路model
 export const road_model = {
-  basic_info: {
-    createDate: "",
-    updateDate: "",
-    count: 0,
-  },
-
-  road_attr: [] as any[],
-
   canalize_info: [] as any[],
 
   flow_info: {
@@ -41,6 +33,8 @@ export const road_model = {
 export const plans_model = {
   road_name: "", //交叉口名称
   road_count: 0, //交叉口数量
+  road_attr: [] as any[], //道路基础信息
+
   canalize_plans: [
     {
       index: 0,

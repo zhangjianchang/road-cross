@@ -22,7 +22,7 @@
       <div class="text-info">单位：m</div>
       <!-- 图示 -->
       <svg id="canvas">
-        <text v-for="(_, index) in road_attr" :key="index" x="330">
+        <text v-for="(_, index) in plans.road_attr" :key="index" x="330">
           <textPath :xlink:href="'#road_' + (index + 1)">
             方向{{ index + 1 }}
           </textPath>
@@ -309,7 +309,7 @@ export default defineComponent({
 
     //画路径
     const drawRoadLine = () => {
-      for (let i = 0; i < road_info.road_attr.length; i++) {
+      for (let i = 0; i < plans.road_count; i++) {
         const dr = Math.PI * 0.5;
         const len = states.road_width;
         //第一条路
@@ -326,7 +326,7 @@ export default defineComponent({
         let pt_r12 = cal_point(dw, d, dr, len);
         d_str += `L${pt_r12.x},${pt_r12.y} `;
         //第二条路
-        const next_i = i === road_info.road_attr.length - 1 ? 0 : i + 1;
+        const next_i = i === plans.road_count - 1 ? 0 : i + 1;
         dw = getDW(next_i);
         d = states.far_d;
         let pt_l11 = cal_point(dw, d, -dr, len);
@@ -352,9 +352,9 @@ export default defineComponent({
       }
     };
     const getDW = (i: number) => {
-      const next_i = i === road_info.road_attr.length - 1 ? 0 : i + 1;
-      const angle1 = road_info.road_attr[i].angle;
-      const angle2 = road_info.road_attr[next_i].angle;
+      const next_i = i === plans.road_count - 1 ? 0 : i + 1;
+      const angle1 = plans.road_attr[i].angle;
+      const angle2 = plans.road_attr[next_i].angle;
       const radian = (Math.PI / 180) * angle1; // 角度转弧度
       const dw = {
         dir: { radian },
@@ -451,7 +451,7 @@ export default defineComponent({
       road_path: string
     ) {
       const g = {
-        transform: `rotate(${270 - road_info.road_attr[index].angle} ${
+        transform: `rotate(${270 - plans.road_attr[index].angle} ${
           way_pt.x
         },${way_pt.y}) translate(${way_pt.x},${way_pt.y}) scale(0.04)`,
         id: `g${index}${way_index}`,
@@ -636,6 +636,11 @@ export default defineComponent({
 
     //切换页面展示方案
     const handleChangeAnalysis = () => {
+      if (isNaN(Number(states.total_saturation))) {
+        openNotfication("warning", "请先设置信号方案");
+        states.showAnalysis = false;
+        return;
+      }
       if (states.showAnalysis) {
         initEcharts();
       }

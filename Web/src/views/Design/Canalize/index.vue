@@ -26,8 +26,8 @@
           id="slash2"
           patternTransform="rotate(45)"
           viewBox="0 0 10 10"
-          width="0.05"
-          height="0.05"
+          width="0.1"
+          height="0.1"
         >
           <line
             x1="0"
@@ -35,7 +35,7 @@
             x2="0"
             y2="10"
             stroke="#ffffff"
-            stroke-width="50"
+            stroke-width="10"
           />
         </pattern>
       </defs>
@@ -57,7 +57,7 @@
                         @change="on_sel_dirs_change"
                       >
                         <a-select-option
-                          v-for="(_, index) in road_attr"
+                          v-for="(_, index) in plans.road_attr"
                           :key="index"
                           :value="index"
                         >
@@ -1187,6 +1187,7 @@ export default defineComponent({
       states.cvs?.appendChild(cross);
 
       for (var i = 0; i < /*1*/ arr_rc_draw.length; i++) {
+        var rc = road_info.canalize_info[i];
         var dw = arr_rc_draw[i];
         var road = document.createElementNS(states.ns, "path"); // 创建路（方向）
 
@@ -1197,8 +1198,22 @@ export default defineComponent({
         var sd = dw.enter_side;
         var pt = sd.walk1;
         d_str += "M" + pt.x + "," + pt.y + " ";
-        pt = sd.walk2;
+        //固体渠化需要后移
+        if (rc.canalize.type === "固体渠化") {
+          var dr = Math.PI * 0.5;
+          var d = rc.length * dw.ratio;
+          var len =
+            (rc.enter.num * rc.enter.lane_width +
+              rc.enter.bike_lane.has * rc.enter.bike_lane.width +
+              rc.median_strip.width +
+              1) *
+            dw.ratio; // 不带margin
+          pt = cal_point(dw, d, dr, len);
+        } else {
+          pt = sd.walk2;
+        }
         d_str += "L" + pt.x + "," + pt.y + " ";
+        drawPoint(pt.x, pt.y, "green");
         pt = sd.ext1;
         d_str += "L" + pt.x + "," + pt.y + " ";
         pt = sd.ext2;
@@ -1950,38 +1965,35 @@ export default defineComponent({
         var rc_n = road_info.canalize_info[next_i]; //下条路
         var dw_n = arr_rc_draw[next_i];
         var dr = Math.PI * 0.5;
-        if (rc.canalize.type === "划线渠化") {
+        if (rc.canalize.type !== "否") {
+          const start = rc.canalize.type === "划线渠化" ? 7 : -3;
           const enter_index = rc.enter.num - rc.canalize.right_enter_count;
           //入口基点
-          var d = (rc.cross_len_new - 10) * dw.ratio;
+          var d = (rc.cross_len_new - start) * dw.ratio;
           var len =
             (rc.median_strip.width + rc.enter.lane_width * enter_index) *
             dw.ratio;
           const pt1 = cal_point(dw, d, dr, len);
-          drawPoint(pt1.x, pt1.y, "red");
 
-          d = (rc.cross_len_new - 11) * dw.ratio;
+          d = (rc.cross_len_new - start - 1) * dw.ratio;
           len =
             (rc.median_strip.width + rc.enter.lane_width * enter_index) *
             dw.ratio;
           const pt2 = cal_point(dw, d, dr, len);
-          drawPoint(pt2.x, pt2.y, "green");
 
           //出口基点
           const exit_index = rc.exit.num - rc.canalize.right_exit_count;
-          var d = (rc_n.cross_len_new - 10) * dw_n.ratio;
+          var d = (rc_n.cross_len_new - start) * dw_n.ratio;
           var len =
             (rc_n.median_strip.width + rc_n.enter.lane_width * exit_index) *
             dw_n.ratio;
           const pt3 = cal_point(dw_n, d, -dr, len);
-          drawPoint(pt3.x, pt3.y, "blue");
 
-          d = (rc_n.cross_len_new - 11) * dw_n.ratio;
+          d = (rc_n.cross_len_new - start - 1) * dw_n.ratio;
           len =
             (rc_n.median_strip.width + rc_n.enter.lane_width * exit_index) *
             dw_n.ratio;
           const pt4 = cal_point(dw_n, d, -dr, len);
-          drawPoint(pt4.x, pt4.y, "yellow");
 
           //两线交点
           const pt5 = intersect_line_point(pt1, pt2, pt3, pt4);
@@ -1999,9 +2011,13 @@ export default defineComponent({
             d_str = `M${pt1.x},${pt1.y} Q${qpt.x},${qpt.y} ${pt3.x},${pt3.y} L${pt5.x},${pt5.y} Z`;
           }
           const path = document.createElementNS(states.ns, "path");
+          const bg_color =
+            rc.canalize.type === "划线渠化" ? "url(#slash2)" : "#ff0000";
           path.setAttribute("d", d_str);
-          path.setAttribute("fill", "url(#slash2)");
+          path.setAttribute("fill", bg_color);
           path.setAttribute("deleteTag", "1");
+          path.setAttribute("stroke", "#ffffff");
+          path.setAttribute("stroke-width", "2");
           states.cvs?.appendChild(path);
         }
       }
@@ -2064,7 +2080,7 @@ export default defineComponent({
       g.setAttribute(
         "transform",
         `rotate(
-          ${(is_left_sign ? 260 : 270) - road_info.road_attr[index].angle}
+          ${(is_left_sign ? 260 : 270) - plans.road_attr[index].angle}
           ${way_pt.x} ${way_pt.y})`
       );
       if (!is_reverse && can_click) {
@@ -2362,6 +2378,7 @@ export default defineComponent({
     return {
       ...toRefs(states),
       ...toRefs(road_info),
+      plans,
       roadStates,
       userStates,
       labelCol: { span: 8 },
