@@ -620,12 +620,6 @@ export default defineComponent({
     };
 
     const loadData = (guid: any) => {
-      //先赋初始值
-      Object.assign(plans, JSON.parse(JSON.stringify(plans_model)));
-      const rf =
-        plans.canalize_plans[0].flow_plans[0].signal_plans[0].road_info;
-      Object.assign(road_info, rf);
-
       if (guid) {
         roadStates.loading = true;
         getDesignByGuid({ guid })
@@ -639,6 +633,9 @@ export default defineComponent({
           });
       } else {
         Object.assign(plans, _.cloneDeep(plans_model));
+        const rf =
+          plans.canalize_plans[0].flow_plans[0].signal_plans[0].road_info;
+        Object.assign(road_info, rf);
         init();
       }
     };

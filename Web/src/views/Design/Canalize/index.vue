@@ -1213,7 +1213,6 @@ export default defineComponent({
           pt = sd.walk2;
         }
         d_str += "L" + pt.x + "," + pt.y + " ";
-        drawPoint(pt.x, pt.y, "green");
         pt = sd.ext1;
         d_str += "L" + pt.x + "," + pt.y + " ";
         pt = sd.ext2;

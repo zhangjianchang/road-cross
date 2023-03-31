@@ -77,4 +77,5 @@ export function setLineXY(
   line.setAttribute("x2", x2.toString());
   line.setAttribute("y2", y2.toString());
   line.setAttribute("stroke", stroke);
+  line.setAttribute("deleteTag", "1");
 }

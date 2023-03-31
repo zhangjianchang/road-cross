@@ -112,6 +112,9 @@ export default defineComponent({
     });
 
     function render() {
+      //先清空
+      removeAll();
+
       states.ns = "http://www.w3.org/2000/svg";
       states.cvs = document.getElementById("canvas");
       for (let i = 0; i < 360; i++) {
@@ -157,6 +160,19 @@ export default defineComponent({
           states.index++;
         });
       }
+    }
+
+    //清空所有svg信息，重新绘制
+    function removeAll() {
+      document.querySelectorAll("line").forEach((e) => {
+        const is_delete = e.getAttribute("deleteTag") === "1";
+        if (is_delete) {
+          e.remove();
+        }
+      });
+      document.querySelectorAll("text").forEach((e) => {
+        e.remove();
+      });
     }
 
     function onClick(evt: any) {
@@ -206,6 +222,7 @@ export default defineComponent({
       line.setAttribute("stroke-width", "15px");
       line.setAttribute("marker-end", `url(#arrow${states.index})`);
       line.setAttribute("tag", `arrow${states.index}`);
+      line.setAttribute("deleteTag", "1");
       //事件
       line.addEventListener("contextmenu", onContextMenu, false);
       line.addEventListener("mousedown", onMouseDown, false);
