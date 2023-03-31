@@ -229,15 +229,7 @@
 </template>
 
 <script lang="ts">
-import {
-  defineComponent,
-  inject,
-  onMounted,
-  provide,
-  reactive,
-  ref,
-  toRefs,
-} from "vue";
+import { defineComponent, onMounted, reactive, ref, toRefs } from "vue";
 import {
   MenuListEnum,
   menuList,
@@ -611,14 +603,16 @@ export default defineComponent({
     };
 
     const init = () => {
-      //道路信息
-      const rf =
-        plans.canalize_plans[0].flow_plans[0].signal_plans[0].road_info;
-      Object.assign(road_info, rf);
       basicRef.value.init();
     };
 
-    onMounted(() => {
+    const loadData = (guid: any) => {
+      //先赋初始值
+      Object.assign(plans, JSON.parse(JSON.stringify(plans_model)));
+      const rf =
+        plans.canalize_plans[0].flow_plans[0].signal_plans[0].road_info;
+      Object.assign(road_info, rf);
+
       if (guid) {
         roadStates.loading = true;
         getDesignByGuid({ guid })
@@ -634,6 +628,10 @@ export default defineComponent({
         Object.assign(plans, _.cloneDeep(plans_model));
         init();
       }
+    };
+
+    onMounted(() => {
+      loadData(guid);
     });
 
     return {
@@ -661,6 +659,7 @@ export default defineComponent({
       changeFlow,
       changeSignal,
       onSave,
+      loadData,
     };
   },
 });

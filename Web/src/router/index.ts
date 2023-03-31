@@ -10,6 +10,8 @@ import UserCenter from "../views/UserCenter/index.vue";
 import Settings from "../views/UserCenter/Settings/index.vue";
 import DesignRoadList from "../views/UserCenter/DesignRoadList/index.vue";
 
+import Map from "../views/Map/index.vue";
+
 import { PageEnum } from "./data";
 
 const routes = [
@@ -67,6 +69,11 @@ const routes = [
     path: "/settings",
     name: PageEnum.Settings,
     component: Settings,
+  },
+  {
+    path: "/map",
+    name: PageEnum.Map,
+    component: Map,
   },
 ];
 

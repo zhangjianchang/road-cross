@@ -10,4 +10,5 @@ export enum PageEnum {
   SignIn = "SignIn",
   UserCenter = "UserCenter",
   Settings = "Settings",
+  Map = "Map",
 }

@@ -19,6 +19,9 @@
       <router-link @click="handleRouterClick(PageEnum.Contact)" to="/contact">
         联系我们
       </router-link>
+      <router-link @click="handleRouterClick(PageEnum.Map)" to="/map">
+        地图模式
+      </router-link>
     </div>
     <div class="code" v-if="code_info">
       剩余可用：{{ code_info.remainingDays }}天，{{

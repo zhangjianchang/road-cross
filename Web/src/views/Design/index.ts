@@ -48,7 +48,6 @@ export const roadStates = reactive({
   loading: false,
   cx: 350, //圆心x
   cy: 350, //圆心y
-  road_list: [] as any[], //TODO缓存方案，后期删
   currentUrl: "Basic",
   is_flow_init: false, //是否已经初始化过流量信息
   showSelect: {

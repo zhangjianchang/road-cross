@@ -1,0 +1,85 @@
+.map-container {
+  width: 100%;
+  margin-top: 64px;
+  height: calc(100vh - 70px);
+  border-radius: 16px;
+  :deep(.info-card) {
+    position: relative;
+    padding: 15px 25px;
+    background-color: #fff;
+    border-radius: 30px;
+    font-family: PingFangSC-Medium;
+    font-weight: 500;
+    font-size: 22px;
+    color: #19193e;
+    &::after {
+      content: "";
+      border-width: 15px;
+      position: absolute;
+      left: 50%;
+      bottom: -50%;
+      transform: translateX(-50%);
+      border-style: solid dashed dashed;
+      border-color: #fff transparent transparent transparent;
+    }
+  }
+}
+
+.drawer-text {
+  position: fixed;
+  top: 50vh;
+  right: 0px;
+  color: #ffffff;
+  background-color: #4f48ad; // #646cff;
+  border-bottom-left-radius: 10px;
+  border-top-left-radius: 10px;
+  width: 30px;
+  padding-left: 5px;
+  font-size: 20px;
+  height: 80px;
+  line-height: 80px;
+  z-index: 1000;
+  cursor: pointer;
+}
+
+.opacity(@opacity) {
+  opacity: @opacity;
+  filter: ~"alpha(opacity=@{opacity} * 100)"; // 兼容IE8及以下版本
+}
+
+.design-content {
+  position: absolute;
+  top: 0;
+  left: calc((100% - 1395px) / 2);
+  width: 1395px;
+  z-index: 1000;
+}
+
+.search-address {
+  margin-bottom: 24px;
+}
+
+.bg-setting {
+  margin-bottom: 24px;
+
+  :deep(.ant-slider-handle) {
+    background-color: #4f48ad !important;
+    border: solid 2px #4f48ad !important;
+  }
+  :deep(.ant-slider-track) {
+    background-color: #646cff !important;
+  }
+}
+
+.fold {
+  position: absolute;
+  top: 68px;
+  width: 100%;
+  line-height: 30px;
+  text-align: center;
+  background: #fff;
+  background-color: #4f48ad;
+  color: #ffffff;
+  border-radius: 4px;
+  cursor: pointer;
+}
