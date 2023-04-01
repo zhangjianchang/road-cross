@@ -193,7 +193,6 @@ const setOpacity = () => {
   for (var i = 0; i < elements.length; i++) {
     const className = elements[i].getAttribute("class")?.toLowerCase()!;
     const tagName = elements[i].tagName.toLowerCase();
-    console.log(className);
     if (states.notOpacityClass.indexOf(className) === -1) {
       if (states.pathTags.indexOf(tagName) > -1) {
         elements[i].setAttribute("opacity", `${states.opacity}`);
@@ -237,6 +236,7 @@ const initData = () => {
 
 //选择方案
 const onChangePlan = (item: any) => {
+  states.is_collapse = true;
   refDesign.value.loadData(item);
 };
 
@@ -286,12 +286,6 @@ const loadMap = (loc: any) => {
     map: states.map, //指定地图容器
     geometries: [], //点标记数据数组
   });
-
-  // 发现把这个生命周期钩子写在onMounted生命周期钩子内，没有报错，而且还有效果
-  onBeforeUnmount(() => {
-    // 切换路由的时候可能创建了多个实例，可以使用destroy销毁地图
-    states.map.destroy();
-  });
 };
 
 onMounted(() => {
@@ -301,6 +295,12 @@ onMounted(() => {
   });
   //加载数据
   initData();
+});
+
+// 发现把这个生命周期钩子写在onMounted生命周期钩子内，没有报错，而且还有效果
+onBeforeUnmount(() => {
+  // 切换路由的时候可能创建了多个实例，可以使用destroy销毁地图
+  states.map.destroy();
 });
 </script>
 

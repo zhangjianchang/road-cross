@@ -20,6 +20,7 @@
             y2="10"
             stroke="rgb(255,165,0)"
             stroke-width="15"
+            deleteTag="1"
           />
         </pattern>
         <pattern
@@ -36,6 +37,7 @@
             y2="10"
             stroke="#ffffff"
             stroke-width="10"
+            deleteTag="1"
           />
         </pattern>
       </defs>
