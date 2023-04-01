@@ -1,5 +1,6 @@
 import { reactive } from "vue";
 import { plans } from "..";
+import { cal_point } from "../../../utils/common";
 
 export const roadSigns = reactive([
   {
@@ -142,7 +143,7 @@ export const RoadCross = {
     type: "否", //右转渠化
     right_enter_count: 0, //右转单独入口
     right_exit_count: 0, //右转单独出口
-    lane_width: 15, //出入口宽度
+    lane_width: 5, //出入口宽度
   },
 
   enter: {
@@ -425,3 +426,40 @@ export function getCrossLenByPrevCanalize(road_info: any, index: number) {
   }
   return len;
 }
+
+//固体渠化后移的点(入口)
+export const getEnterPointByCanalize_GT = (
+  dw: any,
+  rc: any,
+  is_out_side: boolean
+) => {
+  var dr = Math.PI * 0.5;
+  var k = 2;
+  var d = (rc.cross_len_new + rc.canalize.lane_width + k) * dw.ratio;
+  var len =
+    (rc.enter.num * rc.enter.lane_width +
+      rc.enter.bike_lane.has * rc.enter.bike_lane.width +
+      rc.median_strip.width +
+      rc.margin * (is_out_side ? 1 : 0)) *
+    dw.ratio;
+  return cal_point(dw, d, dr, len);
+};
+
+//固体渠化后移的点(出口)
+export const getExitPointByCanalize_GT = (
+  dw: any,
+  rc: any,
+  width: number,
+  is_out_side: boolean
+) => {
+  var dr = Math.PI * 0.5;
+  var k = 2;
+  var d = (rc.cross_len_new + width + k) * dw.ratio;
+  var len =
+    (rc.exit.num * rc.exit.lane_width +
+      (rc.exit.bike_lane.has ? rc.exit.bike_lane.width : 0) +
+      rc.median_strip.width +
+      rc.margin * (is_out_side ? 1 : 0)) *
+    dw.ratio;
+  return cal_point(dw, d, -dr, len);
+};

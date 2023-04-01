@@ -30,12 +30,12 @@
       <a-button type="primary" @click="onClose">确定</a-button>
     </template> -->
     <div class="search-address">
-      <p>搜索需要匹配的地址</p>
+      <p>搜索定位</p>
       <a-select
         v-model:value="states.currentAddress"
         style="width: 100%"
         allow-clear
-        placeholder="请输入需要匹配的地点或街道名称"
+        placeholder="可以输入地点名称或街道名称等进行地图中心定位"
         :show-search="true"
         :filter-option="false"
         :not-found-content="states.fetching ? undefined : null"
@@ -92,14 +92,12 @@
       <FullscreenExitOutlined v-if="states.is_collapse" title="收起" />
       <FullscreenOutlined v-else title="展开" />
     </div>
-    <transition name="collapse">
-      <Design
-        id="design"
-        ref="refDesign"
-        v-show="states.is_collapse"
-        @changeMenu="changeMenu"
-      />
-    </transition>
+    <Design
+      id="design"
+      ref="refDesign"
+      v-show="states.is_collapse"
+      @changeMenu="changeMenu"
+    />
   </div>
 </template>
 
@@ -308,17 +306,4 @@ onMounted(() => {
 
 <style lang="less" scoped>
 @import url("./index.less");
-// 折叠加隐藏过渡效果
-.collapse-enter-active,
-.collapse-leave-active {
-  transition:  all 0.6s ease-in-out;
-  // 防止折叠时元素溢出
-  overflow: hidden;
-}
-
-.collapse-enter-from,
-.collapse-leave-to {
-  height: 0px !important;
-  opacity: 0;
-}
 </style>

@@ -67,6 +67,10 @@ export default defineComponent({
           localStorage.setItem("userInfo", JSON.stringify(res.data));
           localStorage.setItem("token", res.data.token);
           userStates.user_info = res.data;
+          //超級管理員權限
+          if (userStates.user_info.roleId === 1) {
+            userStates.is_super_edit = true;
+          }
           //加载授权信息
           getCodeInfo().then((res: any) => {
             userStates.code_info = res.data;

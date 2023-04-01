@@ -294,8 +294,8 @@
                           canalize_info[cur_road_dir].canalize.type !==
                           '固体渠化'
                         "
-                        :min="10"
-                        :max="20"
+                        :min="3"
+                        :max="10"
                         :step="1"
                         size="small"
                         class="form-width"
@@ -827,6 +827,8 @@ import {
   Draw,
   getCrossLenByCanalize,
   getCrossLenByPrevCanalize,
+  getEnterPointByCanalize_GT,
+  getExitPointByCanalize_GT,
 } from "./index";
 import Container from "../../../components/Container/index.vue";
 import { DragOutlined } from "@ant-design/icons-vue";
@@ -855,7 +857,6 @@ export default defineComponent({
       cx: 350, //圆心x
       cy: 350, //圆心y
       cur_road_dir: 0, //当前道路方向
-      cross_line_pts: [] as any[], //cross点集合
       currentSign: {} as any, //当前选中路标
       modalVisible: false, //车道弹窗
       activeKey: ["1", "2", "3", "4", "5", "6", "7"], //默认全部展开
@@ -1138,27 +1139,34 @@ export default defineComponent({
       create_draw();
       states.ns = "http://www.w3.org/2000/svg";
       states.cvs = _ge("canvas");
-      states.cross_line_pts.length = 0;
 
       // cross的背景
       var d_str = "";
       for (var i = 0; i < arr_rc_draw.length; i++) {
+        var rc1 = road_info.canalize_info[i];
         var dw1 = arr_rc_draw[i];
         var sd = dw1.exit_side;
         var pt = sd.walk2;
-        states.cross_line_pts.push(pt);
         if (i == 0) d_str = "M" + pt.x + "," + pt.y + " ";
         else d_str += "L" + pt.x + "," + pt.y + " ";
         sd = dw1.enter_side;
+        //固体渠化需要后移
+        if (rc1.canalize.type === "固体渠化") {
+          sd.walk2 = getEnterPointByCanalize_GT(dw1, rc1, true);
+        }
         pt = sd.walk2;
-        states.cross_line_pts.push(pt);
         d_str += "L" + pt.x + "," + pt.y + " ";
 
-        var dw2;
-        if (i == arr_rc_draw.length - 1) dw2 = arr_rc_draw[0];
-        else dw2 = arr_rc_draw[i + 1];
+        const j = i == arr_rc_draw.length - 1 ? 0 : i + 1;
+        var rc2 = road_info.canalize_info[j];
+        var dw2 = arr_rc_draw[j];
 
         sd = dw2.exit_side;
+        //固体渠化需要后移
+        if (rc1.canalize.type === "固体渠化") {
+          const width = rc1.canalize.lane_width;
+          sd.walk2 = getExitPointByCanalize_GT(dw2, rc2, width, true);
+        }
         pt = sd.walk2;
         var insect_pt = intersect_line_point(
           dw1.enter_side.walk2,
@@ -1187,7 +1195,6 @@ export default defineComponent({
       states.cvs?.appendChild(cross);
 
       for (var i = 0; i < /*1*/ arr_rc_draw.length; i++) {
-        var rc = road_info.canalize_info[i];
         var dw = arr_rc_draw[i];
         var road = document.createElementNS(states.ns, "path"); // 创建路（方向）
 
@@ -1198,20 +1205,7 @@ export default defineComponent({
         var sd = dw.enter_side;
         var pt = sd.walk1;
         d_str += "M" + pt.x + "," + pt.y + " ";
-        //固体渠化需要后移
-        if (rc.canalize.type === "固体渠化") {
-          var dr = Math.PI * 0.5;
-          var d = rc.length * dw.ratio;
-          var len =
-            (rc.enter.num * rc.enter.lane_width +
-              rc.enter.bike_lane.has * rc.enter.bike_lane.width +
-              rc.median_strip.width +
-              1) *
-            dw.ratio; // 不带margin
-          pt = cal_point(dw, d, dr, len);
-        } else {
-          pt = sd.walk2;
-        }
+        pt = sd.walk2;
         d_str += "L" + pt.x + "," + pt.y + " ";
         pt = sd.ext1;
         d_str += "L" + pt.x + "," + pt.y + " ";
@@ -1243,10 +1237,14 @@ export default defineComponent({
         // 轮廓（白线）
         d_str = "";
         //入口边缘线
+        var rc = road_info.canalize_info[i]; // road cross对象
         var sd = dw.enter_side2;
         var pt = sd.walk1;
-        //d_str += "M" + pt.x + "," + pt.y + " ";
         pt = sd.walk2;
+        //固体渠化需要后移
+        if (rc.canalize.type === "固体渠化") {
+          pt = getEnterPointByCanalize_GT(dw, rc, false);
+        }
         d_str += "M" + pt.x + "," + pt.y + " ";
         pt = sd.ext1;
         d_str += "L" + pt.x + "," + pt.y + " ";
@@ -1264,6 +1262,14 @@ export default defineComponent({
         pt = sd.ext1;
         d_str += "L" + pt.x + "," + pt.y + " ";
         pt = sd.walk2;
+        //判断上一路口有无固体渠化
+        var j = i === 0 ? plans.road_count - 1 : i - 1;
+        var rc2 = road_info.canalize_info[j]; // road cross对象
+        //固体渠化需要后移
+        if (rc2.canalize.type === "固体渠化") {
+          var width = rc2.canalize.lane_width;
+          pt = getExitPointByCanalize_GT(dw, rc, width, false);
+        }
         d_str += "L" + pt.x + "," + pt.y + " ";
         pt = sd.walk1;
         //d_str += "L" + pt.x + "," + pt.y + " ";
@@ -1785,13 +1791,22 @@ export default defineComponent({
         var rc = road_info.canalize_info[i];
         var dw = arr_rc_draw[i];
         var sd = dw.enter_side2;
+        //固体渠化需要后移
+        if (rc.canalize.type === "固体渠化") {
+          sd.walk2 = getEnterPointByCanalize_GT(dw, rc, false);
+        }
         var pt = sd.walk2;
         d_str = "M" + pt.x + "," + pt.y + " ";
 
-        var dw2;
-        if (i == arr_rc_draw.length - 1) dw2 = arr_rc_draw[0];
-        else dw2 = arr_rc_draw[i + 1];
+        var j = i == arr_rc_draw.length - 1 ? 0 : i + 1;
+        var dw2 = arr_rc_draw[j];
+        var rc2 = road_info.canalize_info[j];
         sd = dw2.exit_side2;
+        //固体渠化需要后移
+        if (rc.canalize.type === "固体渠化") {
+          const width = rc.canalize.lane_width;
+          sd.walk2 = getExitPointByCanalize_GT(dw2, rc2, width, false);
+        }
         pt = sd.walk2;
         var insect_pt = intersect_line_point(
           dw.enter_side2.walk2,

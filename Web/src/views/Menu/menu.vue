@@ -71,7 +71,7 @@ export default defineComponent({
       getUserInfo().then((res: any) => {
         userStates.user_info = res.data;
         if (res.data.roleId === 1) {
-          userStates.can_edit = true;
+          userStates.is_super_edit = true;
         }
       });
       getCodeInfo().then((res: any) => {
@@ -81,12 +81,14 @@ export default defineComponent({
 
     //路由跳转
     const handleRouterClick = (routerName: string) => {
-      //判断权限
       var token = localStorage.getItem("token");
       if (
         !token &&
-        (routerName === PageEnum.Design || routerName === PageEnum.UserCenter)
+        (routerName === PageEnum.Design ||
+          routerName === PageEnum.UserCenter ||
+          routerName === PageEnum.Map)
       ) {
+        //判断是否需要登录权限
         message.warning("请先登录");
         goRouterByParam(PageEnum.Login);
       } else {

@@ -315,7 +315,7 @@ export default defineComponent({
       if (currentRouteName === PageEnum.Map) {
         setTimeout(() => {
           context.emit("changeMenu");
-        }, 5);//延时加载，留时间加载dom
+        }, 5); //延时加载，留时间加载dom
       }
       //道路属性判断
       if (item.url != MenuListEnum.Basic && plans.road_count < 2) {
@@ -348,6 +348,7 @@ export default defineComponent({
       if (
         !userStates.code_info &&
         !userStates.can_edit &&
+        !userStates.is_super_edit &&
         (item.url === MenuListEnum.Saturation ||
           item.url === MenuListEnum.DelayAnalysis ||
           item.url === MenuListEnum.QueueAnalysis ||
@@ -607,6 +608,10 @@ export default defineComponent({
     const onSave = () => {
       if (!plans.road_name) {
         openNotfication("warning", "请输入交叉口名称");
+        return;
+      }
+      if (!userStates.code_info && !userStates.is_super_edit) {
+        openNotfication("warning", "请购买授权码激活后使用");
         return;
       }
       roadStates.loading = true;

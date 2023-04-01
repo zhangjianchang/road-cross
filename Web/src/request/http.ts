@@ -93,7 +93,7 @@ export function get_jsonp(url: string, params?: any) {
         }
       })
       .catch((err) => {
-        openNotfication("error", err.message);
+        openNotfication("error", "加载腾讯地图异常，请稍后再试");
         reject(err.message);
       });
   });
