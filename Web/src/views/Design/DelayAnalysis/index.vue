@@ -46,18 +46,21 @@
             :fill="road.rect.background"
             stroke="#ddd"
             stroke-width="2"
+            opacityTag="1"
           />
           <path
             :d="road.sign.path"
             fill="#fff"
             v-if="road.rect.saturation != 0"
-          ></path>
+            opacityTag="1"
+          />
           <text
             x="250"
             y="1400"
             fill="#000"
             style="font-size: 260px"
             v-if="road.rect.saturation != 0"
+            opacityTag="1"
           >
             {{ road.rect.saturation.toFixed(1) }}
           </text>
@@ -70,8 +73,9 @@
           stroke="#eee"
           stroke-width="1"
           id="total_saturation"
+          opacityTag="1"
         />
-        <text x="335" y="355" fill="#fff">
+        <text x="335" y="355" fill="#fff" opacityTag="1">
           {{ total_saturation }}
         </text>
       </svg>

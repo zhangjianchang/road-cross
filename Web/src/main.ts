@@ -8,4 +8,5 @@ import axios from "axios";
 import VueAxios from "vue-axios";
 import "tailwindcss/tailwind.css";
 
-createApp(App).use(router).use(Antd).use(VueAxios, axios).mount("#app");
+const app = createApp(App);
+app.use(router).use(Antd).use(VueAxios, axios).mount("#app");

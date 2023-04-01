@@ -1,7 +1,7 @@
 /**
  * api接口统一管理
  */
-import { get, post } from "./http";
+import { get, get_jsonp, post } from "./http";
 
 /*********************用户相关 *****************/
 //检查token合法性
@@ -46,3 +46,8 @@ export const getCodeInfo = () => post("/AuthotizationCode/getCodeInfo");
 export const getCodeInfosByUser = () =>
   post("/AuthotizationCode/getCodeInfosByUser");
 /*********************授权码相关 *****************/
+
+/*********************腾讯地图接口 *****************/
+export const searchMap = (params: any) =>
+  get_jsonp("https://apis.map.qq.com/ws/place/v1/search", params);
+/*********************腾讯地图接口 *****************/

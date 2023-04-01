@@ -1,6 +1,9 @@
 import axios from "axios"; // 引入axios
-import QS from "qs"; // 引入qs模块，用来序列化post类型的数据
+import AxiosJsonp from "axios-jsonp-pro";
+import { jsonp } from "vue-jsonp";
 import { openNotfication } from "../utils/message";
+
+export const mapKey = "TPDBZ-WQI34-FQIU6-F45YP-5PAJO-WMFEU";
 
 // 环境的切换
 if (process.env.NODE_ENV == "development") {
@@ -39,7 +42,7 @@ axios.defaults.headers.post["Content-Type"] =
  * @param {String} url [请求的url地址]
  * @param {Object} params [请求时携带的参数]
  */
-export function get(url: string, params: any) {
+export function get(url: string, params?: any) {
   return new Promise((resolve, reject) => {
     axios
       .get(url, {
@@ -74,6 +77,24 @@ export function post(url: string, params?: any) {
       .catch((err) => {
         openNotfication("error", err.message);
         reject(err.data);
+      });
+  });
+}
+
+export function get_jsonp(url: string, params?: any) {
+  params.output = "jsonp";
+  return new Promise((resolve, reject) => {
+    jsonp(url, params)
+      .then((res: any) => {
+        if (res.data) {
+          resolve(res.data);
+        } else {
+          openNotfication("error", res.message);
+        }
+      })
+      .catch((err) => {
+        openNotfication("error", err.message);
+        reject(err.message);
       });
   });
 }

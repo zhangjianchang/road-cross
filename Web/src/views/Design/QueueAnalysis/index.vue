@@ -46,17 +46,20 @@
             :fill="road.rect.background"
             stroke="#ddd"
             stroke-width="2"
+            opacityTag="1"
           />
           <path
             :d="road.sign.path"
             fill="#fff"
+            opacityTag="1"
             v-if="road.rect.saturation != 0"
-          ></path>
+          />
           <text
             x="250"
             y="1400"
             fill="#000"
             style="font-size: 260px"
+            opacityTag="1"
             v-if="road.rect.saturation != 0"
           >
             {{ road.rect.saturation.toFixed(1) }}
@@ -70,8 +73,9 @@
           stroke="#eee"
           stroke-width="1"
           id="total_saturation"
+          opacityTag="1"
         />
-        <text x="335" y="355" fill="#fff">
+        <text x="335" y="355" fill="#fff" opacityTag="1">
           {{ total_saturation }}
         </text>
       </svg>
@@ -451,9 +455,9 @@ export default defineComponent({
       road_path: string
     ) {
       const g = {
-        transform: `rotate(${270 - plans.road_attr[index].angle} ${
-          way_pt.x
-        },${way_pt.y}) translate(${way_pt.x},${way_pt.y}) scale(0.04)`,
+        transform: `rotate(${270 - plans.road_attr[index].angle} ${way_pt.x},${
+          way_pt.y
+        }) translate(${way_pt.x},${way_pt.y}) scale(0.04)`,
         id: `g${index}${way_index}`,
       };
       //路标

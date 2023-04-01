@@ -29,6 +29,7 @@
             xmlns="http://www.w3.org/2000/svg"
             d="M2,2 L10,6 L2,10 L2,6 L2,2"
             style="fill: #4f48ad"
+            deleteTag="1"
           />
         </marker>
       </defs>
@@ -37,10 +38,18 @@
         r="300"
         cx="350"
         cy="350"
-        fill="rgba(255,255,255,1)"
+        fill="none"
         stroke="#4f48ad"
+        deleteTag="1"
       />
-      <circle r="250" cx="350" cy="350" fill="none" stroke="#4f48ad" />
+      <circle
+        r="250"
+        cx="350"
+        cy="350"
+        fill="none"
+        stroke="#4f48ad"
+        deleteTag="1"
+      />
       <circle
         r="40"
         cx="350"
@@ -48,6 +57,7 @@
         fill="none"
         stroke="#4f48ad"
         stroke-width="15"
+        deleteTag="1"
       />
     </svg>
 
@@ -140,6 +150,7 @@ export default defineComponent({
           text.setAttribute("y", y3.toString());
           text.setAttribute("fill", "#000");
           text.setAttribute("style", "font-size:12px;user-select:none");
+          text.setAttribute("deleteTag", "1");
           text.setAttribute(
             "transform",
             `rotate(${90 - angle} ${x3},${y3}) translate(${translateX},0)`

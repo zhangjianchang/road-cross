@@ -10,9 +10,9 @@
       <div class="func">
         <div class="gradient"></div>
         <div class="gradient-text">
-          <div>1</div>
-          <div class="dec">饱和度</div>
-          <div>0</div>
+          <div class="gradient-text-1">1</div>
+          <div class="gradient-text-dec">饱和度</div>
+          <div class="gradient-text-0">0</div>
         </div>
       </div>
       <!-- 图示 -->
@@ -41,17 +41,20 @@
             :fill="road.rect.background"
             stroke="#ddd"
             stroke-width="2"
+            deleteTag="1"
           />
           <path
             :d="road.sign.path"
             fill="#fff"
+            deleteTag="1"
             v-if="road.rect.saturation != 0"
-          ></path>
+          />
           <text
             x="250"
             y="1400"
             fill="#000"
             style="font-size: 260px"
+            deleteTag="1"
             v-if="road.rect.saturation != 0"
           >
             {{ road.rect.saturation.toFixed(2) }}
@@ -65,8 +68,9 @@
           stroke="#eee"
           stroke-width="1"
           id="total_saturation"
+          deleteTag="1"
         />
-        <text x="335" y="355" fill="#fff">
+        <text x="335" y="355" fill="#fff" opacityTag="1">
           {{ total_saturation }}
         </text>
       </svg>
@@ -376,6 +380,7 @@ export default defineComponent({
       path.setAttribute("fill", "none");
       path.setAttribute("stroke", "#ddd");
       path.setAttribute("stroke-width", "2");
+      path.setAttribute("deleteTag", "1");
       if (dasharray) {
         path.setAttribute("stroke-dasharray", "5,5");
       }
@@ -482,6 +487,7 @@ export default defineComponent({
         txt.setAttribute("deleteTag", "1");
         txt.setAttribute("fill", "rgb(0,0,0)");
         txt.setAttribute("text-anchor", "middle");
+        txt.setAttribute("deleteTag", "1");
         var angle = -rc.angle;
         if (angle < -120 && angle > -270) angle = angle + 180; // 文字朝上
         txt.setAttribute(

@@ -68,7 +68,8 @@ export function getAngle(cx: number, cy: number, x: number, y: number) {
 
 //角度以5°为一个单位
 export function parseAngle(angle: number) {
-  return parseInt((angle / 5).toString()) * 5;
+  return parseInt(angle.toFixed(1));
+  // return parseInt((angle / 5).toString()) * 5;
 }
 
 /* 求中垂线 */

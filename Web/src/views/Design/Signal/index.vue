@@ -29,11 +29,16 @@
         style="cursor: pointer"
       >
         <!-- 外层矩形轮廓 -->
-        <rect width="700" height="700" fill="#FFFF99" />
+        <rect width="700" height="700" fill="#FFFF99" deleteTag="1" />
         <!-- 道路路径 -->
-        <path :d="road.path.d" :id="road.path.id" fill="rgb(162,162,162)" />
+        <path
+          :d="road.path.d"
+          :id="road.path.id"
+          fill="rgb(162,162,162)"
+          deleteTag="1"
+        />
         <!-- 相位数据 -->
-        <text x="120" y="800" class="phase-text">
+        <text x="120" y="800" class="phase-text" deleteTag="1">
           {{ road.text }}
         </text>
         <!-- 相位内部方向箭头 -->
@@ -53,6 +58,7 @@
               xmlns="http://www.w3.org/2000/svg"
               d="M2,2 L10,6 L2,10 L2,6 L2,2"
               style="fill: #ffffff"
+              deleteTag="1"
             />
           </marker>
           <!-- 非机动车箭头 -->
@@ -70,6 +76,7 @@
               xmlns="http://www.w3.org/2000/svg"
               d="M2,2 L10,6 L2,10 L2,6 L2,2"
               style="fill: #ffb90f"
+              deleteTag="1"
             />
           </marker>
           <!-- 行人箭头 -->
@@ -87,6 +94,7 @@
               xmlns="http://www.w3.org/2000/svg"
               d="M2,2 L10,6 L2,10 L2,6 L2,2"
               style="fill: #00ff99"
+              deleteTag="1"
             />
           </marker>
         </defs>
@@ -310,6 +318,7 @@
                           xmlns="http://www.w3.org/2000/svg"
                           d="M2,2 L10,6 L2,10 L2,6 L2,2"
                           style="fill: #a2a2a2"
+                          deleteTag="1"
                         />
                       </marker>
                     </defs>
@@ -320,6 +329,7 @@
                       stroke="#a2a2a2"
                       stroke-width="100"
                       :marker-end="`url(#arrow_${currentPhase}_${currentDirection}_${index})`"
+                      deleteTag="1"
                     ></path>
                   </svg>
                 </a-form-item>
@@ -350,6 +360,7 @@
                           xmlns="http://www.w3.org/2000/svg"
                           d="M2,2 L10,6 L2,10 L2,6 L2,2"
                           style="fill: #a2a2a2"
+                          deleteTag="1"
                         />
                       </marker>
                     </defs>
@@ -362,6 +373,7 @@
                       stroke-width="100"
                       :marker-end="`url(#non_arrow_${currentPhase}_${currentDirection}_${index})`"
                       :marker-start="`url(#non_arrow_${currentPhase}_${currentDirection}_${index})`"
+                      deleteTag="1"
                     />
                     <path
                       v-else
@@ -371,6 +383,7 @@
                       stroke="#a2a2a2"
                       stroke-width="100"
                       :marker-end="`url(#non_arrow_${currentPhase}_${currentDirection}_${index})`"
+                      deleteTag="1"
                     />
                   </svg>
                 </a-form-item>
@@ -398,6 +411,7 @@
                           xmlns="http://www.w3.org/2000/svg"
                           d="M2,2 L10,6 L2,10 L2,6 L2,2"
                           style="fill: #a2a2a2"
+                          deleteTag="1"
                         />
                       </marker>
                     </defs>
@@ -410,6 +424,7 @@
                       stroke-width="100"
                       :marker-end="`url(#ped_arrow_${currentPhase}_${currentDirection}_${index})`"
                       :marker-start="`url(#ped_arrow_${currentPhase}_${currentDirection}_${index})`"
+                      deleteTag="1"
                     />
                     <path
                       v-if="index !== 0"
@@ -418,6 +433,7 @@
                       fill="none"
                       stroke="#a2a2a2"
                       stroke-width="60"
+                      deleteTag="1"
                     />
                     <path
                       v-if="index !== 0"
@@ -428,6 +444,7 @@
                       stroke-width="60"
                       :marker-end="`url(#ped_arrow_${currentPhase}_${currentDirection}_${index})`"
                       :marker-start="`url(#ped_arrow_${currentPhase}_${currentDirection}_${index})`"
+                      deleteTag="1"
                     />
                   </svg>
                 </a-form-item>
@@ -859,6 +876,7 @@ export default defineComponent({
       line.setAttribute("y2", y2.toString());
       line.setAttribute("stroke", stroke);
       line.setAttribute("stroke-width", stroke_width);
+      line.setAttribute("deleteTag", "1");
       states.cvs?.appendChild(line);
     }
 
@@ -878,6 +896,7 @@ export default defineComponent({
       rect.setAttribute("height", height.toString());
       rect.setAttribute("fill", `url(#rect_${stroke_type})`);
       rect.addEventListener("click", () => onClickRect(p), false);
+      rect.setAttribute("deleteTag", "1");
       states.cvs?.appendChild(rect);
     }
 
@@ -910,6 +929,7 @@ export default defineComponent({
       text.setAttribute("id", `text_${i}`);
       text.setAttribute("x", x.toString());
       text.setAttribute("y", y.toString());
+      text.setAttribute("deleteTag", "1");
       if (is_time) {
         text.setAttribute("style", `font-size:12px;font-weight:800`);
       } else {
@@ -923,7 +943,7 @@ export default defineComponent({
         text.addEventListener(
           "click",
           () => onClickTime(i, type, content),
-          false
+          false 
         );
       }
       text.appendChild(document.createTextNode(content));

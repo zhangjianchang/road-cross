@@ -229,7 +229,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, reactive, ref, toRefs } from "vue";
+import { defineComponent, onMounted, reactive, ref, toRefs, watch } from "vue";
 import {
   MenuListEnum,
   menuList,
@@ -282,7 +282,9 @@ export default defineComponent({
     DeleteOutlined,
     PlusOutlined,
   },
-  setup() {
+
+  emits: ["changeMenu"],
+  setup(_props, context) {
     const route = useRoute();
     const guid = (route.params.guid ?? "").toString();
     //判断权限
@@ -305,9 +307,17 @@ export default defineComponent({
     const queueRef = ref();
     const serviceRef = ref();
     roadStates.currentUrl = MenuListEnum.Basic;
+    const currentRouteName = route.name;
 
     //切换菜单
     const handleChangeMenu = (item: any) => {
+      //如果是地图设置背景属性
+      if (currentRouteName === PageEnum.Map) {
+        setTimeout(() => {
+          context.emit("changeMenu");
+        }, 5);//延时加载，留时间加载dom
+      }
+      //道路属性判断
       if (item.url != MenuListEnum.Basic && plans.road_count < 2) {
         openNotfication("warning", "相交道路不能少于两条");
         return;
@@ -643,6 +653,22 @@ export default defineComponent({
     onMounted(() => {
       loadData(guid);
     });
+
+    // watch(
+    //   () => route.name,
+    //   (newName) => {
+    //     if (newName === PageEnum.Design) {
+    //       // loadData("");
+    //       Object.assign(plans, _.cloneDeep(plans_model));
+    //       const rf =
+    //         plans.canalize_plans[0].flow_plans[0].signal_plans[0].road_info;
+    //       Object.assign(road_info, rf);
+    //       console.log(plans);
+    //       setTimeout(() => init, 100);
+    //     }
+    //   },
+    //   { immediate: true }
+    // );
 
     return {
       ...toRefs(roadStates),
