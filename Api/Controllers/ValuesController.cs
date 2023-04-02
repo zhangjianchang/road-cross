@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Api.Entity;
 using Api.Utilities;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,14 +14,9 @@ namespace Api.Controllers
     {
         // GET api/values
         [HttpGet]
-        public ActionResult<object> Get()
+        public MyResult Get()
         {
-            return new
-            {
-                AppSettings.DB,
-                AppSettings.WeChat,
-                AppSettings.Web
-            };
+            return MyResult.OK("请求成功");
         }
 
         // GET api/values/5
