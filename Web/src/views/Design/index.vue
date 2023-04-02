@@ -295,7 +295,7 @@ export default defineComponent({
     }
 
     //全局道路信息
-    const road_info = reactive(JSON.parse(JSON.stringify(road_model)));
+    const road_info = _.cloneDeep(road_model);
 
     //子页面
     const basicRef = ref();
@@ -630,6 +630,7 @@ export default defineComponent({
         });
     };
 
+    //加载道路基础信息
     const init = () => {
       basicRef.value.init();
     };
@@ -642,6 +643,8 @@ export default defineComponent({
             const designJson = JSON.parse(res.data.designJson);
             Object.assign(plans, designJson);
             init();
+            //同时标记流量已有数据
+            roadStates.is_flow_init = true;
           })
           .finally(() => {
             roadStates.loading = false;
@@ -659,21 +662,47 @@ export default defineComponent({
       loadData(guid);
     });
 
-    // watch(
-    //   () => route.name,
-    //   (newName) => {
-    //     if (newName === PageEnum.Design) {
-    //       // loadData("");
-    //       Object.assign(plans, _.cloneDeep(plans_model));
-    //       const rf =
-    //         plans.canalize_plans[0].flow_plans[0].signal_plans[0].road_info;
-    //       Object.assign(road_info, rf);
-    //       console.log(plans);
-    //       setTimeout(() => init, 100);
-    //     }
-    //   },
-    //   { immediate: true }
-    // );
+    /**************路由切换，道路还存在问题修复 *******************/
+    //切新路由清空道路信息
+    const clearRoadInfo = () => {
+      //清空方案信息
+      plans.road_attr.length = 0;
+      plans.road_count = 0;
+      plans.road_name = "";
+      //清空道路信息
+      road_info.canalize_info.length = 0;
+      road_info.flow_info.flow_detail.length = 0;
+      road_info.flow_info.line_info.length = 0;
+      road_info.signal_info.phase_list.length = 0;
+      road_info.saturation_info.length = 0;
+      road_info.delay_info.length = 0;
+      road_info.queue_info.length = 0;
+
+      const rf =
+        plans.canalize_plans[0].flow_plans[0].signal_plans[0].road_info;
+      rf.canalize_info.length = 0;
+      rf.flow_info.flow_detail.length = 0;
+      rf.flow_info.line_info.length = 0;
+      rf.signal_info.phase_list.length = 0;
+      rf.saturation_info.length = 0;
+      rf.delay_info.length = 0;
+      rf.queue_info.length = 0;
+    };
+
+    watch(
+      () => route.name,
+      (newName) => {
+        if (newName === PageEnum.Design) {
+          clearRoadInfo();
+          roadStates.currentUrl = MenuListEnum.Basic;
+          if (basicRef.value) {
+            init();
+          }
+        }
+      },
+      { immediate: true }
+    );
+    /**************路由切换，道路还存在问题修复 *******************/
 
     return {
       ...toRefs(roadStates),

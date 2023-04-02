@@ -164,39 +164,20 @@ export function create_sign(rc: any) {
 
 /**流量相关 */
 export function create_flow_detail(road_info: any) {
-  initFlowDetail(road_info);
-  initEnterNum(road_info);
+  initFlowColumns(road_info); //表头
+  initFlowDetail(road_info); //数据
+  initEnterNum(road_info); //饱和流量
 }
 
 //加载流量信息
 export function update_flow_detail(road_info: any) {
-  //更新各方向之间的角度
-  road_info.flow_info.flow_detail.map((fd: any) => {
-    fd.turn.map((t: any) => {
-      const ij = t.tag.split("#");
-      const i = Number(ij[0]);
-      const j = Number(ij[1]);
-      t.d = getTurnDetail_D(road_info, i, j);
-    });
-  });
-  //更新进口车道饱和流量
-  road_info.flow_info.saturation.map((fs: any, index: number) => {
-    const enter_num = road_info.canalize_info[index].enter.num;
-    const fs_count = fs.length;
-    if (enter_num > fs_count) {
-      //新增了
-      for (let i = 0; i < enter_num - fs_count; i++) {
-        fs.push({ number: 1650 });
-      }
-    } else if (enter_num < fs_count) {
-      //减少了
-      fs.splice(0, fs_count - enter_num);
-    }
-  });
+  initFlowColumns(road_info); //表头
+  updateFlowDetail(road_info); //数据
+  updateEnterNum(road_info); //饱和流量
 }
 
-//加载流量相关
-export function initFlowDetail(road_info: any) {
+//加载表头
+function initFlowColumns(road_info: any) {
   road_info.flow_info.flowColumns.length = 0;
   Object.assign(road_info.flow_info.flowColumns, flowColumnsPart);
   for (let i = 0; i < plans.road_count; i++) {
@@ -210,6 +191,10 @@ export function initFlowDetail(road_info: any) {
     });
     flowDataIndex.push(dataIndex);
   }
+}
+
+//加载流量相关
+function initFlowDetail(road_info: any) {
   //先清空
   road_info.flow_info.line_info.length = 0;
   road_info.flow_info.flow_detail.length = 0;
@@ -248,9 +233,8 @@ export function initFlowDetail(road_info: any) {
     road_info.flow_info.flow_detail.push(flow_detail);
   }
 }
-
 //加载饱和流量
-export function initEnterNum(road_info: any) {
+function initEnterNum(road_info: any) {
   road_info.flow_info.saturation.length = 0;
   road_info.canalize_info.forEach((item: any) => {
     const currentSaturation = [];
@@ -258,6 +242,34 @@ export function initEnterNum(road_info: any) {
       currentSaturation.push({ number: 1650 });
     }
     road_info.flow_info.saturation.push(currentSaturation);
+  });
+}
+
+//更新各方向之间的角度
+function updateFlowDetail(road_info: any) {
+  road_info.flow_info.flow_detail.map((fd: any) => {
+    fd.turn.map((t: any) => {
+      const ij = t.tag.split("#");
+      const i = Number(ij[0]);
+      const j = Number(ij[1]);
+      t.d = getTurnDetail_D(road_info, i, j);
+    });
+  });
+}
+//更新进口车道饱和流量
+function updateEnterNum(road_info: any) {
+  road_info.flow_info.saturation.map((fs: any, index: number) => {
+    const enter_num = road_info.canalize_info[index].enter.num;
+    const fs_count = fs.length;
+    if (enter_num > fs_count) {
+      //新增了
+      for (let i = 0; i < enter_num - fs_count; i++) {
+        fs.push({ number: 1650 });
+      }
+    } else if (enter_num < fs_count) {
+      //减少了
+      fs.splice(0, fs_count - enter_num);
+    }
   });
 }
 

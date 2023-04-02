@@ -122,6 +122,7 @@ import { roadSigns } from "../Canalize";
 import { get_V, get_x } from "../Saturation";
 import { get_d } from "../DelayAnalysis";
 import { getServiceByTypeAndRatio, lineColumns, lineData } from ".";
+import _ from "lodash";
 
 export default defineComponent({
   components: {
@@ -133,7 +134,7 @@ export default defineComponent({
   },
   setup() {
     //道路信息
-    const road_info = reactive(JSON.parse(JSON.stringify(road_model)));
+    const road_info = reactive(_.cloneDeep(road_model));
 
     const states = reactive({
       ns: "",

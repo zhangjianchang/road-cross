@@ -143,7 +143,7 @@ export const RoadCross = {
     type: "否", //右转渠化
     right_enter_count: 0, //右转单独入口
     right_exit_count: 0, //右转单独出口
-    lane_width: 5, //出入口宽度
+    lane_width: 3.5, //出入口宽度
   },
 
   enter: {
@@ -434,7 +434,7 @@ export const getEnterPointByCanalize_GT = (
   is_out_side: boolean
 ) => {
   var dr = Math.PI * 0.5;
-  var k = 2;
+  var k = 6;
   var d = (rc.cross_len_new + rc.canalize.lane_width + k) * dw.ratio;
   var len =
     (rc.enter.num * rc.enter.lane_width +
@@ -453,7 +453,7 @@ export const getExitPointByCanalize_GT = (
   is_out_side: boolean
 ) => {
   var dr = Math.PI * 0.5;
-  var k = 2;
+  var k = 6;
   var d = (rc.cross_len_new + width + k) * dw.ratio;
   var len =
     (rc.exit.num * rc.exit.lane_width +

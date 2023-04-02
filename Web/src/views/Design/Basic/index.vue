@@ -100,12 +100,13 @@ import {
 import { getAngle } from "../../../utils/common";
 import { plans } from "..";
 import { road_model } from "../data";
+import _ from "lodash";
 
 export default defineComponent({
   components: { Container, CloseOutlined },
   setup() {
     //道路信息
-    const road_info = reactive(JSON.parse(JSON.stringify(road_model)));
+    const road_info = reactive(_.cloneDeep(road_model));
     const states = reactive({
       ns: "",
       cvs: null as HTMLElement | null,

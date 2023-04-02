@@ -181,8 +181,8 @@
                         size="small"
                         class="form-width"
                       >
-                        <a-select-option :value="true"> 是 </a-select-option>
-                        <a-select-option :value="false"> 否 </a-select-option>
+                        <a-select-option :value="1"> 是 </a-select-option>
+                        <a-select-option :value="0"> 否 </a-select-option>
                       </a-select>
                     </a-form-item>
                   </a-col>
@@ -262,8 +262,8 @@
                     class="middle-form-width"
                     @change="onLapChange(record, index)"
                   >
-                    <a-select-option :value="true"> 是 </a-select-option>
-                    <a-select-option :value="false"> 否 </a-select-option>
+                    <a-select-option :value="1"> 是 </a-select-option>
+                    <a-select-option :value="0"> 否 </a-select-option>
                   </a-select>
                 </template>
               </a-table>
@@ -517,7 +517,7 @@ export default defineComponent({
   components: { Container, DragOutlined },
   setup() {
     //道路信息
-    const road_info = reactive(JSON.parse(JSON.stringify(road_model)));
+    const road_info = reactive(_.cloneDeep(road_model));
 
     const states = reactive({
       ns: "",
@@ -656,7 +656,7 @@ export default defineComponent({
       document.querySelectorAll("text").forEach((e) => {
         if (e.id.indexOf("text") > -1) e.remove();
       });
-      const legendHeight = road_info.signal_info.is_show_legend ? 40 : 0;
+      const legendHeight = road_info.signal_info.is_show_legend === 1 ? 40 : 0;
       let start_x = 85; //x起始位置
       let top = 220 + legendHeight; //上边缘线
       let signal = 235 + legendHeight; //灯
@@ -943,7 +943,7 @@ export default defineComponent({
         text.addEventListener(
           "click",
           () => onClickTime(i, type, content),
-          false 
+          false
         );
       }
       text.appendChild(document.createTextNode(content));

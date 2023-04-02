@@ -75,6 +75,7 @@
       />
     </div>
   </a-drawer>
+  <!-- 透明度调节器 -->
   <div class="slider-content" v-show="states.currentPaln">
     <div style="display: inline-block; height: 300px; margin-left: 70px">
       <a-slider
@@ -87,8 +88,10 @@
       />
     </div>
   </div>
+  <!-- 主设计窗口 -->
   <div class="design-content" v-show="states.currentPaln">
-    <div class="fold" @click="states.is_collapse = !states.is_collapse">
+    <!-- 右上角收起/展开键 -->
+    <div class="collapse" @click="states.is_collapse = !states.is_collapse">
       <FullscreenExitOutlined v-if="states.is_collapse" title="收起" />
       <FullscreenOutlined v-else title="展开" />
     </div>

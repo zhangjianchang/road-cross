@@ -296,9 +296,9 @@
                           canalize_info[cur_road_dir].canalize.type !==
                           '固体渠化'
                         "
-                        :min="3"
-                        :max="10"
-                        :step="1"
+                        :min="1.5"
+                        :max="5.5"
+                        :step="0.25"
                         size="small"
                         class="form-width"
                       />
@@ -846,12 +846,13 @@ import {
 import { road_model } from "../data";
 import { openNotfication } from "../../../utils/message";
 import { userStates } from "../../UserCenter";
+import _ from "lodash";
 
 export default defineComponent({
   components: { Container, DragOutlined },
   setup() {
     //道路信息
-    const road_info = reactive(JSON.parse(JSON.stringify(road_model)));
+    const road_info = reactive(_.cloneDeep(road_model));
 
     const states = reactive({
       ns: "",
@@ -1998,16 +1999,16 @@ export default defineComponent({
           const pt2 = cal_point(dw, d, dr, len);
 
           //出口基点
-          const exit_index = rc.exit.num - rc.canalize.right_exit_count;
+          const exit_index = rc_n.exit.num - rc.canalize.right_exit_count;
           var d = (rc_n.cross_len_new - start) * dw_n.ratio;
           var len =
-            (rc_n.median_strip.width + rc_n.enter.lane_width * exit_index) *
+            (rc_n.median_strip.width + rc_n.exit.lane_width * exit_index) *
             dw_n.ratio;
           const pt3 = cal_point(dw_n, d, -dr, len);
 
           d = (rc_n.cross_len_new - start - 1) * dw_n.ratio;
           len =
-            (rc_n.median_strip.width + rc_n.enter.lane_width * exit_index) *
+            (rc_n.median_strip.width + rc_n.exit.lane_width * exit_index) *
             dw_n.ratio;
           const pt4 = cal_point(dw_n, d, -dr, len);
 

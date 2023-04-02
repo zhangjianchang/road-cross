@@ -5,7 +5,7 @@ export const phaseModel = {
   green: 17,
   yellow: 3,
   red: 0,
-  is_lap: false,
+  is_lap: 0,
   in_direction: 0,
   directions: [] as any[],
 };

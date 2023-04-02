@@ -220,7 +220,7 @@
                   #[col]="{ index }"
                   :key="col"
                 >
-                  <div v-if="flow_info.flow_detail[index].turn">
+                  <div>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 700 700"
@@ -356,7 +356,7 @@ export default defineComponent({
   components: { Container },
   setup() {
     //道路信息
-    const road_info = reactive(JSON.parse(JSON.stringify(road_model)));
+    const road_info = reactive(_.cloneDeep(road_model));
 
     const states = reactive({
       ns: "",
@@ -396,7 +396,6 @@ export default defineComponent({
       }
       await setRoadFlow(rf); //设置关键数据
       Object.assign(road_info, rf);
-
       //默认值
       if (!road_info.flow_info.thickness) {
         road_info.flow_info.thickness = 5;
@@ -417,13 +416,8 @@ export default defineComponent({
       render();
     };
 
-    async function setRoadFlow(rf: any) {
-      //道路数据填充
-      await initRoadInfo(rf);
-    }
-
     //填充表格
-    async function initRoadInfo(rf: any) {
+    async function setRoadFlow(rf: any) {
       if (
         !roadStates.is_flow_init ||
         plans.road_count !== rf.flow_info.line_info.length
@@ -520,11 +514,7 @@ export default defineComponent({
       const width = road_info.flow_info.thickness;
       for (let i = 0; i < states.road_lines.length; i++) {
         const flow_count = getFlowCountR(i);
-        const line_width = getLineWidth(
-          plans.road_count,
-          flow_count,
-          width
-        );
+        const line_width = getLineWidth(plans.road_count, flow_count, width);
         const road = states.road_lines[i];
         //道路左侧
 
@@ -558,11 +548,7 @@ export default defineComponent({
       const width = road_info.flow_info.thickness;
       for (let i = 0; i < states.road_lines.length; i++) {
         let flow_count = getFlowCountL(i);
-        let line_width = getLineWidth(
-          plans.road_count,
-          flow_count,
-          width
-        );
+        let line_width = getLineWidth(plans.road_count, flow_count, width);
         const road = states.road_lines[i];
         //道路左侧
         let content = 0;
