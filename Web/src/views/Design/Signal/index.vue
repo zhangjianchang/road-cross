@@ -1149,7 +1149,7 @@ export default defineComponent({
     const onDirectionClick = (index: number) => {
       //只要更换方向就取消所有方向的搭接相位
       road_info.signal_info.phase_list.map((pl: any) => {
-        pl.is_lap = false;
+        pl.is_lap = 0;
       });
       setDirection(index);
       //设置好数据后重新渲染时序图
@@ -1478,7 +1478,7 @@ export default defineComponent({
           initRoads(road_info);
         } else {
           openNotfication("warning", "当前相位与上一相位无共同放行方向");
-          record.is_lap = false;
+          record.is_lap = 0;
         }
       } else {
         //渲染路

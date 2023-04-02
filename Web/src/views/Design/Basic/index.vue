@@ -279,7 +279,6 @@ export default defineComponent({
         return;
       }
       let coordinate = getXYByNxNy(nx, ny);
-      // const stroke = states.dragging ? "rgb(48 44 102)" : "#4f48ad";
       setLineXY(
         states.currentLine,
         states.cx,
