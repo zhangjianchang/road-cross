@@ -656,7 +656,7 @@ export default defineComponent({
       document.querySelectorAll("text").forEach((e) => {
         if (e.id.indexOf("text") > -1) e.remove();
       });
-      const legendHeight = road_info.signal_info.is_show_legend === 1 ? 40 : 0;
+      const legendHeight = road_info.signal_info.is_show_legend ? 40 : 0;
       let start_x = 85; //x起始位置
       let top = 220 + legendHeight; //上边缘线
       let signal = 235 + legendHeight; //灯
