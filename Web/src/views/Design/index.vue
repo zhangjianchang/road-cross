@@ -636,6 +636,7 @@ export default defineComponent({
     };
 
     const loadData = (guid: any) => {
+      roadStates.currentUrl = MenuListEnum.Basic;
       if (guid) {
         roadStates.loading = true;
         getDesignByGuid({ guid })

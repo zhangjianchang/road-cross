@@ -11,7 +11,12 @@
   >
   </iframe>
   <!-- 地图主界面 -->
-  <div id="container" class="map-container"></div>
+  <div
+    id="container"
+    class="map-container"
+    @click="onMouseClick"
+    @dblclick="onMouseDbClick"
+  ></div>
   <!-- 抽屉打开键 -->
   <div class="drawer-text" @click="showDrawer" v-show="!states.visible">
     <DoubleLeftOutlined />
@@ -68,7 +73,7 @@
         :filterOption="filterOptionLabel"
         class="large-form-width"
         placeholder="选择需要编辑的项目"
-        v-model:value="states.currentPaln"
+        v-model:value="states.currentPlan"
         :options="states.planData"
         @change="onChangePlan"
         style="width: 100%"
@@ -76,7 +81,7 @@
     </div>
   </a-drawer>
   <!-- 透明度调节器 -->
-  <div class="slider-content" v-show="states.currentPaln">
+  <div class="slider-content" v-show="states.currentPlan">
     <div style="display: inline-block; height: 300px; margin-left: 70px">
       <a-slider
         :min="0"
@@ -89,7 +94,7 @@
     </div>
   </div>
   <!-- 主设计窗口 -->
-  <div class="design-content" v-show="states.currentPaln">
+  <div class="design-content" v-show="states.currentPlan">
     <!-- 右上角收起/展开键 -->
     <div class="collapse" @click="states.is_collapse = !states.is_collapse">
       <FullscreenExitOutlined v-if="states.is_collapse" title="收起" />
@@ -117,6 +122,8 @@ import { mapKey } from "../../request/http";
 import { filterOptionLabel } from "../../utils/options";
 import { debounce } from "lodash";
 import { notOpacityClass } from "./data";
+import { watch } from "fs";
+import { plans } from "../Design";
 
 const refDesign = ref();
 const states = reactive({
@@ -131,7 +138,7 @@ const states = reactive({
   fetching: false, //延时访问
   currentAddress: undefined as any,
   options: [] as any[], //城市下拉
-  currentPaln: undefined as any, //选中项目
+  currentPlan: undefined as any, //选中项目
   planData: [] as any[], //项目下拉
 });
 
@@ -280,6 +287,13 @@ const loadMap = (loc: any) => {
     zoom: 17, //设置地图缩放级别
     center: center, //地图中心
   });
+
+  //绑定点击事件
+  states.map.on("click", function (evt: any) {
+    console.log(evt);
+    var lat = evt.latLng.getLat().toFixed(6);
+    var lng = evt.latLng.getLng().toFixed(6);
+  });
   // map.removeControl(TMap.constants.DEFAULT_CONTROL_ID.ZOOM); // 从地图容器移出 缩放控件
   // map.removeControl(TMap.constants.DEFAULT_CONTROL_ID.SCALE); // 从地图容器移出 比例尺控件
   // map.removeControl(TMap.constants.DEFAULT_CONTROL_ID.ROTATION); // 从地图容器移出 旋转控件
@@ -291,6 +305,27 @@ const loadMap = (loc: any) => {
   });
 };
 
+const register = () => {
+  window.addEventListener("mousewheel", windowScroll, true);
+};
+
+const unregister = () => {
+  window.removeEventListener("mousewheel", windowScroll, true);
+};
+
+const windowScroll = () => {};
+
+const onMouseClick = () => {
+  //处理
+  plans.center = states.map.center;
+  plans.zoom = states.map.zoom;
+  console.log(states.map);
+};
+
+const onMouseDbClick = () => {
+  console.log(2222);
+};
+
 onMounted(() => {
   //加载地图
   Tmap().then((loc: any) => {
@@ -298,12 +333,18 @@ onMounted(() => {
   });
   //加载数据
   initData();
+  // 监听鼠标滚轮事件，延时一秒，等待dom渲染完毕再初始化
+  setTimeout(() => {
+    register();
+  }, 1000);
 });
 
 // 发现把这个生命周期钩子写在onMounted生命周期钩子内，没有报错，而且还有效果
 onBeforeUnmount(() => {
   // 切换路由的时候可能创建了多个实例，可以使用destroy销毁地图
   states.map.destroy();
+  // 注销鼠标滚轮事件
+  unregister();
 });
 </script>
 

@@ -31,6 +31,8 @@ export const road_model = {
 
 //方案model
 export const plans_model = {
+  center: {} as any, //地图中心
+  zoom: 17, //地图比例尺
   road_name: "", //交叉口名称
   road_count: 0, //交叉口数量
   road_attr: [] as any[], //道路基础信息
