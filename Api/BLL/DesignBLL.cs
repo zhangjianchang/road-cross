@@ -84,7 +84,7 @@ namespace Api.BLL
         public static List<Design> GetLIstByUser(string userName)
         {
             List<Design> designs = new();
-            DataTable dt = JabMySqlHelper.ExecuteDataTable(Config.DBConnection, "select * from design where CreateUser =@UserName AND IsDeleted<>1", new MySqlParameter("@UserName", userName));
+            DataTable dt = JabMySqlHelper.ExecuteDataTable(Config.DBConnection, "select * from design where CreateUser =@UserName AND IsDeleted<>1  order by CreateDate desc", new MySqlParameter("@UserName", userName));
             if (dt != null && dt.Rows.Count > 0)
             {
                 foreach (DataRow row in dt.Rows)
