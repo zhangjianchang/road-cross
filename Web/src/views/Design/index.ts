@@ -35,6 +35,7 @@ export const menuList = [
 //道路信息
 export const roadStates = reactive({
   loading: false,
+  from_map: false,
   cx: 350, //圆心x
   cy: 350, //圆心y
   currentUrl: "Basic",

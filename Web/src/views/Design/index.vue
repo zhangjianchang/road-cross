@@ -286,7 +286,7 @@ export default defineComponent({
   emits: ["changeMenu"],
   setup(_props, context) {
     const route = useRoute();
-    const guid = (route.params.guid ?? "").toString();
+    let plan_guid = (route.params.guid ?? "").toString();
     //判断权限
     var token = localStorage.getItem("token");
     if (!token) {
@@ -616,14 +616,18 @@ export default defineComponent({
       }
       roadStates.loading = true;
       const param = {
-        guid,
+        guid: plan_guid,
         roadName: plans.road_name,
         designJson: JSON.stringify(plans),
       };
       saveDesign(param)
         .then((res: any) => {
           message.success("保存成功");
-          goRouterByParam(PageEnum.DesignEdit, { guid: res.data });
+          if (!roadStates.from_map) {
+            plan_guid = res.data;
+          } else {
+            goRouterByParam(PageEnum.DesignEdit, { guid: res.data });
+          }
         })
         .finally(() => {
           roadStates.loading = false;
@@ -635,7 +639,12 @@ export default defineComponent({
       basicRef.value.init();
     };
 
-    const loadData = (guid: any) => {
+    const loadData = (guid: any, from_map: boolean) => {
+      //地图加载的话需要赋值给全局guid
+      plan_guid = guid;
+      //是否从地图过来，保存的时候要不要跳页面
+      roadStates.from_map = from_map;
+      clearRoadInfo();
       roadStates.currentUrl = MenuListEnum.Basic;
       if (guid) {
         roadStates.loading = true;
@@ -660,7 +669,7 @@ export default defineComponent({
     };
 
     onMounted(() => {
-      loadData(guid);
+      loadData(plan_guid, false);
     });
 
     /**************路由切换，道路还存在问题修复 *******************/
@@ -670,6 +679,7 @@ export default defineComponent({
       plans.road_attr.length = 0;
       plans.road_count = 0;
       plans.road_name = "";
+      plans.center = undefined;
       //清空道路信息
       road_info.canalize_info.length = 0;
       road_info.flow_info.flow_detail.length = 0;
