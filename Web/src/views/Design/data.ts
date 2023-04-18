@@ -112,4 +112,6 @@ export const DirectionsZh = {
   straight_right: "直右",
   left_straight_right: "直左右",
   right: "右转",
+  straight_uturn: "直行掉头",
+  left_uturn: "左转掉头",
 };

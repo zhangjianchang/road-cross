@@ -388,6 +388,7 @@ const getDW = (road_info: any, i: number) => {
 
 /**信号相关 */
 export function create_signal_info(road_info: any) {
+  road_info.signal_info.period = 0;
   for (let p = 0; p < road_info.signal_info.phase; p++) {
     insert_phase(road_info, p);
   }

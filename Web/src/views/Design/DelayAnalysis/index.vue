@@ -468,6 +468,7 @@ export default defineComponent({
       };
       let q = get_q(index, road_key, road_info);
       let saturation = getRatio(index, way_index, road_key, q, road_info);
+      console.log(1, road_key, q, saturation);
       let background = getBackgroundByDelay(saturation);
       //圆角矩形背景
       const rect = {
@@ -747,7 +748,6 @@ export default defineComponent({
               x: getDirectionZhName(i, s.key),
               y: s.number.toFixed(2),
             });
-
             //y轴取数据最高
             states.analysisOption.yAxis[0].max = Math.max(
               states.analysisOption.yAxis[0].max,
@@ -763,6 +763,7 @@ export default defineComponent({
     /**基础方法 */
     //加载所有方案下的饱和度
     const initSaturation = () => {
+      console.log(333);
       plans.canalize_plans.map((c, cidx) => {
         c.flow_plans.map((f, fidx) => {
           f.signal_plans.map((s, sidx) => {
@@ -781,6 +782,7 @@ export default defineComponent({
               all_keys.map((key: any, j: number) => {
                 let q = get_q(i, key, rf);
                 let number = getRatio(i, j, key, q, rf);
+                console.log(2, key, q, number);
                 si.push({ key, number });
               });
               rf.delay_info.push(si);

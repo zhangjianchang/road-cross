@@ -364,7 +364,6 @@ const onMouseClick = () => {
 const onMouseDbClick = () => {
   plans.center = states.map.center;
   plans.zoom = states.map.zoom;
-  console.log(2222);
 };
 
 const handleMenuClick = (item: any) => {

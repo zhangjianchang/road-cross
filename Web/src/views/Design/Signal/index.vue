@@ -662,7 +662,7 @@ export default defineComponent({
       let signal = 235 + legendHeight; //灯
       let center = 250 + legendHeight; //中心线
       let bottom = 280 + legendHeight; //下边缘线
-      //默认四个相位
+      //默认2个相位
       for (let p = 0; p < road_info.signal_info.phase; p++) {
         const pl = road_info.signal_info.phase_list;
         let width = states.svg_width / road_info.signal_info.period; //每个刻度的宽度

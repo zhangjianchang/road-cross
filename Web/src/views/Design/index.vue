@@ -636,7 +636,10 @@ export default defineComponent({
 
     //加载道路基础信息
     const init = () => {
-      basicRef.value.init();
+      setTimeout(() => {
+        basicRef.value.init();
+        context.emit("changeMenu");
+      }, 10);
     };
 
     const loadData = (guid: any, from_map: boolean) => {
@@ -685,6 +688,7 @@ export default defineComponent({
       road_info.flow_info.flow_detail.length = 0;
       road_info.flow_info.line_info.length = 0;
       road_info.signal_info.phase_list.length = 0;
+      road_info.signal_info.period = 0;
       road_info.saturation_info.length = 0;
       road_info.delay_info.length = 0;
       road_info.queue_info.length = 0;
