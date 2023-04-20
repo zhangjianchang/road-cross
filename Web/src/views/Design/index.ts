@@ -315,7 +315,7 @@ export const getTurnDetail_D = (road_info: any, i: number, next_i: number) => {
   }
 
   //第一条路
-  let dw = getDW(road_info, i);
+  let dw = getDW(i);
   let d = states.far_d;
   let pt_r11 = cal_point(dw, d, -dr * k, states.len);
 
@@ -323,7 +323,7 @@ export const getTurnDetail_D = (road_info: any, i: number, next_i: number) => {
   let pt_r12 = cal_point(dw, d, -dr * k, states.len);
 
   //第二条路
-  dw = getDW(road_info, next_i);
+  dw = getDW(next_i);
   d = states.far_d;
   let pt_l11 = cal_point(dw, d, dr * k, states.len);
 
@@ -348,7 +348,7 @@ export const getTurnDetail_D = (road_info: any, i: number, next_i: number) => {
 };
 
 //行人穿越图标，j=1中间=>右边，j=2中间=>左边
-export const getPedDetail_D = (road_info: any, i: number, j: number) => {
+export const getPedDetail_D = (i: number, j: number) => {
   const states = {
     d: 40, //离圆心距离
     far_d: 200, //离圆心距离
@@ -357,7 +357,7 @@ export const getPedDetail_D = (road_info: any, i: number, j: number) => {
   const k = j === 1 ? 1 : -1;
   let d_str = "";
   const dr = Math.PI * 0.5;
-  const dw = getDW(road_info, i);
+  const dw = getDW(i);
 
   //竖线
   let d = states.far_d;
@@ -375,7 +375,7 @@ export const getPedDetail_D = (road_info: any, i: number, j: number) => {
   return d_str;
 };
 
-const getDW = (road_info: any, i: number) => {
+const getDW = (i: number) => {
   const angle = plans.road_attr[i].angle;
   const radian = (Math.PI / 180) * angle; // 角度转弧度
   const dw = {
@@ -452,7 +452,7 @@ export const getStraightTurnDetail = (road_info: any, i: number) => {
     road_count: plans.road_count, //路口数量
   };
   const dr = Math.PI * 0.5;
-  const dw = getDW(road_info, i);
+  const dw = getDW(i);
   const d = states.d;
   let pt_1 = cal_point(dw, d, dr, states.len); //左边
   let pt_2 = cal_point(dw, d, -dr, states.len); //右边

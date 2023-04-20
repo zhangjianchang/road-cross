@@ -635,7 +635,7 @@ export default defineComponent({
           if (m === 0) {
             d = getStraightTurnDetail(road_info, i);
           } else {
-            d = getPedDetail_D(road_info, i, m);
+            d = getPedDetail_D(i, m);
           }
           const path = { d };
           sign_ped_pt.push(path);
@@ -1048,11 +1048,11 @@ export default defineComponent({
     const getOffset = (diff_angle: number) => {
       let offset = 0;
       if (diff_angle < 50) {
-        offset = (90 - diff_angle) * 2.5;
+        offset = (90 - diff_angle) * 2;
       } else if (diff_angle < 90) {
         offset = (90 - diff_angle) * 1.5;
       }
-      return offset > 120 ? 120 : offset;
+      return offset > 59 ? 59 : offset;
     };
 
     //写路径至数组
@@ -1302,9 +1302,11 @@ export default defineComponent({
       //夹角过小后移距离
       let offset = getOffset(dw.diff_angle);
       let d = states.far_d - far;
+      console.log("f", d);
       let pt_r11 = cal_point(dw, d, dr, len);
 
       d = states.d + offset;
+      console.log("n", d);
       let pt_r12 = cal_point(dw, d, dr, len);
       //第二条路
       dw = getDW(index2);

@@ -261,7 +261,7 @@ export default defineComponent({
             type: "value",
             name: "饱和度对比分析",
             min: 0,
-            max: 1,
+            max: 1.5,
             interval: 0.25,
             axisLabel: {
               formatter: "{value}",
@@ -394,8 +394,9 @@ export default defineComponent({
       states.road_sign_pts.length = 0;
       for (let i = 0; i < plans.road_count; i++) {
         var rc = road_info.canalize_info[i];
+        var angle = plans.road_attr[i].angle;
         const dw = {
-          dir: { radian: (Math.PI / 180) * rc.angle },
+          dir: { radian: (Math.PI / 180) * angle },
           origin: { x: states.cx },
           road_sign: { enter: [] as any[] },
         };
@@ -476,6 +477,7 @@ export default defineComponent({
     const drawRoadText = () => {
       for (let i = 0; i < road_info.canalize_info.length; i++) {
         const rc = road_info.canalize_info[i];
+        var angle = -plans.road_attr[i].angle;
 
         const dr = Math.PI * 0.5;
         const len = states.road_width;
@@ -489,7 +491,6 @@ export default defineComponent({
         txt.setAttribute("fill", "rgb(0,0,0)");
         txt.setAttribute("text-anchor", "middle");
         txt.setAttribute("deleteTag", "1");
-        var angle = -rc.angle;
         if (angle < -120 && angle > -270) angle = angle + 180; // 文字朝上
         txt.setAttribute(
           "transform",
@@ -729,6 +730,16 @@ export default defineComponent({
               x: getDirectionZhName(i, s.key),
               y: s.number.toFixed(2),
             });
+
+            //y轴取数据最高
+            states.analysisOption.yAxis[0].max = Math.max(
+              Number(states.analysisOption.yAxis[0].max.toFixed(2)),
+              s.number
+            );
+            //每级高度
+            states.analysisOption.yAxis[0].interval = Number(
+              (states.analysisOption.yAxis[0].max / 7).toFixed(2)
+            );
           });
         });
         states.reportData.push({ name: a.name, items: reportItems });

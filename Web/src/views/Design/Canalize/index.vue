@@ -897,6 +897,7 @@ export default defineComponent({
       var temp = JSON.stringify(Draw); // Draw模板
       for (var i = 0; i < road_info.canalize_info.length; i++) {
         var rc = road_info.canalize_info[i]; // road cross对象
+        const angle = plans.road_attr[i].angle;
         const addLen = getCrossLenByTwoRoad(road_info, i);
         const canalizeEnterLen = getCrossLenByCanalize(road_info, i);
         const canalizeExitLen = getCrossLenByPrevCanalize(road_info, i);
@@ -904,8 +905,8 @@ export default defineComponent({
           rc.cross_len + addLen + Math.max(canalizeEnterLen, canalizeExitLen);
         var dw = JSON.parse(temp); // road cross对应的绘制对象
 
-        dw.dir.angle = rc.angle;
-        dw.dir.radian = (Math.PI / 180) * rc.angle;
+        dw.dir.angle = angle;
+        dw.dir.radian = (Math.PI / 180) * angle;
         dw.enter_side.right_curv = rc.enter.right_curv;
 
         // 基线

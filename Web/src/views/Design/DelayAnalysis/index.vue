@@ -399,8 +399,9 @@ export default defineComponent({
       states.road_sign_pts.length = 0;
       for (let i = 0; i < plans.road_count; i++) {
         var rc = road_info.canalize_info[i];
+        var angle = plans.road_attr[i].angle;
         const dw = {
-          dir: { radian: (Math.PI / 180) * rc.angle },
+          dir: { radian: (Math.PI / 180) * angle },
           origin: { x: states.cx },
           road_sign: { enter: [] as any[] },
         };
@@ -455,6 +456,7 @@ export default defineComponent({
       road_key: string,
       road_path: string
     ) {
+      console.log(plans.road_attr, index);
       const g = {
         transform: `rotate(${270 - plans.road_attr[index].angle} ${way_pt.x},${
           way_pt.y
@@ -468,7 +470,6 @@ export default defineComponent({
       };
       let q = get_q(index, road_key, road_info);
       let saturation = getRatio(index, way_index, road_key, q, road_info);
-      console.log(1, road_key, q, saturation);
       let background = getBackgroundByDelay(saturation);
       //圆角矩形背景
       const rect = {
@@ -483,6 +484,7 @@ export default defineComponent({
     const drawRoadText = () => {
       for (let i = 0; i < road_info.canalize_info.length; i++) {
         const rc = road_info.canalize_info[i];
+        var angle = -plans.road_attr[i].angle;
 
         const dr = Math.PI * 0.5;
         const len = states.road_width;
@@ -495,7 +497,6 @@ export default defineComponent({
         txt.setAttribute("deleteTag", "1");
         txt.setAttribute("fill", "rgb(0,0,0)");
         txt.setAttribute("text-anchor", "middle");
-        var angle = -rc.angle;
         if (angle < -120 && angle > -270) angle = angle + 180; // 文字朝上
         txt.setAttribute(
           "transform",
@@ -750,8 +751,11 @@ export default defineComponent({
             });
             //y轴取数据最高
             states.analysisOption.yAxis[0].max = Math.max(
-              states.analysisOption.yAxis[0].max,
+              Number(states.analysisOption.yAxis[0].max.toFixed(2)),
               s.number
+            );
+            states.analysisOption.yAxis[0].interval = Number(
+              (states.analysisOption.yAxis[0].max / 7).toFixed(2)
             );
           });
         });
@@ -763,7 +767,6 @@ export default defineComponent({
     /**基础方法 */
     //加载所有方案下的饱和度
     const initSaturation = () => {
-      console.log(333);
       plans.canalize_plans.map((c, cidx) => {
         c.flow_plans.map((f, fidx) => {
           f.signal_plans.map((s, sidx) => {
@@ -782,7 +785,6 @@ export default defineComponent({
               all_keys.map((key: any, j: number) => {
                 let q = get_q(i, key, rf);
                 let number = getRatio(i, j, key, q, rf);
-                console.log(2, key, q, number);
                 si.push({ key, number });
               });
               rf.delay_info.push(si);
