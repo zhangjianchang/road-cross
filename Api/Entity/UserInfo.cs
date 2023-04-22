@@ -14,5 +14,7 @@ namespace Api.Entity
         public int RoleId { get; set; }
         public int WaitSet { get; set; }
         public string Token { get; set; }
+        public string EMail { get; set; }
+        public string TelPhone { get; set; }
     }
 }

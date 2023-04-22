@@ -33,7 +33,7 @@
 
 <script lang="ts">
 import { message } from "ant-design-vue";
-import { defineComponent, onMounted, reactive, toRefs } from "vue";
+import { defineComponent, onMounted, reactive, toRefs, watch } from "vue";
 import { PageEnum } from "../../../router/data";
 import { goRouterByParam } from "../../../utils/common";
 import Container from "../../../components/Container/index.vue";
@@ -43,10 +43,14 @@ import ActivateCode from "./ActivateCode/index.vue";
 import GenerateCode from "./GenerateCode/index.vue";
 import { checkToken, getUserInfo } from "../../../request/api";
 import { settingStates } from ".";
+import { useRoute } from "vue-router";
 
 export default defineComponent({
   components: { Container, BasicInfo, ResetPwd, ActivateCode, GenerateCode },
   setup() {
+    const route = useRoute();
+    let type = (route.params.type ?? "").toString();
+
     const states = reactive({
       activeKey: 1,
     });
@@ -62,6 +66,13 @@ export default defineComponent({
           .then(() => {
             getUserInfo().then((res: any) => {
               settingStates.userInfo = res.data;
+              if (type === "basic_info") {
+                states.activeKey = 1;
+              } else if (type === "reset_pwd") {
+                states.activeKey = 2;
+              } else if (type === "activate_code") {
+                states.activeKey = 3;
+              }
             });
           })
           .catch(() => {
@@ -71,6 +82,20 @@ export default defineComponent({
           });
       }
     };
+
+    watch(
+      () => route.name,
+      (newName) => {
+        if (newName === PageEnum.BasicInfo) {
+          states.activeKey = 1;
+        } else if (newName === PageEnum.ResetPwd) {
+          states.activeKey = 2;
+        } else if (newName === PageEnum.ActivateCode) {
+          states.activeKey = 3;
+        }
+      },
+      { immediate: true }
+    );
 
     onMounted(() => {
       initUserInfo();

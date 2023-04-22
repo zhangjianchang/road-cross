@@ -37,12 +37,26 @@
     <div v-else>
       <a-dropdown placement="bottomLeft" size="large">
         <a class="ant-dropdown-link" @click.prevent>
-          {{ user_info.chineseName }}
+          {{ user_info.eMail }}
         </a>
         <template #overlay>
-          <a-menu>
+          <a-menu style="width: 150px">
             <a-menu-item>
-              <a @click="handleRouterClick(PageEnum.UserCenter)"> 个人中心 </a>
+              <a @click="handleRouterClick(PageEnum.DesignRoadList)">
+                项目列表
+              </a>
+            </a-menu-item>
+            <a-menu-divider />
+            <a-menu-item>
+              <a @click="handleRouterClick(PageEnum.BasicInfo)"> 账户信息 </a>
+            </a-menu-item>
+            <a-menu-item>
+              <a @click="handleRouterClick(PageEnum.ResetPwd)"> 修改密码 </a>
+            </a-menu-item>
+            <a-menu-item>
+              <a @click="handleRouterClick(PageEnum.ActivateCode)">
+                激活授权码
+              </a>
             </a-menu-item>
             <a-menu-divider />
             <a-menu-item>

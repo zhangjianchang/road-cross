@@ -12,6 +12,14 @@
       <a-form-item label="授权类型" name="type">
         <a-radio-group v-model:value="param.type" :options="typeOptions" />
       </a-form-item>
+      <a-form-item label="购买时长" name="duration" v-if="param.type === '3'">
+        <a-select
+          v-model:value="param.duration"
+          :options="durationOptions"
+          placeholder="请输入购买时长"
+          class="pwd-input"
+        />
+      </a-form-item>
       <a-form-item label="授权账号" name="memberName">
         <a-input
           placeholder="输入购买授权码会员的登录账号"
@@ -49,7 +57,6 @@ import { defineComponent, reactive, ref, toRefs } from "vue";
 import { settingStates } from "..";
 import { generateCode } from "../../../../request/api";
 import { scrollX } from "../../../../utils/common";
-import { openNotfication } from "../../../../utils/message";
 
 export default defineComponent({
   components: {},
@@ -60,18 +67,35 @@ export default defineComponent({
       typeOptions: [
         { label: "月卡", value: "1" },
         { label: "年卡", value: "2" },
+        { label: "自定义购买时长", value: "3" },
+      ],
+      durationOptions: [
+        { label: "2个月", value: 2 },
+        { label: "3个月", value: 3 },
+        { label: "4个月", value: 4 },
+        { label: "5个月", value: 5 },
+        { label: "6个月", value: 6 },
+        { label: "7个月", value: 7 },
+        { label: "8个月", value: 8 },
+        { label: "9个月", value: 9 },
+        { label: "10个月", value: 10 },
+        { label: "11个月", value: 11 },
       ],
       param: {
         memberName: "", //购买用户的登录账号
         type: "1", //授权码类型
+        duration: undefined, //自定义时长
       },
       data: {} as any,
       rules: {
         type: [{ required: true, message: "请选择类型", trigger: "change" }],
+        duration: [
+          { required: true, message: "请选择购买时长", trigger: "change" },
+        ],
         memberName: [
           {
             required: true,
-            message: "请输入购买授权码会员的登录账号",
+            message: "请输入购买授权码用户的登录账号",
             trigger: "blur",
           },
         ],

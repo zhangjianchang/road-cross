@@ -66,8 +66,18 @@ const routes = [
     component: UserCenter,
   },
   {
-    path: "/settings",
-    name: PageEnum.Settings,
+    path: "/settings/basicInfo",
+    name: PageEnum.BasicInfo,
+    component: Settings,
+  },
+  {
+    path: "/settings/resetPwd",
+    name: PageEnum.ResetPwd,
+    component: Settings,
+  },
+  {
+    path: "/settings/activateCode",
+    name: PageEnum.ActivateCode,
     component: Settings,
   },
   {

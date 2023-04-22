@@ -8,10 +8,19 @@
           :label-col="{ span: 24 }"
           :wrapper-col="{ span: 24 }"
           autocomplete="off"
+          :model="formState"
+          :rules="rules"
         >
-          <a-form-item label="用户名" name="username" class="login-item">
+          <a-form-item label="邮箱" name="eMail" class="login-item">
             <a-input
-              v-model:value="formState.username"
+              v-model:value="formState.eMail"
+              placeholder="请输入邮箱（接收授权码）"
+              class="login-input"
+            />
+          </a-form-item>
+          <a-form-item label="用户名" name="userName" class="login-item">
+            <a-input
+              v-model:value="formState.userName"
               placeholder="请输入用户名"
               class="login-input"
             />
@@ -23,10 +32,24 @@
               class="login-input"
             />
           </a-form-item>
-          <a-form-item label="确认密码" name="password" class="login-item">
+          <a-form-item label="确认密码" name="rePassword" class="login-item">
             <a-input-password
               placeholder="请再次输入密码"
               v-model:value="formState.rePassword"
+              class="login-input"
+            />
+          </a-form-item>
+          <a-form-item label="昵称" name="chineseName" class="login-item">
+            <a-input
+              v-model:value="formState.chineseName"
+              placeholder="请输入昵称（选填）"
+              class="login-input"
+            />
+          </a-form-item>
+          <a-form-item label="联系电话" name="telPhone" class="login-item">
+            <a-input
+              v-model:value="formState.telPhone"
+              placeholder="请输入联系电话（选填）"
               class="login-input"
             />
           </a-form-item>
@@ -57,9 +80,19 @@ import { openNotfication } from "../../utils/message";
 export default defineComponent({
   setup() {
     const formState = reactive({
-      username: "",
+      userName: "",
       password: "",
       rePassword: "",
+      chineseName: "",
+      eMail: "",
+      telPhone: "",
+    });
+
+    const rules = reactive({
+      eMail: [{ required: true, message: "必填", trigger: "blur" }],
+      userName: [{ required: true, message: "必填", trigger: "blur" }],
+      password: [{ required: true, message: "必填", trigger: "blur" }],
+      rePassword: [{ required: true, message: "必填", trigger: "blur" }],
     });
 
     const handleSignIn = () => {
@@ -76,6 +109,7 @@ export default defineComponent({
 
     return {
       formState,
+      rules,
       handleSignIn,
       gotoLogIn,
     };

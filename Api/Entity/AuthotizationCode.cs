@@ -5,9 +5,13 @@
         public string ID { get; set; }
         public string Code { get; set; }
         /// <summary>
-        /// 类型：1月卡2年卡3企业会员
+        /// 类型：1月卡2年卡3自定义时长4企业会员
         /// </summary>
         public string Type { get; set; }
+        /// <summary>
+        /// 当Type=3时，自定义时长的值
+        /// </summary>
+        public decimal Duration { get; set; }
         public string TypeName => GetNameByType(Type);
         public string MemberName { get; set; }
         public decimal ValidDate { get; set; }
@@ -45,6 +49,8 @@
             {
                 "1" => "月卡",
                 "2" => "年卡",
+                "3" => "自定义月卡",
+                "4" => "企业年卡",
                 _ => "异常",
             };
         }

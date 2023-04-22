@@ -14,6 +14,12 @@
       <a-form-item label="账号类型">
         {{ userInfo.roleName }}
       </a-form-item>
+      <a-form-item label="联系邮箱">
+        {{ userInfo.eMail }}
+      </a-form-item>
+      <a-form-item label="联系电话">
+        {{ userInfo.telPhone }}
+      </a-form-item>
     </a-form>
   </div>
 </template>

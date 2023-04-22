@@ -12,7 +12,7 @@
           <a-form-item label="用户名" name="username" class="login-item">
             <a-input
               v-model:value="formState.username"
-              placeholder="请输入用户名"
+              placeholder="请输入用户名或邮箱"
               class="login-input"
             />
           </a-form-item>

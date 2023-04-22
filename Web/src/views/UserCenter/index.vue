@@ -47,7 +47,7 @@ export default defineComponent({
     }
 
     const handleSetting = () => {
-      goRouterByParam(PageEnum.Settings);
+      goRouterByParam(PageEnum.BasicInfo);
     };
 
     const handleMyList = () => {

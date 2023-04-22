@@ -9,6 +9,9 @@ export enum PageEnum {
   Login = "Login",
   SignIn = "SignIn",
   UserCenter = "UserCenter",
-  Settings = "Settings",
+  // Settings = "Settings",
+  BasicInfo = "BasicInfo",
+  ResetPwd = "ResetPwd",
+  ActivateCode = "ActivateCode",
   Map = "Map",
 }

@@ -719,6 +719,8 @@ export default defineComponent({
     //计算数据
     const initPlansData = () => {
       states.reportData.length = 0;
+      states.analysisOption.yAxis[0].max = 1.5;
+      states.analysisOption.yAxis[0].interval = 0.25;
       plans.saturationAnalysis.forEach((a) => {
         var rf =
           plans.canalize_plans[a.canalize_plan].flow_plans[a.flow_plan]

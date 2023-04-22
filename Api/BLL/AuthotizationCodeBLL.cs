@@ -23,18 +23,36 @@ namespace Api.BLL
             string date = DateTime.Now.ToString("G");
             string code = GenerateMD5Code(request.MemberName, date);
 
-            request.ValidDate = request.Type == "1" ? 31 : request.Type == "2" ? 366 : 0;
-            request.RemainingDays = request.ValidDate;
-            request.UsageTimes = request.Type == "1" ? 60 : request.Type == "2" ? 799 : 0;
+            if (request.Type == "1")
+            {
+                request.ValidDate = 31;
+                request.UsageTimes = 60;
+            }
+            else if (request.Type == "2")
+            {
+                request.ValidDate = 366;
+                request.UsageTimes = 799;
+            }
+            else if (request.Type == "3")
+            {
+                request.ValidDate = request.Duration * 31;
+                request.UsageTimes = request.Duration * 31 * 2;
+            }
+            else
+            {
+                request.ValidDate = 0;
+                request.UsageTimes = 0;
+            }
             request.RemainingTimes = request.UsageTimes;
 
             JabMySqlHelper.ExecuteNonQuery(Config.DBConnection,
                                 @$"INSERT INTO `main`.`authorization_code` 
-                                            (`Code`, `Type`, `MemberName`, `ValidDate`, `UsageTimes`, `UsedTimes`, `RemainingTimes`, `RemainingDays`, `Status`, `CreateDate`)
+                                            (`Code`, `Type`, `Duration`, `MemberName`, `ValidDate`, `UsageTimes`, `UsedTimes`, `RemainingTimes`, `RemainingDays`, `Status`, `CreateDate`)
                                        VALUES
-                                            (@Code, @Type, @MemberName, @ValidDate, @UsageTimes, @UsedTimes, @RemainingTimes, @RemainingDays, @Status, @CreateDate)",
+                                            (@Code, @Type, @Duration, @MemberName, @ValidDate, @UsageTimes, @UsedTimes, @RemainingTimes, @RemainingDays, @Status, @CreateDate)",
                             new MySqlParameter("@Code", code),
                             new MySqlParameter("@Type", request.Type),
+                            new MySqlParameter("@Duration", request.Duration),
                             new MySqlParameter("@MemberName", request.MemberName),
                             new MySqlParameter("@ValidDate", request.ValidDate),
                             new MySqlParameter("@UsageTimes", request.UsageTimes),
@@ -58,12 +76,14 @@ namespace Api.BLL
 
             string code = GenerateMD5Code(request.MemberName, codeInfo.CreateDate);
             if (code != codeInfo.Code) throw new Exception("授权码无效");
-            request.ExpireDate = codeInfo.Type == "1" ? DateTime.Now.AddDays(31).ToString("G") : codeInfo.Type == "2" ? DateTime.Now.AddDays(366).ToString("G") : "";
+            request.ExpireDate = DateTime.Now.AddDays(Converter.TryToDouble(codeInfo.ValidDate)).ToString("G");
+            request.RemainingDays = DateDiff(DateTime.Now, Convert.ToDateTime(request.ExpireDate));//剩余天数，过期日期-当前时间
 
             JabMySqlHelper.ExecuteNonQuery(Config.DBConnection,
-                                $"UPDATE `main`.`authorization_code` SET `ActiveDate` = now(), `Status` = @Status, `ExpireDate` = @ExpireDate WHERE `Code` = @Code AND `MemberName`=@MemberName",
+                                $"UPDATE `main`.`authorization_code` SET `ActiveDate` = now(), `Status` = @Status, `ExpireDate` = @ExpireDate, `RemainingDays` = @RemainingDays WHERE `Code` = @Code AND `MemberName`=@MemberName",
                             new MySqlParameter("@Status", "200"),
-                            new MySqlParameter("@ExpireDate", request.ExpireDate),
+                            new MySqlParameter("@ExpireDate", request.ExpireDate), 
+                            new MySqlParameter("@RemainingDays", request.RemainingDays), 
                             new MySqlParameter("@Code", request.Code),
                             new MySqlParameter("@MemberName", request.MemberName));
             return true;

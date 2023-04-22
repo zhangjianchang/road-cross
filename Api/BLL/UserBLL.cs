@@ -49,7 +49,11 @@ namespace Api.BLL
             DataTable dt = JabMySqlHelper.ExecuteDataTable(
                 Config.DBConnection,
                 @"SELECT
-                    e.UserName,e.ChineseName,e.WaitSet,
+                    e.UserName,
+                    e.ChineseName,
+                    e.WaitSet,
+                    e.EMail,
+                    e.TelPhone,
                     r.RoleName,
                     r.RoleId
                 FROM user_info e
@@ -64,6 +68,8 @@ namespace Api.BLL
                 {
                     UserName = Converter.TryToString(row["UserName"]),
                     ChineseName = Converter.TryToString(row["ChineseName"]),
+                    TelPhone = Converter.TryToString(row["TelPhone"]),
+                    EMail = Converter.TryToString(row["EMail"]),
                     RoleName = Converter.TryToString(row["RoleName"]),
                     RoleId = Converter.TryToInt32(row["RoleId"]),
                     WaitSet = Converter.TryToInt16(row["WaitSet"]),
