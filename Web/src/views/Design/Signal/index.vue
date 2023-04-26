@@ -718,7 +718,15 @@ export default defineComponent({
           createRect(p, x1, y1, w, h, "green");
           time = pl[p].green;
           if (Number(time) > 0) {
-            createText(x1 + w / 2 - 3, y1 + h / 2 + 3, p, time, "green", true);
+            createText(
+              x1 + w / 2 - 3,
+              y1 + h / 2 + 3,
+              p,
+              time,
+              "green",
+              true,
+              true
+            );
           }
         } else {
           // 搭接相位
@@ -732,7 +740,15 @@ export default defineComponent({
             pl[p - 1].green + pl[p - 1].yellow + pl[p - 1].red;
           time = pl[p].green + prev_p_time;
           if (Number(time) > 0) {
-            createText(x1 + w / 2 - 3, y1 + h / 2 + 3, p, time, "green", true);
+            createText(
+              x1 + w / 2 - 3,
+              y1 + h / 2 + 3,
+              p,
+              time,
+              "green",
+              true,
+              true
+            );
           }
           /**上一相位绿色 */
           /**当前相位绿色 */
@@ -1116,6 +1132,19 @@ export default defineComponent({
       road_info.signal_info.phase_list.map((phaseItem: any) => {
         road_info.signal_info.period +=
           phaseItem.green + phaseItem.yellow + phaseItem.red;
+        phaseItem.directions.forEach((d: any) => {
+          d.forEach((item: any) => {
+            if (item.is_enable) {
+              item.green = phaseItem.green;
+              item.yellow = phaseItem.yellow;
+              item.red = phaseItem.red;
+            } else {
+              item.green = 0;
+              item.yellow = 0;
+              item.red = 0;
+            }
+          });
+        });
       });
       drawScale();
     };
@@ -1302,11 +1331,9 @@ export default defineComponent({
       //夹角过小后移距离
       let offset = getOffset(dw.diff_angle);
       let d = states.far_d - far;
-      console.log("f", d);
       let pt_r11 = cal_point(dw, d, dr, len);
 
       d = states.d + offset;
-      console.log("n", d);
       let pt_r12 = cal_point(dw, d, dr, len);
       //第二条路
       dw = getDW(index2);

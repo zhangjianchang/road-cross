@@ -456,7 +456,6 @@ export default defineComponent({
       road_key: string,
       road_path: string
     ) {
-      console.log(plans.road_attr, index);
       const g = {
         transform: `rotate(${270 - plans.road_attr[index].angle} ${way_pt.x},${
           way_pt.y
