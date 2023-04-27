@@ -36,10 +36,6 @@ a:visited {
 
 /* Navigation */
 #nav {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
   height: 64px;
   line-height: 64px;
   background: #1d185e;

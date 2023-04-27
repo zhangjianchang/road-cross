@@ -3,13 +3,17 @@ import AxiosJsonp from "axios-jsonp-pro";
 import { jsonp } from "vue-jsonp";
 import { openNotfication } from "../utils/message";
 
+//腾讯地图key
 export const mapKey = "TPDBZ-WQI34-FQIU6-F45YP-5PAJO-WMFEU";
-
+//图片路径
+export const basic_config = { img_url: "" };
 // 环境的切换
 if (process.env.NODE_ENV == "development") {
   axios.defaults.baseURL = "https://localhost:44373/api";
+  basic_config.img_url = "../../src/assets/image";
 } else if (process.env.NODE_ENV == "production") {
   axios.defaults.baseURL = "https://diorest.top/api/api";
+  basic_config.img_url = "../../assets/image";
 }
 
 // 请求超时时间

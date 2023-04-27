@@ -15,7 +15,7 @@ export default defineComponent({
 <style scoped lang="less">
 .main {
   margin: 0 auto;
-  margin-top: 100px;
+  margin-top: 36px;
   width: 1395px;
   background-color: #f8f8f8;
   min-height: 830px;

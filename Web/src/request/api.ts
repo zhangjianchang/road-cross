@@ -51,3 +51,10 @@ export const getCodeInfosByUser = () =>
 export const searchMap = (params: any) =>
   get_jsonp("https://apis.map.qq.com/ws/place/v1/search", params);
 /*********************腾讯地图接口 *****************/
+
+/*********************建议与意见*****************/
+export const suggestion = (params: any) => post("/user/suggestion", params);
+export const getSuggestionList = (params: any) =>
+  post("/user/getSuggestionList", params);
+export const answer = (params: any) => post("/user/answer", params);
+/*********************建议与意见*****************/

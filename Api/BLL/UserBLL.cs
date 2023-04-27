@@ -186,5 +186,54 @@ namespace Api.BLL
                 new MySqlParameter("@RoleID", roleId));
             return true;
         }
+
+        public static bool SubmitSuggestion(SuggestionRequest request)
+        {
+            JabMySqlHelper.ExecuteNonQuery(Config.DBConnection,
+                    $"INSERT INTO user_suggestion (UserName,Suggestion,Status,CreateDate) VALUES (@UserName,@Suggestion,@Status,now());",
+                new MySqlParameter("@UserName", request.UserName),
+                new MySqlParameter("@Suggestion", request.Suggestion),
+                new MySqlParameter("@Status", "100"));
+            return true;
+        }
+
+        internal static bool UpdateSuggestion(SuggestionRequest request)
+        {
+            JabMySqlHelper.ExecuteNonQuery(Config.DBConnection,
+                    "Update user_suggestion set Answer=@Answer,Status=@Status,AnswerDate=now() where ID=@ID;",
+                new MySqlParameter("@Answer", request.Answer),
+                new MySqlParameter("@Status", request.Status),
+                new MySqlParameter("@ID", request.ID));
+            return true;
+        }
+
+        public static List<SuggestionRequest> GetSuggestionLIst(SuggestionRequest request)
+        {
+            string where = "";
+            if (!string.IsNullOrEmpty(request.Status))
+            {
+                where = " where status = " + request.Status;
+            }
+            DataTable dt = JabMySqlHelper.ExecuteDataTable(Config.DBConnection, string.Format("select * from user_suggestion {0}  order by CreateDate desc", where));
+            List<SuggestionRequest> designs = new();
+            if (dt != null && dt.Rows.Count > 0)
+            {
+                foreach (DataRow row in dt.Rows)
+                {
+                    SuggestionRequest design = new SuggestionRequest()
+                    {
+                        ID = Converter.TryToInt32(row["ID"]),
+                        UserName = row["UserName"].ToString(),
+                        Suggestion = row["Suggestion"].ToString(),
+                        Status = row["Status"].ToString(),
+                        CreateDate = Converter.TryToDateTime(row["CreateDate"]).ToString("yyyy-MM-dd"),
+                        Answer = row["Answer"].ToString(),
+                        AnswerDate = Converter.TryToDateTime(row["AnswerDate"]).ToString("yyyy-MM-d"),
+                    };
+                    designs.Add(design);
+                }
+            }
+            return designs;
+        }
     }
 }

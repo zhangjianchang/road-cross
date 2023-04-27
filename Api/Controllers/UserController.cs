@@ -75,5 +75,48 @@ namespace Api.Controllers
             bool re = UserBLL.DeleteUser(userName);
             return re ? MyResult.OK() : MyResult.Error();
         }
+
+        [HttpPost("suggestion")]
+        public MyResult SubmitSuggestion([FromBody] SuggestionRequest request)
+        {
+            try
+            {
+                request.UserName = Request.Headers["userName"];
+                var res = UserBLL.SubmitSuggestion(request);
+                return MyResult.OK(res);
+            }
+            catch (Exception ex)
+            {
+                return MyResult.Error(ex.Message);
+            }
+        }
+
+        [HttpPost("getSuggestionList")]
+        public MyResult GetSuggestionList([FromBody] SuggestionRequest request)
+        {
+            try
+            {
+                var res = UserBLL.GetSuggestionLIst(request);
+                return MyResult.OK(res);
+            }
+            catch (Exception ex)
+            {
+                return MyResult.Error(ex.Message);
+            }
+        }
+
+        [HttpPost("answer")]
+        public MyResult AnswerSuggestion([FromBody] SuggestionRequest request)
+        {
+            try
+            {
+                var res = UserBLL.UpdateSuggestion(request);
+                return MyResult.OK(res);
+            }
+            catch (Exception ex)
+            {
+                return MyResult.Error(ex.Message);
+            }
+        }
     }
 }
