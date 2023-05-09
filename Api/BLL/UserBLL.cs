@@ -219,7 +219,7 @@ namespace Api.BLL
                 where = " where status = " + request.Status;
             }
             DataTable dt = JabMySqlHelper.ExecuteDataTable(Config.DBConnection, string.Format("select * from user_suggestion {0}  order by CreateDate desc", where));
-            List<SuggestionRequest> designs = new();
+            List<SuggestionRequest> designs = new List<SuggestionRequest>();
             if (dt != null && dt.Rows.Count > 0)
             {
                 foreach (DataRow row in dt.Rows)
