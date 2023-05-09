@@ -273,13 +273,32 @@
             <div v-if="signal_info.phase_list.length > 0">
               <a-form :label-col="labelMCol" :wrapper-col="wrapperMCol">
                 <a-form-item
+                  label="相位选择"
+                  style="margin-bottom: 10px !important"
+                >
+                  <a-select
+                    v-model:value="currentPhase"
+                    size="small"
+                    class="large-form-width"
+                    @change="onDirectionChange"
+                  >
+                    <a-select-option
+                      v-for="(item, index) in signal_info.phase_list"
+                      :key="item.name"
+                      :value="index"
+                    >
+                      {{ item.name }}
+                    </a-select-option>
+                  </a-select>
+                </a-form-item>
+                <a-form-item
                   label="进口方向"
                   style="margin-bottom: 10px !important"
                 >
                   <a-select
                     v-model:value="currentDirection"
                     size="small"
-                    class="form-width"
+                    class="large-form-width"
                     @change="onDirectionChange"
                   >
                     <a-select-option

@@ -153,8 +153,8 @@ export const RoadCross = {
     extend_num: 0, // 展宽数量
     extend_len: 30, // 展宽段长
     extend_width: 3, // 展宽车道宽度
-    in_curv: 12, // 内侧渐变段长
-    out_curv: 6, // 外侧渐变段长
+    in_curv: 5, // 内侧渐变段长
+    out_curv: 5, // 外侧渐变段长
     offset: 0, // 内侧偏移
     bike_lane: {
       // 非机动车道
@@ -171,8 +171,8 @@ export const RoadCross = {
     extend_num: 0, // 展宽数量
     extend_len: 30, // 展宽段长
     extend_width: 3, // 展宽车道宽度
-    in_curv: 12, // 内侧渐变段长
-    out_curv: 6, // 外侧渐变段长
+    in_curv: 5, // 内侧渐变段长
+    out_curv: 5, // 外侧渐变段长
     bike_lane: {
       // 非机动车道
       has: 0, // 有否1/0

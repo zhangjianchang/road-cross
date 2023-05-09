@@ -2,10 +2,10 @@
   <div class="content">
     <h3>官方QQ群</h3>
     <div class="label">官方交流QQ群：1111111</div>
+    <h3>微信</h3>
+    <div class="label">二维码</div>
     <h3>邮箱</h3>
     <div class="label">对应用有任何意见或者建议欢迎发送至邮箱：xxx@xxx.com</div>
-    <h3>企业账号授权</h3>
-    <div class="label">企业账号授权请联系：13333332222</div>
     <h3>意见与建议</h3>
     <div class="label">
       <a-textarea

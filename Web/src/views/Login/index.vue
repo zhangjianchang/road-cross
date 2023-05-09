@@ -73,7 +73,7 @@ export default defineComponent({
           getCodeInfo().then((res: any) => {
             userStates.code_info = res.data;
           });
-          goRouterByParam(PageEnum.UserCenter);
+          goRouterByParam(PageEnum.Design);
         } else {
           notification["error"]({
             message: "错误提醒",

@@ -35,18 +35,15 @@
       <!-- <router-link to="/contact">创建账号</router-link> -->
     </div>
     <div v-else>
+      <router-link @click="handleRouterClick(PageEnum.DesignRoadList)" to="/designRoadList">
+        项目列表
+      </router-link>
       <a-dropdown placement="bottomLeft" size="large">
         <a class="ant-dropdown-link" @click.prevent>
           {{ user_info.eMail }}
         </a>
         <template #overlay>
           <a-menu style="width: 150px">
-            <a-menu-item>
-              <a @click="handleRouterClick(PageEnum.DesignRoadList)">
-                项目列表
-              </a>
-            </a-menu-item>
-            <a-menu-divider />
             <a-menu-item>
               <a @click="handleRouterClick(PageEnum.BasicInfo)"> 账户信息 </a>
             </a-menu-item>

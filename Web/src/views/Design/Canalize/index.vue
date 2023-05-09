@@ -148,7 +148,7 @@
                 </a-form-item> -->
                   </a-col>
                   <a-col :span="12">
-                    <a-form-item label="人行道">
+                    <a-form-item label="人行横道">
                       <a-select
                         v-model:value="canalize_info[cur_road_dir].walk.has"
                         @change="on_prop_change"
@@ -433,36 +433,46 @@
                       <div class="span-unit">米</div>
                     </a-form-item>
                   </a-col>
-                  <!-- <a-col :span="12">
-                <a-form-item label="外侧渐变段长">
-                  <a-input-number
-                    v-model:value="canalize_info[cur_road_dir].enter.out_curv"
-                    @change="on_prop_change"
-                    :disabled="!canalize_info[cur_road_dir].enter.num"
-                    :min="0"
-                    :max="50"
-                    :step="1"
-                    size="small"
-                    class="form-width"
-                  />
-                  <div class="span-unit">米</div>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="内侧渐变段长">
-                  <a-input-number
-                    v-model:value="canalize_info[cur_road_dir].enter.in_curv"
-                    @change="on_prop_change"
-                    :disabled="!canalize_info[cur_road_dir].enter.num"
-                    :min="0"
-                    :max="50"
-                    :step="1"
-                    size="small"
-                    class="form-width"
-                  />
-                  <div class="span-unit">米</div>
-                </a-form-item>
-              </a-col> -->
+                  <a-col :span="12">
+                    <a-form-item label="外侧渐变段长">
+                      <a-input-number
+                        v-model:value="
+                          canalize_info[cur_road_dir].enter.out_curv
+                        "
+                        @change="on_prop_change"
+                        :disabled="
+                          !canalize_info[cur_road_dir].enter.num ||
+                          !canalize_info[cur_road_dir].enter.extend_num
+                        "
+                        :min="5"
+                        :max="15"
+                        :step="1"
+                        size="small"
+                        class="form-width"
+                      />
+                      <div class="span-unit">米</div>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="内侧渐变段长">
+                      <a-input-number
+                        v-model:value="
+                          canalize_info[cur_road_dir].enter.in_curv
+                        "
+                        @change="on_prop_change"
+                        :disabled="
+                          !canalize_info[cur_road_dir].enter.num ||
+                          !canalize_info[cur_road_dir].enter.offset
+                        "
+                        :min="5"
+                        :max="15"
+                        :step="1"
+                        size="small"
+                        class="form-width"
+                      />
+                      <div class="span-unit">米</div>
+                    </a-form-item>
+                  </a-col>
                 </a-row>
               </a-form>
             </div>
@@ -559,21 +569,26 @@
                       <div class="span-unit">米</div>
                     </a-form-item>
                   </a-col>
-                  <!-- <a-col :span="12">
-                <a-form-item label="渐变段长">
-                  <a-input-number
-                    v-model:value="canalize_info[cur_road_dir].exit.out_curv"
-                    @change="on_prop_change"
-                    :disabled="!canalize_info[cur_road_dir].exit.num"
-                    :min="0"
-                    :max="50"
-                    :step="1"
-                    size="small"
-                    class="form-width"
-                  />
-                  <div class="span-unit">米</div>
-                </a-form-item>
-              </a-col> -->
+                  <a-col :span="12">
+                    <a-form-item label="渐变段长">
+                      <a-input-number
+                        v-model:value="
+                          canalize_info[cur_road_dir].exit.out_curv
+                        "
+                        @change="on_prop_change"
+                        :disabled="
+                          !canalize_info[cur_road_dir].exit.num ||
+                          !canalize_info[cur_road_dir].exit.extend_num
+                        "
+                        :min="5"
+                        :max="15"
+                        :step="1"
+                        size="small"
+                        class="form-width"
+                      />
+                      <div class="span-unit">米</div>
+                    </a-form-item>
+                  </a-col>
                 </a-row>
               </a-form>
             </div>
@@ -930,8 +945,8 @@ export default defineComponent({
           dw.ratio;
         var len2 =
           (rc.enter.num * rc.enter.lane_width +
-            rc.enter.bike_lane.has * rc.enter.bike_lane.width +
-            rc.median_strip.width) *
+            rc.median_strip.width +
+            rc.enter.bike_lane.has * rc.enter.bike_lane.width) *
           dw.ratio; // 不带margin
         d = (rc.cross_len_new - rc.walk.zebra_len) * dw.ratio;
         pt = cal_point(dw, d, dr, len);
@@ -951,7 +966,7 @@ export default defineComponent({
         pt = cal_point(dw, d, dr, len2);
         sd2.ext1 = pt;
         d =
-          (rc.cross_len_new + rc.enter.extend_len + rc.enter.in_curv) *
+          (rc.cross_len_new + rc.enter.extend_len + rc.enter.out_curv) * //外侧偏移
           dw.ratio;
         len =
           (rc.enter.num * rc.enter.lane_width -
@@ -1005,7 +1020,7 @@ export default defineComponent({
 
         // 展宽
         d =
-          (rc.cross_len_new + rc.exit.extend_len + rc.exit.in_curv) * dw.ratio;
+          (rc.cross_len_new + rc.exit.extend_len + rc.exit.out_curv) * dw.ratio;
         pt = cal_point(dw, d, dr, len);
         sd.ext2 = pt;
         pt = cal_point(dw, d, dr, len2);
