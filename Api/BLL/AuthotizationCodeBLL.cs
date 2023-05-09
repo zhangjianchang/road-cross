@@ -133,7 +133,7 @@ namespace Api.BLL
         /// <returns></returns>
         public static List<AuthotizationCode> GetCodeInfosByUser(string memberName)
         {
-            List<AuthotizationCode> codes = new List<AuthotizationCode>();
+            List<AuthotizationCode> codes = new();
             DataTable dt = JabMySqlHelper.ExecuteDataTable(Config.DBConnection,
                                 $"SELECT * FROM `main`.`authorization_code` WHERE `MemberName`=@MemberName AND status<>'100'",
                             new MySqlParameter("@MemberName", memberName));
@@ -141,7 +141,7 @@ namespace Api.BLL
             {
                 foreach (DataRow row in dt.Rows)
                 {
-                    AuthotizationCode code = new AuthotizationCode()
+                    AuthotizationCode code = new()
                     {
                         ID = row["ID"].ToString(),
                         Type = row["Type"].ToString(),
@@ -177,7 +177,7 @@ namespace Api.BLL
             if (dt != null && dt.Rows.Count > 0)
             {
                 var row = dt.Rows[0];
-                AuthotizationCode code = new AuthotizationCode()
+                AuthotizationCode code = new()
                 {
                     ID = row["ID"].ToString(),
                     Type = row["Type"].ToString(),

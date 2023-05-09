@@ -61,7 +61,7 @@ namespace Api.BLL
         /// <returns></returns>
         public static Design GetByGuid(SaveRequest request)
         {
-            Design design = new Design();
+            Design design = new();
             DataTable dt = JabMySqlHelper.ExecuteDataTable(Config.DBConnection, "select * from design where GUID =@GUID AND IsDeleted<>1", new MySqlParameter("@GUID", request.Guid));
             if (dt != null && dt.Rows.Count > 0)
             {
@@ -83,7 +83,7 @@ namespace Api.BLL
         /// <returns></returns>
         public static List<Design> GetLIstByUser(string userName)
         {
-            List<Design> designs = new List<Design>();
+            List<Design> designs = new();
             DataTable dt = JabMySqlHelper.ExecuteDataTable(Config.DBConnection, "select * from design where CreateUser =@UserName AND IsDeleted<>1  order by CreateDate desc", new MySqlParameter("@UserName", userName));
             if (dt != null && dt.Rows.Count > 0)
             {
