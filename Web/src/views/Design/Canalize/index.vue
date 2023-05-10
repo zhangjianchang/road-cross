@@ -1787,7 +1787,6 @@ export default defineComponent({
           d = rc.cross_len_new * dw.ratio;
           dr = -Math.PI * 0.5;
           pt = cal_point(dw, d, dr, len);
-          drawPoint(pt.x, pt.y, "red");
           create_road_sign(pt, i, -1, bicycle_path, false, false, true);
         }
 
