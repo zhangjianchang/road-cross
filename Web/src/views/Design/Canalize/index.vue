@@ -721,8 +721,8 @@
                         :disabled="
                           !canalize_info[cur_road_dir].enter.bike_lane.has
                         "
-                        :min="1"
-                        :max="4"
+                        :min="2"
+                        :max="5.5"
                         :step="0.25"
                         size="small"
                         class="form-width"
@@ -740,8 +740,8 @@
                         :disabled="
                           !canalize_info[cur_road_dir].exit.bike_lane.has
                         "
-                        :min="1"
-                        :max="4"
+                        :min="2"
+                        :max="5.5"
                         :step="0.25"
                         size="small"
                         class="form-width"
@@ -846,6 +846,7 @@ import {
   getCrossLenByPrevCanalize,
   getEnterPointByCanalize_GT,
   getExitPointByCanalize_GT,
+  bicycle_path,
 } from "./index";
 import Container from "../../../components/Container/index.vue";
 import { DragOutlined } from "@ant-design/icons-vue";
@@ -1753,9 +1754,11 @@ export default defineComponent({
           setIsolationStyle(bkdiv, rc.enter.bike_lane.div_type);
           bkdiv.setAttribute("deleteTag", "1");
           states.cvs?.appendChild(bkdiv);
+          //绘制自行车图标
+          create_road_sign(bk_div.walk2, i, -1, bicycle_path, false, false);
         }
 
-        // 出口口非机动车道
+        // 出口非机动车道
         if (rc.exit.bike_lane.has == 1) {
           bk_div = dw.exit_bike_div;
           pt = bk_div.walk2;
@@ -1774,6 +1777,18 @@ export default defineComponent({
           setIsolationStyle(bkdiv, rc.exit.bike_lane.div_type);
           bkdiv.setAttribute("deleteTag", "1");
           states.cvs?.appendChild(bkdiv);
+          //绘制自行车图标
+          //增加偏移系数k
+          const k = (rc.exit.num + 1) * 1.05;
+          //增加偏移系数k2，调整路宽时调整路标位置
+          const k2 = -(rc.exit.lane_width - 4) * 0.8;
+          len =
+            (rc.median_strip.width + rc.exit.lane_width * k + k2) * dw.ratio;
+          d = rc.cross_len_new * dw.ratio;
+          dr = -Math.PI * 0.5;
+          pt = cal_point(dw, d, dr, len);
+          drawPoint(pt.x, pt.y, "red");
+          create_road_sign(pt, i, -1, bicycle_path, false, false, true);
         }
 
         // 入口路标
