@@ -279,7 +279,7 @@
                   <a-select
                     v-model:value="currentPhase"
                     size="small"
-                    class="large-form-width"
+                    class="large-form-width1"
                     @change="onDirectionChange"
                   >
                     <a-select-option
@@ -298,7 +298,7 @@
                   <a-select
                     v-model:value="currentDirection"
                     size="small"
-                    class="large-form-width"
+                    class="large-form-width1"
                     @change="onDirectionChange"
                   >
                     <a-select-option
@@ -471,6 +471,78 @@
               </a-form>
             </div>
           </a-collapse-panel>
+          <a-collapse-panel key="4" header="自动配时" v-show="false">
+            <div>
+              <a-form :label-col="labelCol" :wrapper-col="wrapperCol">
+                <a-row>
+                  <a-col :span="12">
+                    <a-form-item label="设计目标VC">
+                      <a-input-number
+                        v-model:value="automaticTiming.VC"
+                        size="small"
+                        class="large-form-width1"
+                      />
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="设计周期">
+                      <a-input-number
+                        v-model:value="automaticTiming.period"
+                        size="small"
+                        class="large-form-width1"
+                        :disabled="true"
+                      />
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="设计PHF">
+                      <a-input-number
+                        v-model:value="automaticTiming.PHF"
+                        size="small"
+                        class="large-form-width1"
+                      />
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="启动损失">
+                      <a-input-number
+                        v-model:value="automaticTiming.startup_loss"
+                        size="small"
+                        class="large-form-width1"
+                      />
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="24">
+                    <a-form-item label="Y值" :label-col="{ span: 5 }">
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="24">
+                    <div style="width: 100%; text-align: center">
+                      <a-button size="small" @click="handleCreatePlan">
+                        生成方案
+                      </a-button>
+                      <a-button
+                        type="primary"
+                        size="small"
+                        class="ml-5"
+                        @click="handleCalculateY"
+                      >
+                        计算Y值
+                      </a-button>
+                      <a-button
+                        type="primary"
+                        size="small"
+                        class="ml-5"
+                        @click="handleAutoTiming"
+                      >
+                        自动配时
+                      </a-button>
+                    </div>
+                  </a-col>
+                </a-row>
+              </a-form>
+            </div>
+          </a-collapse-panel>
         </a-collapse>
       </div>
     </div>
@@ -514,7 +586,14 @@ import { defineComponent, onMounted, reactive, toRefs } from "vue";
 import Container from "../../../components/Container/index.vue";
 import { DragOutlined } from "@ant-design/icons-vue";
 import { cal_point, insect_pt } from "../../../utils/common";
-import { signalColor, getStartX, phaseColumns, getArrowId, getColor } from ".";
+import {
+  signalColor,
+  getStartX,
+  phaseColumns,
+  getArrowId,
+  getColor,
+  automaticTiming,
+} from ".";
 import _ from "lodash";
 import { road_model } from "../data";
 import {
@@ -558,7 +637,7 @@ export default defineComponent({
       currentTimeType: "", //当前修改时间类型（green/yellow/red）
       currentTimeTypeName: "", //当前修改时间类型（绿灯/黄灯/红灯）
       currentDirection: 0, //当前选中方向（相位的子集）
-      activeKey: ["1", "2", "3"], //默认展开全部面板
+      activeKey: ["1", "2", "3", "4"], //默认展开全部面板
       visible: false, //弹出框可见性
       updateTime: "", //修改的时间
     });
@@ -1534,6 +1613,16 @@ export default defineComponent({
       }
     };
 
+    /**自动配时相关 */
+    //生成方案
+    const handleCreatePlan = () => {
+
+    };
+    //计算Y值
+    const handleCalculateY = () => {};
+    //自动配时
+    const handleAutoTiming = () => {};
+    /**自动配时相关 */
     //初始化加载
     onMounted(() => {
       const rf =
@@ -1569,6 +1658,10 @@ export default defineComponent({
       onTimeConfirm,
       onLapChange,
       handleEdit,
+      automaticTiming,
+      handleCreatePlan,
+      handleCalculateY,
+      handleAutoTiming,
     };
   },
 });

@@ -1,3 +1,5 @@
+import { reactive } from "vue";
+
 //默认相位
 export const phaseModel = {
   index: 0,
@@ -20,6 +22,14 @@ export const DirectionItemModel = {
   yellow: 0,
   red: 0,
 };
+
+export const automaticTiming = reactive({
+  VC: 0.9,
+  period: 80,
+  PHF: 0.95,
+  startup_loss: 3,
+});
+
 //渐变属性
 export const signalColor = {
   green: ["#00CC00", "#00FF99"],

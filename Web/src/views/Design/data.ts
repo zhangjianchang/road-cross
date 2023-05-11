@@ -18,7 +18,7 @@ export const road_model = {
   },
 
   signal_info: {
-    phase: 2, //默认2个相位
+    phase: 4, //默认4个相位
     period: 0, //默认周期共80s
     is_show_legend: 0,
     phase_list: [] as any[],

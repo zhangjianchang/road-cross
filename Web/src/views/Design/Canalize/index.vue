@@ -29,13 +29,14 @@
             deleteTag="1"
           ></line>
         </pattern>
-        <!-- 填充护栏样式 -->
+        <!-- 填充白斜线 -->
         <pattern id="slash3" patternUnits="userSpaceOnUse" width="8" height="8">
           <rect
             x="0"
             y="0"
             width="8"
-            fill="rgb(255,255,255)"
+            height="8"
+            fill="rgb(50,205,50)"
             deleteTag="1"
           ></rect>
         </pattern>
@@ -1334,11 +1335,13 @@ export default defineComponent({
         var dr = Math.PI * 0.5;
         //右侧起始点
         var pt_s1 = cal_point(dw, d, dr, len);
+        var pt_s1_center = cal_point(dw, d, dr, 0);
         var ewkb_pt = { x: pt_s1.x, y: pt_s1.y }; // 进口人行道横白条靠近隔离带的点：enter walk bar point
         d_str = "M" + pt_s1.x + "," + pt_s1.y + " ";
         //第一偏移点
         d = (rc.cross_len_new + rc.enter.extend_len) * dw.ratio;
         var pt1 = cal_point(dw, d, dr, len);
+        var pt1_center = cal_point(dw, d, dr, 0);
         d_str += "L" + pt1.x + "," + pt1.y + " ";
         var pt12 = { x: 0, y: 0 }; //鱼肚线中间基点
         if (rc.median_strip.type === "鱼肚线") {
@@ -1356,6 +1359,7 @@ export default defineComponent({
           dw.ratio;
         var offset = len + road_info.canalize_info[i].enter.offset * dw.ratio;
         var pt2 = cal_point(dw, d, dr, offset);
+        var pt2_center = cal_point(dw, d, dr, offset - len);
         if (rc.median_strip.type === "鱼肚线") {
           d_str += pt2.x + "," + pt2.y + " ";
         } else {
@@ -1364,15 +1368,18 @@ export default defineComponent({
         //结束
         d = rc.length * dw.ratio;
         var pt_e1 = cal_point(dw, d, dr, offset);
+        var pt_e1_center = cal_point(dw, d, dr, offset - len);
         d_str += "L" + pt_e1.x + "," + pt_e1.y + " ";
 
         //双黄线左侧
         d = rc.cross_len_new * dw.ratio;
         var pt_s2 = cal_point(dw, d, -dr, len);
+        var pt_s2_center = cal_point(dw, d, -dr, 0);
         d_str += "M" + pt_s2.x + "," + pt_s2.y + " ";
         //第一偏移点
         d = (rc.cross_len_new + rc.enter.extend_len) * dw.ratio;
         var pt3 = cal_point(dw, d, -dr, len);
+        var pt3_center = cal_point(dw, d, -dr, 0);
         d_str += "L" + pt3.x + "," + pt3.y + " ";
         //第二偏移点
         d =
@@ -1380,13 +1387,15 @@ export default defineComponent({
           dw.ratio;
         var offset = len - road_info.canalize_info[i].enter.offset * dw.ratio;
         var pt4 = cal_point(dw, d, -dr, offset);
+        var pt4_center = cal_point(dw, d, -dr, offset - len);
         d_str += "L" + pt4.x + "," + pt4.y + " ";
         //结束
         d = rc.length * dw.ratio;
         var pt_e2 = cal_point(dw, d, -dr, offset);
+        var pt_e2_center = cal_point(dw, d, -dr, offset - len);
         d_str += "L" + pt_e2.x + "," + pt_e2.y + " ";
 
-        //如果没有入口或出口车道，不绘制隔离带
+        //绘制隔离带，如果没有入口或出口车道，不绘制隔离带
         if (rc.enter.num !== 0 && rc.exit.num !== 0) {
           var sep = document.createElementNS(states.ns, "path"); // 隔离带
           sep.setAttribute("d", d_str);
@@ -1417,9 +1426,22 @@ export default defineComponent({
           }
 
           if (rc.median_strip.type === "护栏") {
+            d_str = `${pt_s1_center.x},${pt_s1_center.y} ${pt1_center.x},${pt1_center.y} ${pt2_center.x},${pt2_center.y} ${pt_e1_center.x},${pt_e1_center.y}`;
+            var slash = document.createElementNS(states.ns, "polyline"); // 护栏
+            slash.setAttribute("points", d_str);
+            slash.setAttribute("id", "护栏");
+            slash.setAttribute("fill", "none");
+            slash.setAttribute("stroke", "rgb(255,255,255)");
+            slash.setAttribute("stroke-dasharray", "2,5,2,5");
+            slash.setAttribute("stroke-width", "2");
+            slash.setAttribute("deleteTag", "1");
+            states.cvs?.appendChild(slash);
+          }
+
+          if (rc.median_strip.type === "绿化带") {
             d_str = `M${pt_s1.x} ${pt_s1.y} L${pt1.x} ${pt1.y} L${pt2.x} ${pt2.y} L${pt_e1.x} ${pt_e1.y}
             L${pt_e2.x} ${pt_e2.y} L${pt4.x} ${pt4.y} L${pt3.x} ${pt3.y} L${pt_s2.x} ${pt_s2.y} Z`;
-            var slash = document.createElementNS(states.ns, "path"); // 黄斜线
+            var slash = document.createElementNS(states.ns, "path"); // 绿化带
             slash.setAttribute("d", d_str);
             slash.setAttribute("fill", "url(#slash3)");
             slash.setAttribute("deleteTag", "1");
