@@ -344,7 +344,8 @@ export function setIsolationStyle(
     div_type === "双黄线" ||
     div_type === "单黄线" ||
     div_type === "鱼肚线" ||
-    div_type === "黄斜线"
+    div_type === "黄斜线" ||
+    div_type === "护栏"
   ) {
     path.setAttribute("stroke", "rgb(255,165,0)");
   } else if (div_type === "划线") {
@@ -352,10 +353,6 @@ export function setIsolationStyle(
   } else if (div_type === "绿化带") {
     path.setAttribute("stroke", "rgb(50,205,50)");
     path.setAttribute("stroke-width", width.toString());
-  } else if (div_type === "护栏") {
-    path.setAttribute("stroke", "rgb(255,255,255)");
-    path.setAttribute("stroke-dasharray", "5,5");
-    path.setAttribute("stroke-width", "4");
   } else {
     path.setAttribute("stroke", "rgb(255,255,255)");
   }

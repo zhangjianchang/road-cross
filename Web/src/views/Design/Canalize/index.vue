@@ -4,41 +4,40 @@
     <div class="func"></div>
     <!-- 图示 -->
     <svg id="canvas">
-      <!-- 填充黄斜线 -->
       <defs>
-        <pattern
-          id="slash"
-          patternTransform="rotate(45)"
-          viewBox="0 0 10 10"
-          width="0.05"
-          height="0.05"
-        >
+        <!-- 填充黄斜线 -->
+        <pattern id="slash" patternUnits="userSpaceOnUse" width="8" height="8">
           <line
             x1="0"
             y1="0"
-            x2="0"
-            y2="10"
+            x2="8"
+            y2="8"
             stroke="rgb(255,165,0)"
-            stroke-width="15"
+            stroke-width="2"
             deleteTag="1"
-          />
+          ></line>
         </pattern>
-        <pattern
-          id="slash2"
-          patternTransform="rotate(45)"
-          viewBox="0 0 10 10"
-          width="0.1"
-          height="0.1"
-        >
+        <!-- 填充白斜线 -->
+        <pattern id="slash2" patternUnits="userSpaceOnUse" width="8" height="8">
           <line
             x1="0"
             y1="0"
-            x2="0"
-            y2="10"
-            stroke="#ffffff"
-            stroke-width="10"
+            x2="8"
+            y2="8"
+            stroke="rgb(255,255,255)"
+            stroke-width="2"
             deleteTag="1"
-          />
+          ></line>
+        </pattern>
+        <!-- 填充护栏样式 -->
+        <pattern id="slash3" patternUnits="userSpaceOnUse" width="8" height="8">
+          <rect
+            x="0"
+            y="0"
+            width="8"
+            fill="rgb(255,255,255)"
+            deleteTag="1"
+          ></rect>
         </pattern>
       </defs>
     </svg>
@@ -1324,7 +1323,7 @@ export default defineComponent({
 
         // 隔离带——判断类别
         var len =
-          (["双黄线", "鱼肚线", "黄斜线", "绿化带"].indexOf(
+          (["双黄线", "鱼肚线", "黄斜线", "绿化带", "护栏"].indexOf(
             rc.median_strip.type
           ) > -1
             ? 1
@@ -1413,6 +1412,16 @@ export default defineComponent({
             var slash = document.createElementNS(states.ns, "path"); // 黄斜线
             slash.setAttribute("d", d_str);
             slash.setAttribute("fill", "url(#slash)");
+            slash.setAttribute("deleteTag", "1");
+            states.cvs?.appendChild(slash);
+          }
+
+          if (rc.median_strip.type === "护栏") {
+            d_str = `M${pt_s1.x} ${pt_s1.y} L${pt1.x} ${pt1.y} L${pt2.x} ${pt2.y} L${pt_e1.x} ${pt_e1.y}
+            L${pt_e2.x} ${pt_e2.y} L${pt4.x} ${pt4.y} L${pt3.x} ${pt3.y} L${pt_s2.x} ${pt_s2.y} Z`;
+            var slash = document.createElementNS(states.ns, "path"); // 黄斜线
+            slash.setAttribute("d", d_str);
+            slash.setAttribute("fill", "url(#slash3)");
             slash.setAttribute("deleteTag", "1");
             states.cvs?.appendChild(slash);
           }
