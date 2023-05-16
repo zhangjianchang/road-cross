@@ -623,9 +623,10 @@ export default defineComponent({
       saveDesign(param)
         .then((res: any) => {
           message.success("保存成功");
-          if (!roadStates.from_map) {
+          if (roadStates.from_map) {
             plan_guid = res.data;
           } else {
+            plan_guid = res.data;
             goRouterByParam(PageEnum.DesignEdit, { guid: res.data });
           }
         })

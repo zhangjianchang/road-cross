@@ -372,7 +372,7 @@ const handleMenuClick = (item: any) => {
     states.is_collapse = true;
     states.currentPlan = undefined;
     states.map.zoom = "20";
-    refDesign.value.loadData(undefined);
+    refDesign.value.loadData(undefined, true);
   }
   states.menuVisible = false;
   states.opacity = 0.1;

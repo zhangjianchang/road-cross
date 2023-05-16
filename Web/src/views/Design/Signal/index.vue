@@ -471,7 +471,7 @@
               </a-form>
             </div>
           </a-collapse-panel>
-          <a-collapse-panel key="4" header="自动配时" v-show="false">
+          <a-collapse-panel key="4" header="自动配时">
             <div>
               <a-form :label-col="labelCol" :wrapper-col="wrapperCol">
                 <a-row>
@@ -490,6 +490,8 @@
                         v-model:value="automaticTiming.period"
                         size="small"
                         class="large-form-width1"
+                        :min="0"
+                        :step="0.1"
                         :disabled="true"
                       />
                     </a-form-item>
@@ -498,6 +500,8 @@
                     <a-form-item label="设计PHF">
                       <a-input-number
                         v-model:value="automaticTiming.PHF"
+                        :min="0"
+                        :step="0.1"
                         size="small"
                         class="large-form-width1"
                       />
@@ -507,6 +511,8 @@
                     <a-form-item label="启动损失">
                       <a-input-number
                         v-model:value="automaticTiming.startup_loss"
+                        :min="0"
+                        :max="10"
                         size="small"
                         class="large-form-width1"
                       />
@@ -514,6 +520,9 @@
                   </a-col>
                   <a-col :span="24">
                     <a-form-item label="Y值" :label-col="{ span: 5 }">
+                      <span style="font-size: 12px">
+                        {{ automaticTiming.Y }}
+                      </span>
                     </a-form-item>
                   </a-col>
                   <a-col :span="24">
@@ -1616,12 +1625,103 @@ export default defineComponent({
     /**自动配时相关 */
     //生成方案
     const handleCreatePlan = () => {
-
+      if (plans.road_count !== 4) {
+        openNotfication("warning", "该功能仅用于生成四路交叉口信号控制方案");
+        return;
+      }
+      let is_enable = false;
+      road_info.signal_info.phase_list.map((p) =>
+        p.directions.map((d: any) =>
+          d.map((di: any) => {
+            if (di.is_enable) {
+              is_enable = true;
+            }
+          })
+        )
+      );
+      if (is_enable) {
+        openNotfication("warning", "已设置信控控制方案，不再自动生成");
+        return;
+      }
+      //将当前相位调整至四个
+      road_info.signal_info.phase = 4;
+      onPhaseChange();
+      //渲染画线
+      for (let i = 0; i < road_info.signal_info.phase_list.length; i++) {
+        const phase_item = road_info.signal_info.phase_list[i];
+        for (let j = 0; j < plans.road_count; j++) {
+          //渠化中如果不存在该方向，则取消用户上次点击的数据
+          const road_signs = [] as string[];
+          //全部基础方向
+          road_info.canalize_info[j].road_sign.enter.map((r: any) => {
+            r.key.split("_").forEach((rs: any) => {
+              road_signs.push(rs);
+            });
+          });
+          road_info.signal_info.phase_list[i].directions[j].map(
+            (d: any, di: number) => {
+              //用户没有勾选的方向不进行渲染
+              if (road_signs.indexOf(d.direction) === -1) {
+                d.is_enable = false;
+                d.green = 0;
+                d.yellow = 0;
+                d.red = 0;
+              } else if (
+                ((i === 0 && (j === 1 || j == 3)) ||
+                  (i === 2 && (j === 0 || j == 2))) &&
+                ["straight", "right"].indexOf(d.direction) > -1
+              ) {
+                //第一相位，放行道路2,4直行/右转,第三相位放行道路1,3直行/右转
+                d.is_enable = true;
+                d.green = phase_item.green;
+                d.yellow = phase_item.yellow;
+                d.red = phase_item.red;
+              } else if (
+                ((i === 1 && (j === 1 || j == 3)) ||
+                  (i === 3 && (j === 0 || j == 2))) &&
+                d.direction === "left"
+              ) {
+                //第二相位，放行道路2,4左转
+                d.is_enable = true;
+                d.green = phase_item.green;
+                d.yellow = phase_item.yellow;
+                d.red = phase_item.red;
+              }
+              states.currentPhase = i;
+              states.currentDirection = di;
+              setDirectionLine();
+            }
+          );
+        }
+      }
+      states.currentPhase = 0;
+      states.currentDirection = 0;
     };
     //计算Y值
-    const handleCalculateY = () => {};
+    const handleCalculateY = () => {
+      let Y = [] as any[];
+      let total_Y = 0;
+      for (let i = 0; i < road_info.signal_info.phase; i++) {
+        let YiMax = 0;
+        road_info.flow_info.flow_detail.map((fd, fdi) => {
+          fd.turn.map((t: any) => {
+            const Vi = t.number;
+            road_info.flow_info.saturation[fdi].map((s: any) => {
+              const Si = s.number;
+              const Yi = (Vi / automaticTiming.PHF / Si).toFixed(3);
+              YiMax = Math.max(YiMax, Number(Yi));
+            });
+          });
+        });
+        Y.push(YiMax);
+        total_Y += YiMax;
+      }
+      automaticTiming.Y = Y.join(" + ") + " = " + total_Y;
+    };
     //自动配时
-    const handleAutoTiming = () => {};
+    const handleAutoTiming = () => {
+      message.info("开发中");
+    };
     /**自动配时相关 */
     //初始化加载
     onMounted(() => {
