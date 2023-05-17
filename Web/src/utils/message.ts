@@ -8,7 +8,7 @@ export const openNotfication = (
   duration = 10
 ) => {
   notification[
-    type === "warning" ? "warning" : type === "error" ? "error" : "success"
+    type === "warning" ? "warning" : type === "error" ? "error" : "info"
   ]({
     message,
     description,

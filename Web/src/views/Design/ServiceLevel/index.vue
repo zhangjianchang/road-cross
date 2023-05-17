@@ -395,9 +395,9 @@ export default defineComponent({
       let yellow = 0;
       rf.signal_info.phase_list.forEach((p: any) => {
         p.directions[roadIndex].forEach((d: any) => {
-          if (road_key.indexOf(d.direction) > -1) {
-            green = green | d.green;
-            yellow = yellow | d.yellow;
+          if (road_key.indexOf(d.direction) > -1 && d.is_enable) {
+            green = green | p.green;
+            yellow = yellow | p.yellow;
           }
         });
       });

@@ -29,6 +29,7 @@ export const automaticTiming = reactive({
   PHF: 0.95,
   startup_loss: 3,
   Y: "",
+  Y_value: 0,
 });
 
 //渐变属性

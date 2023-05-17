@@ -616,7 +616,7 @@ import {
   plans,
   roadStates,
 } from "..";
-import { message } from "ant-design-vue";
+import { message, Modal } from "ant-design-vue";
 import { openNotfication } from "../../../utils/message";
 import { userStates } from "../../UserCenter";
 
@@ -679,9 +679,9 @@ export default defineComponent({
                 (d: any) => {
                   if (road_signs.indexOf(d.direction) === -1 && d.is_enable) {
                     d.is_enable = false;
-                    d.green = 0;
-                    d.yellow = 0;
-                    d.red = 0;
+                    // d.green = 0;
+                    // d.yellow = 0;
+                    // d.red = 0;
                   }
                 }
               );
@@ -690,6 +690,7 @@ export default defineComponent({
           }
           states.currentPhase = 0;
           states.currentDirection = 0;
+          automaticTiming.period = road_info.signal_info.period;
         }, 10);
       }
       initDirections();
@@ -1240,19 +1241,20 @@ export default defineComponent({
         road_info.signal_info.period +=
           phaseItem.green + phaseItem.yellow + phaseItem.red;
         phaseItem.directions.forEach((d: any) => {
-          d.forEach((item: any) => {
-            if (item.is_enable) {
-              item.green = phaseItem.green;
-              item.yellow = phaseItem.yellow;
-              item.red = phaseItem.red;
-            } else {
-              item.green = 0;
-              item.yellow = 0;
-              item.red = 0;
-            }
-          });
+          // d.forEach((item: any) => {
+          //   if (item.is_enable) {
+          //     item.green = phaseItem.green;
+          //     item.yellow = phaseItem.yellow;
+          //     item.red = phaseItem.red;
+          //   } else {
+          //     item.green = 0;
+          //     item.yellow = 0;
+          //     item.red = 0;
+          //   }
+          // });
         });
       });
+      automaticTiming.period = road_info.signal_info.period;
       drawScale();
     };
 
@@ -1352,15 +1354,15 @@ export default defineComponent({
           phase_item.directions[states.currentDirection].map((d: any) => {
             if (item.key.indexOf(d.direction) > -1) {
               d.is_enable = is_enable;
-              if (direction.is_enable) {
-                d.green = phase_item.green;
-                d.yellow = phase_item.yellow;
-                d.red = phase_item.red;
-              } else {
-                d.green = 0;
-                d.yellow = 0;
-                d.red = 0;
-              }
+              // if (direction.is_enable) {
+              //   d.green = phase_item.green;
+              //   d.yellow = phase_item.yellow;
+              //   d.red = phase_item.red;
+              // } else {
+              //   d.green = 0;
+              //   d.yellow = 0;
+              //   d.red = 0;
+              // }
             }
           });
           is_exsit = true;
@@ -1640,15 +1642,37 @@ export default defineComponent({
         )
       );
       if (is_enable) {
-        openNotfication("warning", "已设置信控控制方案，不再自动生成");
-        return;
+        confirmClear();
+      } else {
+        reloadSignalPlan();
       }
+    };
+    const confirmClear = () => {
+      Modal.confirm({
+        title: "温馨提示",
+        content: "已设置信号控制方案，是否确认覆盖原有的方案重新生成",
+        okText: "确认",
+        cancelText: "取消",
+        onOk: clearSignalPlan,
+      });
+    };
+    const clearSignalPlan = () => {
+      road_info.signal_info.phase_list.map((p) => {
+        for (let j = 0; j < plans.road_count; j++) {
+          p.directions[j].map((d: any) => {
+            d.is_enable = false;
+          });
+        }
+      });
+      reloadSignalPlan();
+    };
+    const reloadSignalPlan = () => {
       //将当前相位调整至四个
       road_info.signal_info.phase = 4;
       onPhaseChange();
       //渲染画线
       for (let i = 0; i < road_info.signal_info.phase_list.length; i++) {
-        const phase_item = road_info.signal_info.phase_list[i];
+        // const phase_item = road_info.signal_info.phase_list[i];
         for (let j = 0; j < plans.road_count; j++) {
           //渠化中如果不存在该方向，则取消用户上次点击的数据
           const road_signs = [] as string[];
@@ -1663,9 +1687,9 @@ export default defineComponent({
               //用户没有勾选的方向不进行渲染
               if (road_signs.indexOf(d.direction) === -1) {
                 d.is_enable = false;
-                d.green = 0;
-                d.yellow = 0;
-                d.red = 0;
+                // d.green = 0;
+                // d.yellow = 0;
+                // d.red = 0;
               } else if (
                 ((i === 0 && (j === 1 || j == 3)) ||
                   (i === 2 && (j === 0 || j == 2))) &&
@@ -1673,9 +1697,9 @@ export default defineComponent({
               ) {
                 //第一相位，放行道路2,4直行/右转,第三相位放行道路1,3直行/右转
                 d.is_enable = true;
-                d.green = phase_item.green;
-                d.yellow = phase_item.yellow;
-                d.red = phase_item.red;
+                // d.green = phase_item.green;
+                // d.yellow = phase_item.yellow;
+                // d.red = phase_item.red;
               } else if (
                 ((i === 1 && (j === 1 || j == 3)) ||
                   (i === 3 && (j === 0 || j == 2))) &&
@@ -1683,9 +1707,9 @@ export default defineComponent({
               ) {
                 //第二相位，放行道路2,4左转
                 d.is_enable = true;
-                d.green = phase_item.green;
-                d.yellow = phase_item.yellow;
-                d.red = phase_item.red;
+                // d.green = phase_item.green;
+                // d.yellow = phase_item.yellow;
+                // d.red = phase_item.red;
               }
               states.currentPhase = i;
               states.currentDirection = di;
@@ -1699,8 +1723,8 @@ export default defineComponent({
     };
     //计算Y值
     const handleCalculateY = () => {
-      let Y = [] as any[];
-      let total_Y = 0;
+      const Y = [] as any[];
+      automaticTiming.Y_value = 0;
       for (let i = 0; i < road_info.signal_info.phase; i++) {
         let YiMax = 0;
         road_info.flow_info.flow_detail.map((fd, fdi) => {
@@ -1714,13 +1738,56 @@ export default defineComponent({
           });
         });
         Y.push(YiMax);
-        total_Y += YiMax;
+        automaticTiming.Y_value += YiMax;
       }
-      automaticTiming.Y = Y.join(" + ") + " = " + total_Y;
+      automaticTiming.Y = Y.join(" + ") + " = " + automaticTiming.Y_value;
     };
     //自动配时
     const handleAutoTiming = () => {
-      message.info("开发中");
+      //先计算Y
+      handleCalculateY();
+      //计算L
+      let l_i = 0; //第i相位启动损时
+      let r_i = 0; //第i相位全红时长
+      let r_y_i = 0; //第i相位红灯+黄灯时长
+      road_info.signal_info.phase_list.map((p) => {
+        l_i += automaticTiming.startup_loss;
+        r_i += Number(p.red);
+        r_y_i += Number(p.red) + Number(p.yellow);
+      });
+      const L = l_i + r_i;
+      const Y = automaticTiming.Y_value;
+      const PHF = automaticTiming.PHF;
+      const VC = automaticTiming.VC;
+      let C = Math.ceil(L / (1 - Y / (PHF * VC)));
+      if (C <= 0) {
+        openNotfication(
+          "info",
+          "当Y值≥0.9时，应调整相位设计方案或渠化方案；设计目标VC应大于Y值；目前系统已自动设置周期为180s",
+          "温馨提示",
+          60
+        );
+        C = 180;
+      }
+      if (C > 300) {
+        openNotfication(
+          "info",
+          "当设计周期大于300s时，应调整相位设计方案或渠化方案；目前系统已自动设置周期为180s",
+          "温馨提示",
+          60
+        );
+        C = 180;
+      }
+      automaticTiming.period = C;
+      const C_green = C - r_y_i;
+
+      const Y_array = automaticTiming.Y.split("=")[0].split("+");
+      road_info.signal_info.phase_list.map((p, index) => {
+        p.green = C_green * (Number(Y_array[index]) / Y);
+      });
+
+      //重新计算
+      onItemPeriodBlur();
     };
     /**自动配时相关 */
     //初始化加载

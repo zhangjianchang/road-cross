@@ -6,7 +6,7 @@ import { userStates } from "../UserCenter";
 import { getRoadDefaultSign, RoadCross } from "./Canalize";
 import { DirectionsZh, plans_model } from "./data";
 import { flowColumnsPart, flowDataIndex, lineInfoModel } from "./Flow";
-import { DirectionItemModel, phaseModel } from "./Signal";
+import { DirectionItemModel, automaticTiming, phaseModel } from "./Signal";
 
 export enum MenuListEnum {
   Basic = "Basic", //基础信息
@@ -392,6 +392,7 @@ export function create_signal_info(road_info: any) {
   for (let p = 0; p < road_info.signal_info.phase; p++) {
     insert_phase(road_info, p);
   }
+  automaticTiming.period = road_info.signal_info.period;
 }
 
 export function insert_phase(road_info: any, p: number) {
@@ -474,9 +475,9 @@ export const get_green_yellow = (
     let green = 0;
     let yellow = 0;
     p.directions[roadIndex].forEach((d: any) => {
-      if (roadKey.indexOf(d.direction) > -1) {
-        green = d.green;
-        yellow = yellow | d.yellow;
+      if (roadKey.indexOf(d.direction) > -1 && d.is_enable) {
+        green = p.green;
+        yellow = yellow | p.yellow;
       }
     });
     //多相位相加
