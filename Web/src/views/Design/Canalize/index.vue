@@ -1224,6 +1224,8 @@ export default defineComponent({
       cross.setAttribute("deleteTag", "1");
       states.cvs?.appendChild(cross);
 
+      //记录贯通
+      let through = -1;
       for (let i = 0; i < /*1*/ arr_rc_draw.length; i++) {
         var dw = arr_rc_draw[i];
         var road = document.createElementNS(states.ns, "path"); // 创建路（方向）
@@ -1458,20 +1460,23 @@ export default defineComponent({
         }
 
         // 进口人行道横白条(贯通不需要停止线)
-        if (rc.wait.through !== -1) {
-          if (rc.wait.through_type !== "贯通" && rc.wait.through != i) {
-            pt = ewkb_pt;
-            d_str = "M" + pt.x + "," + pt.y + " ";
-            pt = dw.enter_side2.walk2;
-            d_str += "L" + pt.x + "," + pt.y + " ";
+        through = rc.wait.through_type === "贯通" ? rc.wait.through : through;
+        //先取消全部人行道
+        rc.walk.has = 0;
+        if (rc.wait.through_type !== "贯通" && through != i) {
+          pt = ewkb_pt;
+          d_str = "M" + pt.x + "," + pt.y + " ";
+          pt = dw.enter_side2.walk2;
+          d_str += "L" + pt.x + "," + pt.y + " ";
 
-            var bar = document.createElementNS(states.ns, "path");
-            bar.setAttribute("d", d_str);
-            bar.setAttribute("stroke", "rgb(255,255,255)");
-            bar.setAttribute("stroke-width", "2");
-            bar.setAttribute("deleteTag", "1");
-            states.cvs?.appendChild(bar);
-          }
+          var bar = document.createElementNS(states.ns, "path");
+          bar.setAttribute("d", d_str);
+          bar.setAttribute("stroke", "rgb(255,255,255)");
+          bar.setAttribute("stroke-width", "2");
+          bar.setAttribute("deleteTag", "1");
+          states.cvs?.appendChild(bar);
+          //设置人行道
+          rc.walk.has = 1;
         }
         // 进口车道白线
         for (var j = 1; j < rc.enter.num; j++) {
@@ -2393,15 +2398,6 @@ export default defineComponent({
       const rc = road_info.canalize_info[states.cur_road_dir];
       if (rc.wait.through === -1) {
         rc.wait.through_type = "无";
-        return;
-      } else if (rc.wait.through_type === "贯通") {
-        //取消人行道
-        rc.walk.has = 0;
-        road_info.canalize_info[rc.wait.through].walk.has = 0;
-      } else {
-        //设置人行道
-        rc.walk.has = 1;
-        road_info.canalize_info[rc.wait.through].walk.has = 1;
       }
       if (rc.wait.through === states.cur_road_dir) {
         rc.wait.through = -1;
