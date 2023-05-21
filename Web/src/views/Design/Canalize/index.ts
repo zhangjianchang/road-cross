@@ -97,6 +97,13 @@ export enum roadSignKey {
   left_straight_right = "left_straight_right",
 }
 
+export const throughTypeOption = [
+  { label: "无", value: "无" },
+  { label: "贯通", value: "贯通" },
+  { label: "隔离桩", value: "隔离桩" },
+  { label: "斑马线", value: "斑马线" },
+];
+
 export const canalizeTypeOption = [
   { label: "否", value: "否" },
   { label: "划线渠化", value: "划线渠化" },
@@ -194,8 +201,8 @@ export const RoadCross = {
   wait: {
     left: 0, // 左转待转
     straight: 0, // 直行等待
-    through: "否", // no wait，当>0时，穿越到方向1-n
-    thr_type: "无", // 穿越方式：无，分隔贯通，隔离桩，斑马线
+    through: -1, // no wait，当>0时，穿越到方向1-n
+    through_type: "无", // 穿越方式：无，分隔贯通，隔离桩，斑马线
   },
 
   road_sign: {

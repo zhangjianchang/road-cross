@@ -150,6 +150,14 @@
                   <a-col :span="12">
                     <a-form-item label="人行横道">
                       <a-select
+                        :disabled="
+                          canalize_info[cur_road_dir].wait.through_type ===
+                            '贯通' ||
+                          (canalize_info[cur_road_dir].wait.through !== -1 &&
+                            canalize_info[
+                              canalize_info[cur_road_dir].wait.through
+                            ].wait.through_type === '贯通')
+                        "
                         v-model:value="canalize_info[cur_road_dir].walk.has"
                         @change="on_prop_change"
                         size="small"
@@ -202,42 +210,43 @@
                       </a-select>
                     </a-form-item>
                   </a-col>
-                  <!-- <a-col :span="12">
-                <a-form-item label="穿越到">
-                  <a-select
-                    v-model:value="canalize_info[cur_road_dir].wait.through"
-                    size="small"
-                    class="form-width"
-                  >
-                    <a-select-option value="否">否</a-select-option>
-                    <a-select-option
-                      v-for="(_, index) in road_attr"
-                      :key="index"
-                      :value="index"
-                    >
-                      方向{{ index + 1 }}
-                    </a-select-option>
-                  </a-select>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="穿越方式">
-                  <a-select
-                    v-model:value="canalize_info[cur_road_dir].wait.thr_type"
-                    size="small"
-                    class="form-width"
-                  >
-                    <a-select-option value="无"> 无 </a-select-option>
-                    <a-select-option value="guantong">贯通 </a-select-option>
-                    <a-select-option value="gelizhuang">
-                      隔离桩
-                    </a-select-option>
-                    <a-select-option value="banmaxian">
-                      斑马线
-                    </a-select-option>
-                  </a-select>
-                </a-form-item>
-              </a-col> -->
+                  <a-col :span="12">
+                    <a-form-item label="穿越到">
+                      <a-select
+                        v-model:value="canalize_info[cur_road_dir].wait.through"
+                        size="small"
+                        class="form-width"
+                        @change="on_prop_change"
+                      >
+                        <a-select-option :value="-1" :key="-1">
+                          否
+                        </a-select-option>
+                        <a-select-option
+                          v-for="(_, index) in plans.road_attr"
+                          :key="index"
+                          :value="index"
+                        >
+                          方向{{ index + 1 }}
+                        </a-select-option>
+                      </a-select>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item label="穿越方式">
+                      <a-select
+                        :disabled="
+                          canalize_info[cur_road_dir].wait.through === -1
+                        "
+                        v-model:value="
+                          canalize_info[cur_road_dir].wait.through_type
+                        "
+                        size="small"
+                        class="form-width"
+                        :options="throughTypeOption"
+                        @change="on_prop_change"
+                      />
+                    </a-form-item>
+                  </a-col>
                 </a-row>
               </a-form>
             </div>
@@ -847,6 +856,7 @@ import {
   getEnterPointByCanalize_GT,
   getExitPointByCanalize_GT,
   bicycle_path,
+  throughTypeOption,
 } from "./index";
 import Container from "../../../components/Container/index.vue";
 import { DragOutlined } from "@ant-design/icons-vue";
@@ -1162,7 +1172,7 @@ export default defineComponent({
 
       // cross的背景
       var d_str = "";
-      for (var i = 0; i < arr_rc_draw.length; i++) {
+      for (let i = 0; i < arr_rc_draw.length; i++) {
         var rc1 = road_info.canalize_info[i];
         var dw1 = arr_rc_draw[i];
         var sd = dw1.exit_side;
@@ -1214,7 +1224,7 @@ export default defineComponent({
       cross.setAttribute("deleteTag", "1");
       states.cvs?.appendChild(cross);
 
-      for (var i = 0; i < /*1*/ arr_rc_draw.length; i++) {
+      for (let i = 0; i < /*1*/ arr_rc_draw.length; i++) {
         var dw = arr_rc_draw[i];
         var road = document.createElementNS(states.ns, "path"); // 创建路（方向）
 
@@ -1387,12 +1397,10 @@ export default defineComponent({
           dw.ratio;
         var offset = len - road_info.canalize_info[i].enter.offset * dw.ratio;
         var pt4 = cal_point(dw, d, -dr, offset);
-        var pt4_center = cal_point(dw, d, -dr, offset - len);
         d_str += "L" + pt4.x + "," + pt4.y + " ";
         //结束
         d = rc.length * dw.ratio;
         var pt_e2 = cal_point(dw, d, -dr, offset);
-        var pt_e2_center = cal_point(dw, d, -dr, offset - len);
         d_str += "L" + pt_e2.x + "," + pt_e2.y + " ";
 
         //绘制隔离带，如果没有入口或出口车道，不绘制隔离带
@@ -1449,19 +1457,22 @@ export default defineComponent({
           }
         }
 
-        // 进口人行道横白条
-        pt = ewkb_pt;
-        d_str = "M" + pt.x + "," + pt.y + " ";
-        pt = dw.enter_side2.walk2;
-        d_str += "L" + pt.x + "," + pt.y + " ";
+        // 进口人行道横白条(贯通不需要停止线)
+        if (rc.wait.through !== -1) {
+          if (rc.wait.through_type !== "贯通" && rc.wait.through != i) {
+            pt = ewkb_pt;
+            d_str = "M" + pt.x + "," + pt.y + " ";
+            pt = dw.enter_side2.walk2;
+            d_str += "L" + pt.x + "," + pt.y + " ";
 
-        var bar = document.createElementNS(states.ns, "path");
-        bar.setAttribute("d", d_str);
-        bar.setAttribute("stroke", "rgb(255,255,255)");
-        bar.setAttribute("stroke-width", "2");
-        bar.setAttribute("deleteTag", "1");
-        states.cvs?.appendChild(bar);
-
+            var bar = document.createElementNS(states.ns, "path");
+            bar.setAttribute("d", d_str);
+            bar.setAttribute("stroke", "rgb(255,255,255)");
+            bar.setAttribute("stroke-width", "2");
+            bar.setAttribute("deleteTag", "1");
+            states.cvs?.appendChild(bar);
+          }
+        }
         // 进口车道白线
         for (var j = 1; j < rc.enter.num; j++) {
           // 靠近人行道的白线
@@ -1851,7 +1862,7 @@ export default defineComponent({
       }
 
       // cross的右转白线 和旋转的文字“方向n”
-      for (var i = 0; i < arr_rc_draw.length; i++) {
+      for (let i = 0; i < arr_rc_draw.length; i++) {
         var rc = road_info.canalize_info[i];
         var dw = arr_rc_draw[i];
         var sd = dw.enter_side2;
@@ -1922,7 +1933,7 @@ export default defineComponent({
         states.cvs?.appendChild(txt);
       }
 
-      //左转待转，直行待转
+      // 左转待转，直行待转
       for (let i = 0; i < arr_rc_draw.length; i++) {
         var rc = road_info.canalize_info[i];
         var dw = arr_rc_draw[i];
@@ -2035,7 +2046,7 @@ export default defineComponent({
         }
       }
 
-      //渠化相关
+      // 渠化相关
       for (let i = 0; i < arr_rc_draw.length; i++) {
         var rc = road_info.canalize_info[i];
         var dw = arr_rc_draw[i];
@@ -2096,6 +2107,99 @@ export default defineComponent({
           path.setAttribute("deleteTag", "1");
           path.setAttribute("stroke", "#ffffff");
           path.setAttribute("stroke-width", "2");
+          states.cvs?.appendChild(path);
+        }
+      }
+
+      //穿越方式
+      for (let i = 0; i < arr_rc_draw.length; i++) {
+        //第一条路
+        const current_rc = road_info.canalize_info[i];
+        if (current_rc.wait.through_type === "隔离桩") {
+          //起点
+          var dw = arr_rc_draw[i];
+          var dr = Math.PI * 0.5;
+          var d = (current_rc.cross_len_new - 7) * dw.ratio;
+          const pt1 = cal_point(dw, d, dr, 0);
+          //第二条路
+          const j = current_rc.wait.through;
+          var dw = arr_rc_draw[j];
+          const pt2 = cal_point(dw, d, dr, 0);
+          d_str = `M${pt1.x},${pt1.y} Q${states.cx},${states.cy} ${pt2.x},${pt2.y}`;
+          const path = document.createElementNS(states.ns, "path");
+          path.setAttribute("d", d_str);
+          path.setAttribute("fill", "none");
+          path.setAttribute("deleteTag", "1");
+          path.setAttribute("stroke", "rgb(255,165,0)");
+          path.setAttribute("stroke-width", "3");
+          path.setAttribute("stroke-dasharray", "3,3");
+          states.cvs?.appendChild(path);
+        } else if (current_rc.wait.through_type === "贯通") {
+          //起点
+          var dw = arr_rc_draw[i];
+          var dr = Math.PI * 0.5;
+          var d = current_rc.cross_len_new * dw.ratio;
+          var len = 2;
+          const pt11 = cal_point(dw, d, dr, len);
+          const pt12 = cal_point(dw, d, dr, -len);
+          //第二条路
+          const j = current_rc.wait.through;
+          var dw = arr_rc_draw[j];
+          const pt21 = cal_point(dw, d, dr, -len);
+          const pt22 = cal_point(dw, d, dr, len);
+          //双黄线左侧
+          d_str = `M${pt11.x},${pt11.y}  L${pt21.x},${pt21.y}`;
+          //双黄线右侧
+          d_str += `M${pt12.x},${pt12.y}  L${pt22.x},${pt22.y}`;
+          let path = document.createElementNS(states.ns, "path");
+          path.setAttribute("d", d_str);
+          path.setAttribute("fill", "none");
+          path.setAttribute("deleteTag", "1");
+          path.setAttribute("stroke", "rgb(255,165,0)");
+          path.setAttribute("stroke-width", "2");
+          states.cvs?.appendChild(path);
+
+          // 车道白线
+          d_str = "";
+          for (var q = 1; q < rc.enter.num; q++) {
+            // 第一条路入口
+            var dw = arr_rc_draw[i];
+            len = (rc.median_strip.width + +rc.enter.lane_width * q) * dw.ratio;
+            const pt11 = cal_point(dw, d, dr, len);
+            const pt12 = cal_point(dw, d, -dr, len);
+            //第二条路出口
+            var dw = arr_rc_draw[j];
+            const pt21 = cal_point(dw, d, -dr, len);
+            const pt22 = cal_point(dw, d, dr, len);
+            d_str += `M${pt11.x},${pt11.y}  L${pt21.x},${pt21.y}`;
+            d_str += `M${pt12.x},${pt12.y}  L${pt22.x},${pt22.y}`;
+          }
+          path = document.createElementNS(states.ns, "path");
+          path.setAttribute("d", d_str);
+          path.setAttribute("fill", "none");
+          path.setAttribute("deleteTag", "1");
+          path.setAttribute("stroke", "rgb(255,255,255)");
+          path.setAttribute("stroke-width", "2");
+          path.setAttribute("stroke-dasharray", "35");
+          states.cvs?.appendChild(path);
+        } else if (current_rc.wait.through_type === "斑马线") {
+          //起点
+          var dw = arr_rc_draw[i];
+          var dr = Math.PI * 0.5;
+          var d = (current_rc.cross_len_new - 7) * dw.ratio;
+          const pt1 = cal_point(dw, d, dr, 0);
+          //第二条路
+          const j = current_rc.wait.through;
+          var dw = arr_rc_draw[j];
+          const pt2 = cal_point(dw, d, dr, 0);
+          d_str = `M${pt1.x},${pt1.y} Q${states.cx},${states.cy} ${pt2.x},${pt2.y}`;
+          const path = document.createElementNS(states.ns, "path");
+          path.setAttribute("d", d_str);
+          path.setAttribute("fill", "none");
+          path.setAttribute("deleteTag", "1");
+          path.setAttribute("stroke", "rgb(255,255,255)");
+          path.setAttribute("stroke-width", "75");
+          path.setAttribute("stroke-dasharray", "3,3");
           states.cvs?.appendChild(path);
         }
       }
@@ -2287,6 +2391,24 @@ export default defineComponent({
     //页面属性变化
     function on_prop_change(filed = "") {
       const rc = road_info.canalize_info[states.cur_road_dir];
+      if (rc.wait.through === -1) {
+        rc.wait.through_type = "无";
+        return;
+      } else if (rc.wait.through_type === "贯通") {
+        //取消人行道
+        rc.walk.has = 0;
+        road_info.canalize_info[rc.wait.through].walk.has = 0;
+      } else {
+        //设置人行道
+        rc.walk.has = 1;
+        road_info.canalize_info[rc.wait.through].walk.has = 1;
+      }
+      if (rc.wait.through === states.cur_road_dir) {
+        rc.wait.through = -1;
+        rc.wait.through_type = "无";
+        openNotfication("warning", "同一方向无需设置穿越方式");
+        return;
+      }
       //黄斜线和绿化带可设宽度，其余默认
       if (["黄斜线", "绿化带"].indexOf(rc.median_strip.type) === -1) {
         rc.median_strip.width = 0.5;
@@ -2466,6 +2588,7 @@ export default defineComponent({
       on_sel_dirs_change,
       on_bike_lane_set,
       handleConfirmSign,
+      throughTypeOption,
       canalizeTypeOption,
       medianStripTypeOption,
       onLoad,
