@@ -48,6 +48,7 @@ import Suggestion from "./Suggestion/index.vue";
 import { checkToken, getUserInfo } from "../../../request/api";
 import { settingStates } from ".";
 import { useRoute } from "vue-router";
+import { basic_config } from "../../../request/http";
 
 export default defineComponent({
   components: {
@@ -76,7 +77,7 @@ export default defineComponent({
         checkToken()
           .then(() => {
             getUserInfo().then((res: any) => {
-              const imgUrl = "../../src/assets/image/avatar";
+              const imgUrl = `${basic_config.img_url}/avatar`;
               res.data.avatar = `${imgUrl}/${res.data.avatar}`;
               settingStates.userInfo = res.data;
               if (type === "basic_info") {

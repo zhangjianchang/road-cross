@@ -63,8 +63,10 @@
 <script setup lang="ts">
 import { reactive } from "vue";
 import { getSuggestionList, suggestion } from "../../request/api";
+import { basic_config } from "../../request/http";
 import { openNotification } from "../../utils/message";
-const imgUrl = "../../src/assets/image/avatar";
+
+const imgUrl = `${basic_config.img_url}/avatar`;
 const states = reactive({
   list: [],
   modalVisible: false,

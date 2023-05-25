@@ -48,6 +48,7 @@ import { PageEnum } from "../../router/data";
 import { goRouterByParam } from "../../utils/common";
 import { Md5 } from "ts-md5";
 import { userStates } from "../UserCenter";
+import { basic_config } from "../../request/http";
 
 export default defineComponent({
   setup() {
@@ -64,7 +65,7 @@ export default defineComponent({
       userLogin(param).then((res: any) => {
         if (res.code === 100) {
           message.success("登录成功");
-          const imgUrl = "../../src/assets/image/avatar";
+          const imgUrl = `${basic_config.img_url}/avatar`;
           res.data.avatar = `${imgUrl}/${res.data.avatar}`;
           localStorage.setItem("userInfo", JSON.stringify(res.data));
           localStorage.setItem("token", res.data.token);

@@ -86,13 +86,14 @@ import { goRouterByParam } from "../../utils/common";
 import { message } from "ant-design-vue";
 import { getCodeInfo, getUserInfo, userLogout } from "../../request/api";
 import { userStates } from "../UserCenter";
+import { basic_config } from "../../request/http";
 
 export default defineComponent({
   components: { UserOutlined },
   setup() {
     const init = () => {
       getUserInfo().then((res: any) => {
-        const imgUrl = "../../src/assets/image/avatar";
+        const imgUrl = `${basic_config.img_url}/avatar`;
         res.data.avatar = `${imgUrl}/${res.data.avatar}`;
         userStates.user_info = res.data;
         if (res.data.roleId === 1) {
