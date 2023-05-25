@@ -76,6 +76,8 @@ export default defineComponent({
         checkToken()
           .then(() => {
             getUserInfo().then((res: any) => {
+              const imgUrl = "../../src/assets/image/avatar";
+              res.data.avatar = `${imgUrl}/${res.data.avatar}`;
               settingStates.userInfo = res.data;
               if (type === "basic_info") {
                 states.activeKey = 1;

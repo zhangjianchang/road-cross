@@ -20,27 +20,84 @@
     </div>
     <div class="button">
       <a-button type="primary" @click="onSubmit">提交</a-button>
-      <!-- <a class="a-text">查看用户全部意见与建议</a> -->
     </div>
+    <div class="a-text">
+      <a @click="initSuggestionList"> 查看全部用户反馈 </a>
+    </div>
+    <a-modal
+      :visible="states.modalVisible"
+      width="1000px"
+      title="用户反馈"
+      :footer="null"
+      @cancel="states.modalVisible = false"
+    >
+      <div class="modal-container">
+        <a-list
+          item-layout="vertical"
+          size="large"
+          :pagination="pagination"
+          :data-source="states.list"
+        >
+          <template #renderItem="{ item }">
+            <a-list-item key="item.title">
+              <a-list-item-meta :description="item.answer">
+                <template #title>
+                  <a :href="item.href">
+                    <!-- {{ item.userName }} 反馈： -->
+                    {{ item.suggestion }}
+                  </a>
+                </template>
+                <template #avatar>
+                  <a-avatar :src="item.avatar" />
+                </template>
+              </a-list-item-meta>
+              {{ item.content }}
+            </a-list-item>
+          </template>
+        </a-list>
+      </div>
+    </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { reactive } from "vue";
-import { suggestion } from "../../request/api";
-import { openNotfication } from "../../utils/message";
-// const imgUrl = "../../src/assets/image/doc/";
+import { getSuggestionList, suggestion } from "../../request/api";
+import { openNotification } from "../../utils/message";
+const imgUrl = "../../src/assets/image/avatar";
+const states = reactive({
+  list: [],
+  modalVisible: false,
+});
+
 const param = reactive({
   suggestion: "",
 });
 const onSubmit = () => {
   suggestion(param).then(() => {
-    openNotfication(
+    openNotification(
       "success",
       "管理员回复后会进行展示，请耐心等待",
       "提交成功",
       15
     );
+  });
+};
+
+const pagination = {
+  onChange: (page: number) => {
+    console.log(page);
+  },
+  pageSize: 8,
+};
+
+const initSuggestionList = () => {
+  getSuggestionList({ status: "200" }).then((res: any) => {
+    res.data.map((d: any) => {
+      d.avatar = `${imgUrl}/${d.avatar}`;
+    });
+    states.list = res.data;
+    states.modalVisible = true;
   });
 };
 </script>

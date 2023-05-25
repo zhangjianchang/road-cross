@@ -35,15 +35,27 @@
       <!-- <router-link to="/contact">创建账号</router-link> -->
     </div>
     <div v-else>
-      <router-link @click="handleRouterClick(PageEnum.DesignRoadList)" to="/designRoadList">
+      <router-link
+        @click="handleRouterClick(PageEnum.DesignRoadList)"
+        to="/designRoadList"
+      >
         项目列表
       </router-link>
       <a-dropdown placement="bottomLeft" size="large">
-        <a class="ant-dropdown-link" @click.prevent>
-          {{ user_info.eMail }}
-        </a>
+        <router-link class="ant-dropdown-link" @click.prevent to="/userCenter">
+          <a-avatar :src="user_info.avatar" />
+        </router-link>
         <template #overlay>
-          <a-menu style="width: 150px">
+          <a-menu class="user-menu-item">
+            <a-menu-item>
+              <a
+                @click="handleRouterClick(PageEnum.UserCenter)"
+                :title="user_info.eMail"
+              >
+                {{ user_info.eMail }}
+              </a>
+            </a-menu-item>
+            <a-menu-divider />
             <a-menu-item>
               <a @click="handleRouterClick(PageEnum.BasicInfo)"> 账户信息 </a>
             </a-menu-item>
@@ -80,6 +92,8 @@ export default defineComponent({
   setup() {
     const init = () => {
       getUserInfo().then((res: any) => {
+        const imgUrl = "../../src/assets/image/avatar";
+        res.data.avatar = `${imgUrl}/${res.data.avatar}`;
         userStates.user_info = res.data;
         if (res.data.roleId === 1) {
           userStates.is_super_edit = true;

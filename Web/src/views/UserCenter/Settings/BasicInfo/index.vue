@@ -5,6 +5,9 @@
       :wrapper-col="{ span: 22 }"
       labelAlign="left"
     >
+      <a-form-item label="用户头像">
+        <a-avatar :src="userInfo.avatar" />
+      </a-form-item>
       <a-form-item label="登录账号">
         {{ userInfo.userName }}
       </a-form-item>

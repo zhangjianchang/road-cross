@@ -1,7 +1,7 @@
 import { notification } from "ant-design-vue";
 import { duration } from "moment";
 
-export const openNotfication = (
+export const openNotification = (
   type: string,
   description: string,
   message = "错误提醒",

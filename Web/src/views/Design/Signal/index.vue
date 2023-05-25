@@ -617,7 +617,7 @@ import {
   roadStates,
 } from "..";
 import { message, Modal } from "ant-design-vue";
-import { openNotfication } from "../../../utils/message";
+import { openNotification } from "../../../utils/message";
 import { userStates } from "../../UserCenter";
 
 export default defineComponent({
@@ -1371,7 +1371,7 @@ export default defineComponent({
       if (is_exsit) {
         setDirectionLine();
       } else {
-        openNotfication("warning", "请在渠化页面中设置相关方向道路路标");
+        openNotification("warning", "请在渠化页面中设置相关方向道路路标");
       }
     };
 
@@ -1615,7 +1615,7 @@ export default defineComponent({
           //渲染路
           initRoads(road_info);
         } else {
-          openNotfication("warning", "当前相位与上一相位无共同放行方向");
+          openNotification("warning", "当前相位与上一相位无共同放行方向");
           record.is_lap = 0;
         }
       } else {
@@ -1628,7 +1628,7 @@ export default defineComponent({
     //生成方案
     const handleCreatePlan = () => {
       if (plans.road_count !== 4) {
-        openNotfication("warning", "该功能仅用于生成四路交叉口信号控制方案");
+        openNotification("warning", "该功能仅用于生成四路交叉口信号控制方案");
         return;
       }
       let is_enable = false;
@@ -1761,7 +1761,7 @@ export default defineComponent({
       const VC = automaticTiming.VC;
       let C = Math.ceil(L / (1 - Y / (PHF * VC)));
       if (C <= 0) {
-        openNotfication(
+        openNotification(
           "info",
           "当Y值≥0.9时，应调整相位设计方案或渠化方案；设计目标VC应大于Y值；目前系统已自动设置周期为180s",
           "温馨提示",
@@ -1770,7 +1770,7 @@ export default defineComponent({
         C = 180;
       }
       if (C > 300) {
-        openNotfication(
+        openNotification(
           "info",
           "当设计周期大于300s时，应调整相位设计方案或渠化方案；目前系统已自动设置周期为180s",
           "温馨提示",

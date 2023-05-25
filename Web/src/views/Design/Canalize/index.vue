@@ -870,7 +870,7 @@ import {
   update_road_corss,
 } from "..";
 import { road_model } from "../data";
-import { openNotfication } from "../../../utils/message";
+import { openNotification } from "../../../utils/message";
 import { userStates } from "../../UserCenter";
 import _ from "lodash";
 
@@ -2402,7 +2402,7 @@ export default defineComponent({
       if (rc.wait.through === states.cur_road_dir) {
         rc.wait.through = -1;
         rc.wait.through_type = "无";
-        openNotfication("warning", "同一方向无需设置穿越方式");
+        openNotification("warning", "同一方向无需设置穿越方式");
         return;
       }
       //黄斜线和绿化带可设宽度，其余默认
@@ -2411,13 +2411,13 @@ export default defineComponent({
       }
       if (rc.median_strip.type === "鱼肚线" && rc.enter.extend_num <= 0) {
         //有展宽时才可以设置鱼肚线
-        openNotfication("warning", "进口展宽数量小于等于0时不可设置鱼肚线");
+        openNotification("warning", "进口展宽数量小于等于0时不可设置鱼肚线");
         rc.median_strip.type = "双黄线";
         return;
       }
       if (rc.median_strip.type === "鱼肚线" && rc.enter.offset > 0) {
         //有展宽时才可以设置鱼肚线
-        openNotfication("warning", "内侧偏移大于0时不可设置鱼肚线");
+        openNotification("warning", "内侧偏移大于0时不可设置鱼肚线");
         rc.median_strip.type = "双黄线";
         return;
       }
@@ -2425,7 +2425,7 @@ export default defineComponent({
         ["黄斜线", "绿化带"].indexOf(rc.median_strip.type) === -1 &&
         rc.median_strip.turn === "停车线上游"
       ) {
-        openNotfication(
+        openNotification(
           "warning",
           "只有当分割形式为黄斜线和绿化带时，才可将提前掉头设置为停车线上游"
         );

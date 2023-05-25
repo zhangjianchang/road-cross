@@ -262,7 +262,7 @@ import {
 } from "@ant-design/icons-vue";
 import _ from "lodash";
 import { plans_model, road_model } from "./data";
-import { openNotfication } from "../../utils/message";
+import { openNotification } from "../../utils/message";
 import { saveDesign, getDesignByGuid } from "../../request/api";
 import { userStates } from "../UserCenter";
 
@@ -319,7 +319,7 @@ export default defineComponent({
       }
       //道路属性判断
       if (item.url != MenuListEnum.Basic && plans.road_count < 2) {
-        openNotfication("warning", "相交道路不能少于两条");
+        openNotification("warning", "相交道路不能少于两条");
         return;
       }
       if (
@@ -354,7 +354,7 @@ export default defineComponent({
           item.url === MenuListEnum.QueueAnalysis ||
           item.url === MenuListEnum.ServiceLevel)
       ) {
-        openNotfication("warning", "请购买授权码激活后使用");
+        openNotification("warning", "请购买授权码激活后使用");
         return;
       }
       roadStates.currentUrl = item.url;
@@ -390,7 +390,7 @@ export default defineComponent({
     //添加渠化方案
     const handleAddC = (is_copy = false) => {
       if (plans.canalize_plans.length === 3) {
-        openNotfication("warning", "最多可增加三种渠化方案");
+        openNotification("warning", "最多可增加三种渠化方案");
         return;
       }
       const index = plans.canalize_plans.length;
@@ -407,7 +407,7 @@ export default defineComponent({
     //删除渠化方案
     const handleDeleteC = (index: number) => {
       if (plans.canalize_plans.length === 1) {
-        openNotfication("warning", "至少保留一条渠化方案");
+        openNotification("warning", "至少保留一条渠化方案");
         return;
       }
       plans.canalize_plans = plans.canalize_plans.filter(
@@ -424,7 +424,7 @@ export default defineComponent({
       const flow_plans =
         plans.canalize_plans[roadStates.current_canalize].flow_plans;
       if (flow_plans.length === 3) {
-        openNotfication("warning", "最多可增加三种流量方案");
+        openNotification("warning", "最多可增加三种流量方案");
         return;
       }
       const index = flow_plans.length;
@@ -444,7 +444,7 @@ export default defineComponent({
         plans.canalize_plans[roadStates.current_canalize].flow_plans.length ===
         1
       ) {
-        openNotfication("warning", "至少保留一条流量方案");
+        openNotification("warning", "至少保留一条流量方案");
         return;
       }
       plans.canalize_plans[roadStates.current_canalize].flow_plans =
@@ -466,7 +466,7 @@ export default defineComponent({
           roadStates.current_flow
         ].signal_plans;
       if (signal_plans.length === 3) {
-        openNotfication("warning", "最多可增加三种信号方案");
+        openNotification("warning", "最多可增加三种信号方案");
         return;
       }
 
@@ -487,7 +487,7 @@ export default defineComponent({
           roadStates.current_flow
         ].signal_plans.length === 1
       ) {
-        openNotfication("warning", "至少保留一条信号方案");
+        openNotification("warning", "至少保留一条信号方案");
         return;
       }
       plans.canalize_plans[roadStates.current_canalize].flow_plans[
@@ -607,11 +607,11 @@ export default defineComponent({
     //保存
     const onSave = () => {
       if (!plans.road_name) {
-        openNotfication("warning", "请输入交叉口名称");
+        openNotification("warning", "请输入交叉口名称");
         return;
       }
       if (!userStates.code_info && !userStates.is_super_edit) {
-        openNotfication("warning", "请购买授权码激活后使用");
+        openNotification("warning", "请购买授权码激活后使用");
         return;
       }
       roadStates.loading = true;

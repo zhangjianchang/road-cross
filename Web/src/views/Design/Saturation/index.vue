@@ -205,7 +205,7 @@ import {
   plans,
   roadStates,
 } from "..";
-import { openNotfication } from "../../../utils/message";
+import { openNotification } from "../../../utils/message";
 import * as echarts from "echarts";
 import { echart_toolbox, echart_tooltip, road_model } from "../data";
 import { roadSigns } from "../Canalize";
@@ -581,7 +581,7 @@ export default defineComponent({
     /**页面操作事件 start*/
     const handleAddNew = () => {
       if (plans.saturationAnalysis.length === 3) {
-        openNotfication("warning", "最多提供三个对比方案");
+        openNotification("warning", "最多提供三个对比方案");
         return;
       }
       const analysis = {
@@ -619,7 +619,7 @@ export default defineComponent({
     //删除方案
     const handleDelete = (index: number) => {
       if (plans.saturationAnalysis.length === 1) {
-        openNotfication("warning", "至少保留一个方案");
+        openNotification("warning", "至少保留一个方案");
         return;
       }
       plans.saturationAnalysis = plans.saturationAnalysis.filter(
@@ -637,7 +637,7 @@ export default defineComponent({
     //切换页面展示方案
     const handleChangeAnalysis = () => {
       if (isNaN(Number(states.total_saturation))) {
-        openNotfication("warning", "请先设置信号方案");
+        openNotification("warning", "请先设置信号方案");
         states.showAnalysis = false;
         return;
       }

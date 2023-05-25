@@ -1,7 +1,7 @@
 import axios from "axios"; // 引入axios
 import AxiosJsonp from "axios-jsonp-pro";
 import { jsonp } from "vue-jsonp";
-import { openNotfication } from "../utils/message";
+import { openNotification } from "../utils/message";
 
 //腾讯地图key
 export const mapKey = "TPDBZ-WQI34-FQIU6-F45YP-5PAJO-WMFEU";
@@ -74,12 +74,12 @@ export function post(url: string, params?: any) {
         if (res.data.code === 100) {
           resolve(res.data);
         } else {
-          openNotfication("error", res.data.msg);
+          openNotification("error", res.data.msg);
           reject(res.data);
         }
       })
       .catch((err) => {
-        openNotfication("error", err.message);
+        openNotification("error", err.message);
         reject(err.data);
       });
   });
@@ -93,11 +93,11 @@ export function get_jsonp(url: string, params?: any) {
         if (res.data) {
           resolve(res.data);
         } else {
-          openNotfication("error", res.message);
+          openNotification("error", res.message);
         }
       })
       .catch((err) => {
-        openNotfication("error", "加载腾讯地图异常，请稍后再试");
+        openNotification("error", "加载腾讯地图异常，请稍后再试");
         reject(err.message);
       });
   });

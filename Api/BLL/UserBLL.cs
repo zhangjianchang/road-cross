@@ -21,6 +21,7 @@ namespace Api.BLL
                     e.ChineseName,
                     e.WaitSet,
                     e.EMail,
+                    e.Avatar,
                     r.RoleName,
                     r.RoleId
                 FROM user_info e
@@ -35,6 +36,7 @@ namespace Api.BLL
                 return new UserInfo
                 {
                     UserName = Converter.TryToString(row["UserName"]),
+                    Avatar = Converter.TryToString(row["Avatar"]),
                     ChineseName = Converter.TryToString(row["ChineseName"]),
                     EMail = Converter.TryToString(row["EMail"]),
                     RoleName = Converter.TryToString(row["RoleName"]),
@@ -57,6 +59,7 @@ namespace Api.BLL
                     e.ChineseName,
                     e.WaitSet,
                     e.EMail,
+                    e.Avatar,
                     e.TelPhone,
                     r.RoleName,
                     r.RoleId
@@ -71,6 +74,7 @@ namespace Api.BLL
                 return new UserInfo
                 {
                     UserName = Converter.TryToString(row["UserName"]),
+                    Avatar = Converter.TryToString(row["Avatar"]),
                     ChineseName = Converter.TryToString(row["ChineseName"]),
                     TelPhone = Converter.TryToString(row["TelPhone"]),
                     EMail = Converter.TryToString(row["EMail"]),
@@ -218,16 +222,17 @@ namespace Api.BLL
             {
                 where = " where status = " + request.Status;
             }
-            DataTable dt = JabMySqlHelper.ExecuteDataTable(Config.DBConnection, string.Format("select * from user_suggestion {0}  order by CreateDate desc", where));
+            DataTable dt = JabMySqlHelper.ExecuteDataTable(Config.DBConnection, string.Format("select us.*,ui.Avatar from user_suggestion us left join user_info ui on us.UserName=ui.UserName {0} order by us.CreateDate desc", where));
             List<SuggestionRequest> designs = new();
             if (dt != null && dt.Rows.Count > 0)
             {
                 foreach (DataRow row in dt.Rows)
                 {
-                    SuggestionRequest design = new SuggestionRequest()
+                    SuggestionRequest design = new()
                     {
                         ID = Converter.TryToInt32(row["ID"]),
                         UserName = row["UserName"].ToString(),
+                        Avatar = row["Avatar"].ToString(),
                         Suggestion = row["Suggestion"].ToString(),
                         Status = row["Status"].ToString(),
                         CreateDate = Converter.TryToDateTime(row["CreateDate"]).ToString("yyyy-MM-dd"),

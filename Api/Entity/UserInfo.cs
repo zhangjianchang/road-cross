@@ -8,6 +8,7 @@ namespace Api.Entity
     public class UserInfo
     {
         public string UserName { get; set; }
+        public string Avatar { get; set; }
         public string Password { get; set; }
         public string ChineseName { get; set; }
         public string RoleName { get; set; }

@@ -64,6 +64,8 @@ export default defineComponent({
       userLogin(param).then((res: any) => {
         if (res.code === 100) {
           message.success("登录成功");
+          const imgUrl = "../../src/assets/image/avatar";
+          res.data.avatar = `${imgUrl}/${res.data.avatar}`;
           localStorage.setItem("userInfo", JSON.stringify(res.data));
           localStorage.setItem("token", res.data.token);
           userStates.user_info = res.data;

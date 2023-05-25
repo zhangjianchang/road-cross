@@ -75,7 +75,7 @@ import { message } from "ant-design-vue";
 import { defineComponent, reactive } from "vue";
 import { PageEnum } from "../../router/data";
 import { goRouterByParam } from "../../utils/common";
-import { openNotfication } from "../../utils/message";
+import { openNotification } from "../../utils/message";
 
 export default defineComponent({
   setup() {
@@ -97,9 +97,11 @@ export default defineComponent({
 
     const handleSignIn = () => {
       if (formState.password !== formState.rePassword) {
-        openNotfication("warning", "两次输入的密码不一致");
+        openNotification("warning", "两次输入的密码不一致");
         return;
       }
+      //TODO 注册的时候自动生成头像，目前有1-20张编号的图片
+      const random = Math.floor(Math.random() * (20 - 1 + 1) + 1);
       message.warning("内测阶段暂未开放用户注册功能");
     };
 

@@ -48,7 +48,7 @@ import { message } from "ant-design-vue";
 import { Md5 } from "ts-md5";
 import { defineComponent, reactive, ref, toRefs } from "vue";
 import { reSetPwd } from "../../../../request/api";
-import { openNotfication } from "../../../../utils/message";
+import { openNotification } from "../../../../utils/message";
 
 export default defineComponent({
   components: {},
@@ -76,7 +76,7 @@ export default defineComponent({
     const handleResetPwd = () => {
       formRef.value.validate().then(() => {
         if (states.data.password !== states.data.rePassword) {
-          openNotfication("warning", "两次输入密码不一致");
+          openNotification("warning", "两次输入密码不一致");
           return;
         }
         const param = {
