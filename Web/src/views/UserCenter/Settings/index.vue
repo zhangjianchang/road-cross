@@ -26,9 +26,6 @@
         <a-tab-pane v-if="userInfo.roleId === 1" :key="4" tab="生成授权码">
           <GenerateCode />
         </a-tab-pane>
-        <a-tab-pane v-if="userInfo.roleId === 1" :key="5" tab="用户反馈">
-          <Suggestion />
-        </a-tab-pane>
       </a-tabs>
     </div>
   </Container>
@@ -44,7 +41,6 @@ import BasicInfo from "./BasicInfo/index.vue";
 import ResetPwd from "./ResetPwd/index.vue";
 import ActivateCode from "./ActivateCode/index.vue";
 import GenerateCode from "./GenerateCode/index.vue";
-import Suggestion from "./Suggestion/index.vue";
 import { checkToken, getUserInfo } from "../../../request/api";
 import { settingStates } from ".";
 import { useRoute } from "vue-router";
@@ -57,7 +53,6 @@ export default defineComponent({
     ResetPwd,
     ActivateCode,
     GenerateCode,
-    Suggestion,
   },
   setup() {
     const route = useRoute();

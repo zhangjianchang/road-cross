@@ -9,6 +9,7 @@ import SignIn from "../views/Login/signIn.vue";
 import UserCenter from "../views/UserCenter/index.vue";
 import Settings from "../views/UserCenter/Settings/index.vue";
 import DesignRoadList from "../views/UserCenter/DesignRoadList/index.vue";
+import Suggestion from "../views/UserCenter/Settings/Suggestion/index.vue";
 
 import Map from "../views/Map/index.vue";
 
@@ -79,6 +80,11 @@ const routes = [
     path: "/settings/activateCode",
     name: PageEnum.ActivateCode,
     component: Settings,
+  },
+  {
+    path: "/settings/suggestion",
+    name: PageEnum.Suggestion,
+    component: Suggestion,
   },
   {
     path: "/map",

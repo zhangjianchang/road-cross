@@ -1,18 +1,31 @@
 <template>
-  <div class="form-data">
-    <a-table
-      :dataSource="list"
-      :columns="columns"
-      :scroll="{ x: '100%' }"
-      bordered
-      :loading="loading"
-    >
-      <template #operation="{ record }">
-        <a-button type="primary" size="small" @click="openEditModal(record)">
-          查看
-        </a-button>
-      </template>
-    </a-table>
+  <Container class="main-container">
+    <div class="breadcrumb">
+      <a-breadcrumb>
+        <a-breadcrumb-item
+          href=""
+          @click="goRouterByParam(PageEnum.UserCenter)"
+        >
+          个人中心
+        </a-breadcrumb-item>
+        <a-breadcrumb-item>用户反馈</a-breadcrumb-item>
+      </a-breadcrumb>
+    </div>
+    <div class="form-data">
+      <a-table
+        :dataSource="list"
+        :columns="columns"
+        :scroll="{ x: '100%' }"
+        bordered
+        :loading="loading"
+      >
+        <template #operation="{ record }">
+          <a-button type="primary" size="small" @click="openEditModal(record)">
+            查看
+          </a-button>
+        </template>
+      </a-table>
+    </div>
     <a-modal
       :visible="modalVisible"
       width="640px"
@@ -23,7 +36,6 @@
       cancelText="取消"
     >
       <a-form
-        v-if="userInfo.roleId === 1"
         :model="data"
         :label-col="{ span: 3 }"
         :wrapper-col="{ span: 20 }"
@@ -47,7 +59,7 @@
         </a-form-item>
       </a-form>
     </a-modal>
-  </div>
+  </Container>
 </template>
 
 <script lang="ts">
@@ -55,9 +67,12 @@ import { message } from "ant-design-vue";
 import { defineComponent, onMounted, reactive, ref, toRefs } from "vue";
 import { settingStates } from "..";
 import { answer, getSuggestionList } from "../../../../request/api";
+import { goRouterByParam } from "../../../../utils/common";
+import Container from "../../../../components/Container/index.vue";
+import { PageEnum } from "../../../../router/data";
 
 export default defineComponent({
-  components: {},
+  components: { Container },
   setup() {
     const formRef = ref();
     const states = reactive({
@@ -138,10 +153,13 @@ export default defineComponent({
       formRef,
       openEditModal,
       handleAnswer,
+      goRouterByParam,
+      PageEnum,
     };
   },
 });
 </script>
 <style scoped lang="less">
 @import "../index.less";
+@import "../../index.less";
 </style>

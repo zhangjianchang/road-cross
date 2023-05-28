@@ -3,18 +3,29 @@
     <div class="main-canvas" v-if="isNaN(Number(total_saturation))">
       <div class="error-msg">请先设置信号方案</div>
     </div>
+    <div class="func" v-if="!isNaN(Number(total_saturation))">
+      <div v-show="!showAnalysis" class="gradient"></div>
+      <div v-show="!showAnalysis" class="gradient-text">
+        <div class="gradient-text-1">1</div>
+        <div class="gradient-text-dec">饱和度</div>
+        <div class="gradient-text-0">0</div>
+      </div>
+      <div v-show="showAnalysis" class="func-button">
+        <a-button size="small" @click="handleDownloadImg">下载图片</a-button>
+        <a-button
+          size="small"
+          type="success"
+          class="mt-2"
+          @click="handleDownloadData"
+        >
+          导出数据
+        </a-button>
+      </div>
+    </div>
     <div
       v-show="!showAnalysis && !isNaN(Number(total_saturation))"
       class="main-canvas"
     >
-      <div class="func">
-        <div class="gradient"></div>
-        <div class="gradient-text">
-          <div class="gradient-text-1">1</div>
-          <div class="gradient-text-dec">饱和度</div>
-          <div class="gradient-text-0">0</div>
-        </div>
-      </div>
       <!-- 图示 -->
       <svg id="canvas">
         <text v-for="(_, index) in plans.road_attr" :key="index" x="330">
@@ -186,7 +197,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, onUnmounted, reactive, toRefs } from "vue";
+import {
+  defineComponent,
+  onMounted,
+  onUnmounted,
+  reactive,
+  shallowRef,
+  toRefs,
+} from "vue";
 import { get_V, get_x } from "./index";
 import Container from "../../../components/Container/index.vue";
 import {
@@ -204,6 +222,7 @@ import {
   mergeWays,
   plans,
   roadStates,
+  saveAsImage,
 } from "..";
 import { openNotification } from "../../../utils/message";
 import * as echarts from "echarts";
@@ -235,6 +254,7 @@ export default defineComponent({
       total_color: "#fff", //中心总颜色
       total_saturation: "0.00", //中心总数值
       ratio: 4, //比例尺
+      chart: shallowRef<any>(), //报表对象
       showAnalysis: false,
       analysisOption: {
         //提示的样式
@@ -606,11 +626,11 @@ export default defineComponent({
         plans.canalize_plans[current.canalize_plan].flow_plans[
           current.flow_plan
         ].signal_plans[current.signal_plan].road_info;
-      onChangeSatuation(rf);
+      onChangeSaturation(rf);
     };
 
     //执行切换
-    const onChangeSatuation = (rf: any) => {
+    const onChangeSaturation = (rf: any) => {
       states.total_saturation = "";
       Object.assign(road_info, rf);
       render();
@@ -655,13 +675,13 @@ export default defineComponent({
       const report = document.getElementById("report")!;
       //TODO 发到服务器会出现空白的情况，网络方案，暂采用
       report.removeAttribute("_echarts_instance_");
-      let chart = echart.init(report);
+      states.chart = echart.init(report);
       //填充配置和数据
       setEchartOption();
       //先清空
-      chart.clear();
+      states.chart.clear();
       //再渲染
-      chart.setOption(states.analysisOption);
+      states.chart.setOption(states.analysisOption);
     }
     //设置echarts数据
     const setEchartOption = () => {
@@ -671,7 +691,7 @@ export default defineComponent({
       //填充legend
       let legendData = [] as string[];
       legendData = plans.saturationAnalysis.map((item) => item.name);
-      legendData.push("平均值");
+      // legendData.push("平均值");
       states.analysisOption.legend.data = legendData;
 
       //填充xAxis
@@ -808,6 +828,14 @@ export default defineComponent({
       states.cvs?.appendChild(g);
     }
 
+    const handleDownloadImg = () => {
+      saveAsImage(states.chart);
+      console.log("下载图片");
+    };
+    const handleDownloadData = () => {
+      console.log("下载文档");
+    };
+
     return {
       ...toRefs(states),
       ...toRefs(road_info),
@@ -819,7 +847,9 @@ export default defineComponent({
       handleDelete,
       handleChange,
       handleChangeAnalysis,
-      onChangeSatuation,
+      onChangeSaturation,
+      handleDownloadImg,
+      handleDownloadData,
     };
   },
 });

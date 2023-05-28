@@ -14,4 +14,5 @@ export enum PageEnum {
   ResetPwd = "ResetPwd",
   ActivateCode = "ActivateCode",
   Map = "Map",
+  Suggestion = "Suggestion",
 }
