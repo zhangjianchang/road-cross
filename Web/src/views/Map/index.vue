@@ -177,7 +177,7 @@ const setOpacity = () => {
   var parent = document.getElementById("design")!;
   parent["style"].background = `rgba(248,248,248,${states.opacity})`;
   // 遍历所有子孙元素，并设置它们的透明度
-  var elements = parent.getElementsByTagName("*");
+  var elements = parent.getElementsByTagName("*") as any;
   for (var i = 0; i < elements.length; i++) {
     const className = elements[i].getAttribute("class")?.toLowerCase()!;
     const tagName = elements[i].tagName.toLowerCase();

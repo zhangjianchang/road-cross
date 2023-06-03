@@ -3,21 +3,32 @@
     <div class="main-canvas" v-if="isNaN(Number(total_saturation))">
       <div class="error-msg">请先设置信号方案</div>
     </div>
+    <!-- 功能区 -->
+    <div class="func">
+      <div v-show="!showAnalysis" class="gradient-horizontal">
+        <div class="gradient-horizontal-A rect">A</div>
+        <div class="gradient-horizontal-B rect">B</div>
+        <div class="gradient-horizontal-C rect">C</div>
+        <div class="gradient-horizontal-D rect">D</div>
+        <div class="gradient-horizontal-E rect">E</div>
+        <div class="gradient-horizontal-F rect">F</div>
+      </div>
+      <div v-show="showAnalysis" class="func-button">
+        <a-button size="small" @click="handleDownloadImg">下载图片</a-button>
+        <a-button
+          size="small"
+          type="success"
+          class="mt-2"
+          @click="handleDownloadData"
+        >
+          导出数据
+        </a-button>
+      </div>
+    </div>
     <div
       v-show="!showAnalysis && !isNaN(Number(total_saturation))"
       class="main-canvas"
     >
-      <!-- 功能区 -->
-      <div class="func">
-        <div class="gradient-horizontal">
-          <div class="gradient-horizontal-A rect">A</div>
-          <div class="gradient-horizontal-B rect">B</div>
-          <div class="gradient-horizontal-C rect">C</div>
-          <div class="gradient-horizontal-D rect">D</div>
-          <div class="gradient-horizontal-E rect">E</div>
-          <div class="gradient-horizontal-F rect">F</div>
-        </div>
-      </div>
       <!-- 底部功能区 -->
       <div class="text-info">单位：s/pcu</div>
       <!-- 图示 -->
@@ -208,6 +219,8 @@ import {
   mergeWays,
   plans,
   roadStates,
+  saveAsExcel,
+  saveAsImage,
 } from "..";
 import { openNotification } from "../../../utils/message";
 import * as echarts from "echarts";
@@ -278,6 +291,7 @@ export default defineComponent({
         series: [] as any[],
       },
       reportData: [] as any[],
+      chart: {} as any,
     });
 
     const initRoads = () => {
@@ -680,6 +694,7 @@ export default defineComponent({
       chart.clear();
       //再渲染
       chart.setOption(states.analysisOption);
+      states.chart = chart;
     }
     //设置echarts数据
     const setEchartOption = () => {
@@ -824,6 +839,13 @@ export default defineComponent({
       states.cvs?.appendChild(g);
     }
 
+    const handleDownloadImg = () => {
+      saveAsImage(states.chart);
+    };
+    const handleDownloadData = () => {
+      saveAsExcel(states.reportData, "延误时间统计");
+    };
+
     return {
       ...toRefs(states),
       ...toRefs(road_info),
@@ -836,6 +858,8 @@ export default defineComponent({
       handleChange,
       handleChangeAnalysis,
       onChangeDelay,
+      handleDownloadImg,
+      handleDownloadData,
     };
   },
 });

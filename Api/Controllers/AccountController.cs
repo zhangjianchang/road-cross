@@ -56,6 +56,21 @@ namespace Api.Controllers
             }
         }
 
+        [HttpPost("getUserInfoByUserName")]
+        public MyResult GetUserInfo(LoginInfo request)
+        {
+            try
+            {
+                // 读取用户信息
+                UserInfo userInfo = UserBLL.GetUserDetail(request.UserName);
+                return MyResult.OK(userInfo);
+            }
+            catch (Exception ex)
+            {
+                return MyResult.Error(ex.Message);
+            }
+        }
+
         [HttpPost("setPassword")]
         public MyResult SetPassword([FromBody] LoginInfo user)
         {

@@ -65,11 +65,11 @@
 <script lang="ts">
 import { message } from "ant-design-vue";
 import { defineComponent, onMounted, reactive, ref, toRefs } from "vue";
-import { settingStates } from "..";
-import { answer, getSuggestionList } from "../../../../request/api";
-import { goRouterByParam } from "../../../../utils/common";
-import Container from "../../../../components/Container/index.vue";
-import { PageEnum } from "../../../../router/data";
+import { answer, getSuggestionList } from "../../../request/api";
+import { goRouterByParam } from "../../../utils/common";
+import Container from "../../../components/Container/index.vue";
+import { PageEnum } from "../../../router/data";
+import { settingStates } from "../Settings";
 
 export default defineComponent({
   components: { Container },
@@ -161,5 +161,4 @@ export default defineComponent({
 </script>
 <style scoped lang="less">
 @import "../index.less";
-@import "../../index.less";
 </style>

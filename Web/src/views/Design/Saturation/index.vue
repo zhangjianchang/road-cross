@@ -222,6 +222,7 @@ import {
   mergeWays,
   plans,
   roadStates,
+  saveAsExcel,
   saveAsImage,
 } from "..";
 import { openNotification } from "../../../utils/message";
@@ -675,13 +676,14 @@ export default defineComponent({
       const report = document.getElementById("report")!;
       //TODO 发到服务器会出现空白的情况，网络方案，暂采用
       report.removeAttribute("_echarts_instance_");
-      states.chart = echart.init(report);
+      let chart = echart.init(report);
       //填充配置和数据
       setEchartOption();
       //先清空
-      states.chart.clear();
+      chart.clear();
       //再渲染
-      states.chart.setOption(states.analysisOption);
+      chart.setOption(states.analysisOption);
+      states.chart = chart;
     }
     //设置echarts数据
     const setEchartOption = () => {
@@ -830,10 +832,9 @@ export default defineComponent({
 
     const handleDownloadImg = () => {
       saveAsImage(states.chart);
-      console.log("下载图片");
     };
     const handleDownloadData = () => {
-      console.log("下载文档");
+      saveAsExcel(states.reportData, "饱和度统计");
     };
 
     return {

@@ -14,8 +14,11 @@ export const userLogin = (params: any) => post("/account/login", params);
 export const userLogout = () => post("/account/logout");
 //重置密码
 export const reSetPwd = (params: any) => post("/account/reSetPwd", params);
-//查询用户信息
+//查询当前用户信息
 export const getUserInfo = () => post("/account/getUserInfo");
+//查询用户信息
+export const getUserByUserName = (params: any) =>
+  post("/account/getUserInfoByUserName", params);
 /*********************用户相关 *****************/
 
 /*********************设计相关 *****************/
@@ -45,6 +48,18 @@ export const getCodeInfo = () => post("/AuthotizationCode/getCodeInfo");
 //查找用户全部授权码
 export const getCodeInfosByUser = () =>
   post("/AuthotizationCode/getCodeInfosByUser");
+//授权企业账户
+export const activeEnterpriseAccount = (params: any) =>
+  post("/AuthotizationCode/activeEnterpriseAccount", params);
+//查找企业账户名下全部子账号
+export const getSubAccountList = () =>
+  post("/AuthotizationCode/getSubAccountList");
+//保存子账户设定
+export const saveSubAccount = (params: any) =>
+  post("/AuthotizationCode/saveSubAccount", params);
+//删除子账户
+export const deleteSubAccount = (params: any) =>
+  post("/AuthotizationCode/deleteSubAccount", params);
 /*********************授权码相关 *****************/
 
 /*********************腾讯地图接口 *****************/

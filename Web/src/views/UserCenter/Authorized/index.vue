@@ -8,23 +8,17 @@
         >
           个人中心
         </a-breadcrumb-item>
-        <a-breadcrumb-item>设置</a-breadcrumb-item>
+        <a-breadcrumb-item>账户授权</a-breadcrumb-item>
       </a-breadcrumb>
     </div>
 
     <div class="content">
       <a-tabs v-model:activeKey="activeKey" tab-position="left" animated>
-        <a-tab-pane :key="1" tab="基本信息">
-          <BasicInfo />
+        <a-tab-pane v-if="userInfo.roleId === 1" :key="1" tab="生成个人授权码">
+          <GenerateCode />
         </a-tab-pane>
-        <a-tab-pane :key="2" tab="修改密码">
-          <ResetPwd />
-        </a-tab-pane>
-        <a-tab-pane :key="3" tab="激活授权码">
-          <ActivateCode />
-        </a-tab-pane>
-        <a-tab-pane v-if="userInfo.roleId === 5" :key="4" tab="配置子账号">
-          <ConfigureSubAccount />
+        <a-tab-pane v-if="userInfo.roleId === 1" :key="2" tab="企业账户授权">
+          <ActivateEnterpriseAccount />
         </a-tab-pane>
       </a-tabs>
     </div>
@@ -37,10 +31,8 @@ import { defineComponent, onMounted, reactive, toRefs, watch } from "vue";
 import { PageEnum } from "../../../router/data";
 import { goRouterByParam } from "../../../utils/common";
 import Container from "../../../components/Container/index.vue";
-import BasicInfo from "./BasicInfo/index.vue";
-import ResetPwd from "./ResetPwd/index.vue";
-import ActivateCode from "./ActivateCode/index.vue";
-import ConfigureSubAccount from "./ConfigureSubAccount/index.vue";
+import GenerateCode from "./GenerateCode/index.vue";
+import ActivateEnterpriseAccount from "./ActivateEnterprise/index.vue";
 import { checkToken, getUserInfo } from "../../../request/api";
 import { settingStates } from ".";
 import { useRoute } from "vue-router";
@@ -49,10 +41,8 @@ import { basic_config } from "../../../request/http";
 export default defineComponent({
   components: {
     Container,
-    BasicInfo,
-    ResetPwd,
-    ActivateCode,
-    ConfigureSubAccount,
+    GenerateCode,
+    ActivateEnterpriseAccount,
   },
   setup() {
     const route = useRoute();
@@ -91,22 +81,6 @@ export default defineComponent({
           });
       }
     };
-
-    watch(
-      () => route.name,
-      (newName) => {
-        if (newName === PageEnum.BasicInfo) {
-          states.activeKey = 1;
-        } else if (newName === PageEnum.ResetPwd) {
-          states.activeKey = 2;
-        } else if (newName === PageEnum.ActivateCode) {
-          states.activeKey = 3;
-        } else if (newName === PageEnum.ConfigureSubAccount) {
-          states.activeKey = 4;
-        }
-      },
-      { immediate: true }
-    );
 
     onMounted(() => {
       initUserInfo();

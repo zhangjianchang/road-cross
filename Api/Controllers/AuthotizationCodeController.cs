@@ -81,6 +81,12 @@ namespace Api.Controllers
             {
                 string memberName = Request.Headers["username"];
                 var res = AuthotizationCodeBLL.GetCodeInfosByUser(memberName).FirstOrDefault(c => c.Status == "200");
+                if (res != null)
+                {
+                    AuthotizationCodeBLL.UpdateAuthotizationCode(res);
+                    var res2 = AuthotizationCodeBLL.GetCodeInfosByUser(memberName).FirstOrDefault(c => c.Status == "200");
+                    return MyResult.OK(res2);
+                }
                 return MyResult.OK(res);
             }
             catch (Exception ex)
@@ -100,6 +106,81 @@ namespace Api.Controllers
             {
                 string memberName = Request.Headers["username"];
                 var res = AuthotizationCodeBLL.GetCodeInfosByUser(memberName);
+                return MyResult.OK(res);
+            }
+            catch (Exception ex)
+            {
+                return MyResult.Error(ex.Message);
+            }
+        }
+        /// <summary>
+        /// 授权企业账户
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [HttpPost("activeEnterpriseAccount")]
+        public MyResult ActiveEnterpriseAccount(EnterpriseAccountRequest request)
+        {
+            try
+            {
+                var res = AuthotizationCodeBLL.ActiveEnterpriseAccount(request);
+                return MyResult.OK(res);
+            }
+            catch (Exception ex)
+            {
+                return MyResult.Error(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 查找企业账户名下全部子账号
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [HttpPost("getSubAccountList")]
+        public MyResult GetSubAccountList()
+        {
+            try
+            {
+                string username = Request.Headers["username"];
+                var res = AuthotizationCodeBLL.GetSubAccountList(username);
+                return MyResult.OK(res);
+            }
+            catch (Exception ex)
+            {
+                return MyResult.Error(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 授权全部子账户
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [HttpPost("saveSubAccount")]
+        public MyResult SaveSubAccount(SubAccountRequest request)
+        {
+            try
+            {
+                var res = AuthotizationCodeBLL.SetSubAccount(request);
+                return MyResult.OK(res);
+            }
+            catch (Exception ex)
+            {
+                return MyResult.Error(ex.Message);
+            }
+        }
+        /// <summary>
+        /// 删除子账户
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [HttpPost("deleteSubAccount")]
+        public MyResult DeleteSubAccount(SubAccountRequest request)
+        {
+            try
+            {
+                var res = AuthotizationCodeBLL.DeleteAuthotizationCode(request);
                 return MyResult.OK(res);
             }
             catch (Exception ex)

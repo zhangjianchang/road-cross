@@ -1,5 +1,10 @@
 <template>
   <Container class="main-container">
+    <div class="breadcrumb">
+      <a-breadcrumb>
+        <a-breadcrumb-item> 个人中心 </a-breadcrumb-item>
+      </a-breadcrumb>
+    </div>
     <div style="display: flex">
       <a-card hoverable class="card" @click="handleMyList">
         <template #cover>
@@ -28,6 +33,23 @@
         </template>
         <a-card-meta title="用户反馈">
           <template #description>查看并回答，展示用户反馈</template>
+        </a-card-meta>
+      </a-card>
+      <a-card
+        v-if="userInfo.roleId === 1"
+        hoverable
+        class="card"
+        @click="handleAuthorized"
+      >
+        <template #cover>
+          <img
+            height="180"
+            alt="example"
+            :src="`${imgUrl}/business-config.jpg`"
+          />
+        </template>
+        <a-card-meta title="账户授权">
+          <template #description>生成个人账号授权码<br />授权企业账号</template>
         </a-card-meta>
       </a-card>
     </div>
@@ -67,6 +89,10 @@ export default defineComponent({
       goRouterByParam(PageEnum.Suggestion);
     };
 
+    const handleAuthorized = () => {
+      goRouterByParam(PageEnum.Authorized);
+    };
+
     //判断权限
     const initUserInfo = () => {
       var token = localStorage.getItem("token");
@@ -101,6 +127,7 @@ export default defineComponent({
       handleSetting,
       handleMyList,
       handleSuggestion,
+      handleAuthorized,
     };
   },
 });

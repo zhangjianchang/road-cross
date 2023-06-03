@@ -109,15 +109,15 @@ namespace Api.BLL
             return true;
         }
 
-        public static List<Object> GetUserList()
+        public static List<object> GetUserList()
         {
-            List<Object> userList = new List<Object>();
+            List<object> userList = new();
             DataTable dt = JabMySqlHelper.ExecuteDataTable(
                 Config.DBConnection,
                 @"SELECT 
                     e.UserName,e.ChineseName,e.RoleId,
                     r.RoleName
-                FROM mt_employee e
+                FROM user_info e
                 INNER JOIN cf_role r ON e.RoleID = r.RoleID order by LastUpdate DESC");
 
             if (dt != null && dt.Rows.Count > 0)
@@ -142,7 +142,7 @@ namespace Api.BLL
             // 两次MD5加密
             string password = Config.DefaultPassword.ToMD5().ToMD5();
             JabMySqlHelper.ExecuteNonQuery(Config.DBConnection,
-                    $"Update mt_employee set Password='{password}', WaitSet = 1 where UserName=@UserName;",
+                    $"Update user_info set Password='{password}', WaitSet = 1 where UserName=@UserName;",
                 new MySqlParameter("@UserName", userName));
             return true;
         }
@@ -152,7 +152,7 @@ namespace Api.BLL
         {
             password = password.ToUpper().ToMD5();
             JabMySqlHelper.ExecuteNonQuery(Config.DBConnection,
-                    $"Update mt_employee set Password=@Password, WaitSet=0 where UserName=@UserName;",
+                    $"Update user_info set Password=@Password, WaitSet=0 where UserName=@UserName;",
                 new MySqlParameter("@UserName", userName),
                 new MySqlParameter("@Password", password));
             return true;
@@ -161,7 +161,7 @@ namespace Api.BLL
         internal static bool SaveUser(string userName, string chineseName, int roleId)
         {
             JabMySqlHelper.ExecuteNonQuery(Config.DBConnection,
-                    "Update mt_employee set ChineseName=@ChineseName,RoleID=@RoleID where UserName=@UserName;",
+                    "Update user_info set ChineseName=@ChineseName,RoleID=@RoleID where UserName=@UserName;",
                 new MySqlParameter("@UserName", userName),
                 new MySqlParameter("@ChineseName", chineseName),
                 new MySqlParameter("@RoleID", roleId));
@@ -171,7 +171,7 @@ namespace Api.BLL
         internal static bool DeleteUser(string userName)
         {
             JabMySqlHelper.ExecuteNonQuery(Config.DBConnection,
-                    "Delete from mt_employee where UserName=@UserName;",
+                    "Delete from user_info where UserName=@UserName;",
                 new MySqlParameter("@UserName", userName));
             return true;
         }
@@ -179,7 +179,7 @@ namespace Api.BLL
         public static bool AddNewUser(string userName, string chineseName, int roleId)
         {
             object re = JabMySqlHelper.ExecuteScalar(Config.DBConnection,
-                              "select count(*) from mt_employee where UserName=@UserName;",
+                              "select count(*) from user_info where UserName=@UserName;",
                           new MySqlParameter("@UserName", userName));
             if (Converter.TryToInt32(re) > 0)
             {
@@ -188,7 +188,7 @@ namespace Api.BLL
             string password = Config.DefaultPassword.ToMD5().ToMD5();
 
             JabMySqlHelper.ExecuteNonQuery(Config.DBConnection,
-                    $"INSERT INTO mt_employee (UserName,ChineseName,RoleID,Password) VALUES (@UserName,@ChineseName,@RoleID,'{password}');",
+                    $"INSERT INTO user_info (UserName,ChineseName,RoleID,Password) VALUES (@UserName,@ChineseName,@RoleID,'{password}');",
                 new MySqlParameter("@UserName", userName),
                 new MySqlParameter("@ChineseName", chineseName),
                 new MySqlParameter("@RoleID", roleId));

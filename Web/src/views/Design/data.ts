@@ -100,69 +100,12 @@ export const echart_tooltip = {
 
 export const echart_toolbox = {
   feature: {
-    dataView: {
-      title: "查看数据",
-      show: true,
-      lang: ["数据视图", "关闭", "导出Excel"],
-    },
-    optionToContent: function (opt: any) {
-      //axisData是你想定义的表格第一列的数据，我这里设置为柱形图的x轴数据
-      var axisData = opt.xAxis[0].data;
-      //tAxis[0]为你想定义的表格第一行的数据
-      var txisData = opt.tAxis[0].data;
-      var series = opt.series;
-      //表头
-      var tdHeads = '<td  style="padding: 0 10px"></td>';
-      var tdBodys = "";
-      var nameData = txisData;
-      for (var i = 0; i < nameData.length; i++) {
-        tdHeads += '<td style="padding: 0 10px">' + nameData[i] + "</ td >";
-      }
-      var table =
-        '<table id="Mytable" border="1" class="table table-bordered table-striped table-hover" style="width:100%;text-align:center"><tbody><tr>' +
-        tdHeads +
-        " </tr>";
-      for (var i = 0, l = axisData.length; i < l; i++) {
-        for (var j = 0; j < series.length; j++) {
-          var temp = series[j].data[i];
-          if (temp != null && temp != undefined) {
-            tdBodys += "<td>" + temp + "</td>";
-          } else {
-            tdBodys += "<td></td>";
-          }
-        }
-        table +=
-          '<tr><td style="padding: 0 10px">' +
-          axisData[i] +
-          "</td>" +
-          tdBodys +
-          "</tr>";
-        tdBodys = "";
-      }
-      table += "</tbody></table>";
-      return table;
-    },
-    //contentToOption为重写“刷新”按钮的语句
-    contentToOption: function () {
-      let et = XLSX.utils.table_to_book(document.getElementById("Mytable"));
-      let etout = XLSX.write(et, {
-        bookType: "xlsx",
-        bookSST: true,
-        type: "array",
-      });
-      try {
-        FileSaver.saveAs(
-          new Blob([etout], {
-            type: "application/octet-stream",
-          }),
-          "头部文件名" + "-" + new Date().toLocaleString() + ".xlsx"
-        );
-      } catch (e) {}
-      return etout;
-    },
-    // magicType: { show: true, type: ["line", "bar"] },
-    // restore: { show: true },
-    saveAsImage: { title: "下载图片", show: true },
+    // dataView: {
+    //   title: "查看数据",
+    //   show: true,
+    //   lang: ["数据视图", "关闭", "导出Excel"],
+    // },
+    // saveAsImage: { title: "下载图片", show: true },
   },
 };
 

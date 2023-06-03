@@ -547,7 +547,10 @@ export const mergeReturnWays = (rc: any) => {};
 
 /*********************************操作授权码*********************/
 export const handleEdit = () => {
-  useCode({ code: userStates.code_info.code }).then((res: any) => {
+  useCode({
+    code: userStates.code_info.code,
+    id: userStates.code_info.id,
+  }).then((res: any) => {
     userStates.code_info = res.data;
     userStates.can_edit = true;
   });
@@ -555,6 +558,7 @@ export const handleEdit = () => {
 /*********************************操作授权码*********************/
 
 /*********************************操作报表**********************/
+// 下载图片
 export function saveAsImage(myChart: any) {
   let content = myChart.getDataURL();
 
@@ -581,5 +585,44 @@ function base64ToBlob(code: any) {
     uInt8Array[i] = raw.charCodeAt(i);
   }
   return new Blob([uInt8Array], { type: contentType });
+}
+
+//导出数据
+export function saveAsExcel(data: any[], filename: string) {
+  const tHeader = ["方案"] as any[];
+  const tData = [] as any[];
+  data.map((d) => {
+    const rowData = { 方案: d.name } as any;
+    d.items.map((item: any) => {
+      if (tHeader.indexOf(item.x) === -1) {
+        tHeader.push(item.x);
+      }
+      rowData[item.x] = item.y;
+    });
+    tData.push(rowData);
+  });
+  import("../../vendor/Export2Excel").then((excel) => {
+    excel.export_json_to_excel({
+      header: tHeader, //表头 必填
+      data: formatJson(tHeader, tData), //具体数据 必填
+      filename, //非必填
+      sheetName: filename,
+      autoWidth: true, //非必填
+      bookType: "xlsx", //非必填
+    });
+  });
+}
+
+/**
+ *  格式数据，对象数据格式 转为 json格式
+ *  @tableHeader  格式头
+ *  @tableData  用来格式的表格数据
+ */
+function formatJson(tableHeader: any, tableData: any) {
+  return tableData.map((v: any) => {
+    return tableHeader.map((j: any) => {
+      return v[j];
+    });
+  });
 }
 /*********************************操作报表**********************/

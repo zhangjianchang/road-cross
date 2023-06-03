@@ -1,4 +1,6 @@
-﻿namespace Api.Entity
+﻿using System.Collections.Generic;
+
+namespace Api.Entity
 {
     public class AuthotizationCode
     {
@@ -14,6 +16,7 @@
         public decimal Duration { get; set; }
         public string TypeName => GetNameByType(Type);
         public string MemberName { get; set; }
+        public string AccountName { get; set; }
         public decimal ValidDate { get; set; }
         public string ActiveDate { get; set; }
         /// <summary>
@@ -66,7 +69,41 @@
                 _ => "状态异常",
             };
         }
+
+        public int Frequency { get; set; }
+        public string AdminExpireDate { get; set; }
+        public int AdminValidDate { get; set; }
     }
 
-    public class AuthotizationCodeRequest : AuthotizationCode { }
+    public class AuthotizationCodeRequest : AuthotizationCode
+    {
+        /// <summary>
+        /// 修改类型，Get，只修改过期时间
+        /// </summary>
+        public string UpdateType { get; set; }
+    }
+
+    public class EnterpriseAccount
+    {
+        public int ID { get; set; }
+        public string Code { get; set; }
+        /// <summary>
+        /// 套餐：A：1年6000次，B：1年12000次
+        /// </summary>
+        public string Type { get; set; }
+        public string MemberName { get; set; }
+        public int Frequency { get; set; }
+        public int ValidDate { get; set; }
+        public string ExpireDate { get; set; }
+        public string CreateDate { get; set; }
+        public string UpdateDate { get; set; }
+    }
+    public class EnterpriseAccountRequest : EnterpriseAccount { }
+
+    public class SubAccountRequest
+    {
+        public int ID { get; set; }
+        public string Code { get; set; }
+        public List<AuthotizationCode> AccountList { get; set; }
+    }
 }

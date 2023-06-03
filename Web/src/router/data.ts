@@ -13,6 +13,8 @@ export enum PageEnum {
   BasicInfo = "BasicInfo",
   ResetPwd = "ResetPwd",
   ActivateCode = "ActivateCode",
+  ConfigureSubAccount = "ConfigureSubAccount",
   Map = "Map",
   Suggestion = "Suggestion",
+  Authorized = "Authorized",
 }

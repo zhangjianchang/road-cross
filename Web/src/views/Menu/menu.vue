@@ -23,7 +23,7 @@
         地图模式
       </router-link>
     </div>
-    <div class="code" v-if="code_info">
+    <div class="code" v-if="code_info && user_info.roleId !== 5">
       剩余可用：{{ code_info.remainingDays }}天，{{
         code_info.remainingTimes
       }}次
@@ -53,6 +53,7 @@
                 :title="user_info.eMail"
               >
                 {{ user_info.eMail }}
+                <span v-if="user_info.roleId === 5">(企业管理员)</span>
               </a>
             </a-menu-item>
             <a-menu-divider />
@@ -65,6 +66,11 @@
             <a-menu-item>
               <a @click="handleRouterClick(PageEnum.ActivateCode)">
                 激活授权码
+              </a>
+            </a-menu-item>
+            <a-menu-item v-if="user_info.roleId === 5">
+              <a @click="handleRouterClick(PageEnum.ConfigureSubAccount)">
+                配置子账号
               </a>
             </a-menu-item>
             <a-menu-divider />
