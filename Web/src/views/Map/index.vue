@@ -17,12 +17,57 @@
     @click="onMouseClick"
     @dblclick="onMouseDbClick"
   ></div>
-  <!-- 抽屉打开键 -->
-  <div class="drawer-text" @click="showDrawer" v-show="!states.visible">
-    <DoubleLeftOutlined />
+  <!-- 搜索地址框 -->
+  <div class="search-address">
+    <a-select
+      v-model:value="states.currentAddress"
+      style="width: 100%"
+      allow-clear
+      placeholder="可以输入地点名称或街道名称等进行地图中心定位"
+      :show-search="true"
+      :filter-option="false"
+      :not-found-content="states.fetching ? undefined : null"
+      @search="onSearch"
+      :options="states.options"
+    >
+      <template #dropdownRender>
+        <div
+          class="select"
+          v-for="item in states.options"
+          :key="item.title"
+          @click="onSelect(item)"
+        >
+          <div class="select-title">{{ item.title }}</div>
+          <div class="select-address">
+            {{ item.address }}
+          </div>
+        </div>
+      </template>
+      <template v-if="states.fetching" #notFoundContent>
+        <a-spin size="small" />
+      </template>
+    </a-select>
   </div>
+  <!-- 项目选择框 -->
+  <div class="select-plan">
+    <a-select
+      allowClear
+      :showSearch="true"
+      :filterOption="filterOptionLabel"
+      class="large-form-width"
+      placeholder="选择需要编辑的项目"
+      v-model:value="states.currentPlan"
+      :options="states.planData"
+      @change="onChangePlan"
+      style="width: 100%"
+    />
+  </div>
+  <!-- 抽屉打开键 -->
+  <!-- <div class="drawer-text" @click="showDrawer" v-show="!states.visible">
+    <DoubleLeftOutlined />
+  </div> -->
   <!-- 抽屉 -->
-  <a-drawer
+  <!-- <a-drawer
     :width="650"
     title="设置"
     placement="right"
@@ -30,67 +75,25 @@
     :closable="false"
     @close="onClose"
   >
-    <!-- <template #extra>
-      <a-button style="margin-right: 8px" @click="onClose">取消</a-button>
-      <a-button type="primary" @click="onClose">确定</a-button>
-    </template> -->
-    <div class="search-address">
-      <p>搜索定位</p>
-      <a-select
-        v-model:value="states.currentAddress"
-        style="width: 100%"
-        allow-clear
-        placeholder="可以输入地点名称或街道名称等进行地图中心定位"
-        :show-search="true"
-        :filter-option="false"
-        :not-found-content="states.fetching ? undefined : null"
-        @search="onSearch"
-        :options="states.options"
-      >
-        <template #dropdownRender>
-          <div
-            class="select"
-            v-for="item in states.options"
-            :key="item.title"
-            @click="onSelect(item)"
-          >
-            <div class="select-title">{{ item.title }}</div>
-            <div class="select-address">
-              {{ item.address }}
-            </div>
-          </div>
-        </template>
-        <template v-if="states.fetching" #notFoundContent>
-          <a-spin size="small" />
-        </template>
-      </a-select>
-    </div>
-    <div>
-      <p>选择需要编辑的项目</p>
-      <a-select
-        allowClear
-        :showSearch="true"
-        :filterOption="filterOptionLabel"
-        class="large-form-width"
-        placeholder="选择需要编辑的项目"
-        v-model:value="states.currentPlan"
-        :options="states.planData"
-        @change="onChangePlan"
-        style="width: 100%"
-      />
-    </div>
-  </a-drawer>
+  </a-drawer> -->
   <!-- 透明度调节器 -->
   <div class="slider-content" v-show="!states.is_close">
     <div style="display: inline-block; height: 300px; margin-left: 70px">
-      <a-slider
-        :min="0"
-        :max="1"
-        :step="0.1"
-        v-model:value="states.opacity"
-        vertical
-        @afterChange="setOpacity"
-      />
+      <a-tooltip
+        placement="left"
+        title="透明度调节器"
+        :visible="!states.is_close"
+        :autoAdjustOverflow="false"
+      >
+        <a-slider
+          :min="0"
+          :max="1"
+          :step="0.1"
+          v-model:value="states.opacity"
+          vertical
+          @afterChange="setOpacity"
+        />
+      </a-tooltip>
     </div>
   </div>
   <!-- 主设计窗口 -->
@@ -155,16 +158,16 @@ const states = reactive({
 });
 
 //打开抽屉
-const showDrawer = () => {
-  //加载数据
-  initData();
-  states.visible = true;
-};
+// const showDrawer = () => {
+//   //加载数据
+//   initData();
+//   states.visible = true;
+// };
 
 //关闭抽屉
-const onClose = () => {
-  states.visible = false;
-};
+// const onClose = () => {
+//   states.visible = false;
+// };
 
 //设计页面切换菜单
 const changeMenu = () => {
@@ -390,6 +393,8 @@ onMounted(() => {
   setTimeout(() => {
     register();
   }, 1000);
+  //加载项目
+  initData();
 });
 
 // 发现把这个生命周期钩子写在onMounted生命周期钩子内，没有报错，而且还有效果

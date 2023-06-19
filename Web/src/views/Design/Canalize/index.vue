@@ -814,7 +814,7 @@
     </div>
     <a-modal
       :visible="modalVisible"
-      width="1000px"
+      width="713px"
       title="设置道路交通标识"
       :footer="null"
       @cancel="modalVisible = false"

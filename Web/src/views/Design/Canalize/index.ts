@@ -53,26 +53,26 @@ export const roadSigns = reactive([
     name: "所有方向",
     path: "M456.944 657.488V447.872h-90.832L512.464 0l143.952 447.872h-96.528v209.04l112.16-95.296v-128.768l160.288 192.256-160.304 287.744v-128l-112.144 95.104V1024H456.944v-143.472l-104.304-95.68v128L192.336 625.104l160.32-192.256V561.6z",
   },
-  {
-    key: "variable",
-    name: "可变车道",
-    path: "",
-  },
-  {
-    key: "tidal_lane",
-    name: "潮汐车道",
-    path: "",
-  },
-  {
-    key: "bus_only",
-    name: "公交专用",
-    path: "",
-  },
-  {
-    key: "none",
-    name: "无",
-    path: "",
-  },
+  // {
+  //   key: "variable",
+  //   name: "可变车道",
+  //   path: "",
+  // },
+  // {
+  //   key: "tidal_lane",
+  //   name: "潮汐车道",
+  //   path: "",
+  // },
+  // {
+  //   key: "bus_only",
+  //   name: "公交专用",
+  //   path: "",
+  // },
+  // {
+  //   key: "none",
+  //   name: "无",
+  //   path: "",
+  // },
   {
     hide: true,
     key: "reverse_straight",
