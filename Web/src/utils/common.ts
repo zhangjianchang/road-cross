@@ -394,3 +394,7 @@ export function insect_pt(line1: any, line2: any) {
   }
   return false;
 }
+
+export function getPopupContainer(node?: HTMLElement): HTMLElement {
+  return (node?.parentNode as HTMLElement) ?? document.body;
+}

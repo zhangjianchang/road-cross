@@ -31,15 +31,17 @@
       :options="states.options"
     >
       <template #dropdownRender>
-        <div
-          class="select"
-          v-for="item in states.options"
-          :key="item.title"
-          @click="onSelect(item)"
-        >
-          <div class="select-title">{{ item.title }}</div>
-          <div class="select-address">
-            {{ item.address }}
+        <div class="search-dropdown">
+          <div
+            class="select"
+            v-for="item in states.options"
+            :key="item.title"
+            @click="onSelect(item)"
+          >
+            <div class="select-title">{{ item.title }}</div>
+            <div class="select-address">
+              {{ item.address }}
+            </div>
           </div>
         </div>
       </template>
