@@ -15,7 +15,7 @@ namespace Api.Utilities
                 string DBPwd = AppSettings.DB.DBPwd;
                 string DBPort = AppSettings.DB.DBPort;
 
-                return $"Server={DBServer};Database={DBName};User ID={DBUser};Password={DBPwd};port={DBPort};pooling=true;Charset=utf8";
+                return $"Server={DBServer};Database={DBName};User ID={DBUser};Password={DBPwd};Port={DBPort};Pooling=true;Charset=utf8";
 
             }
         }

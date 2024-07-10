@@ -159,6 +159,12 @@ const states = reactive({
   menuStyle: { "z-index": "1003", width: "200px" } as any,
 });
 
+const states2 = {
+  map: undefined as any, //地图
+  loc: undefined as any, //当前定位点
+  center: undefined as any, //选中某点为中心点
+};
+
 //打开抽屉
 // const showDrawer = () => {
 //   //加载数据
@@ -234,7 +240,7 @@ const onChangePlan = (item: any) => {
   setTimeout(() => {
     if (plans.center) {
       //地图中心切换
-      states.loc = plans.center;
+      states2.loc = plans.center;
       reLoadMap();
     }
     //展开弹框
@@ -253,9 +259,10 @@ const Tmap = () => {
       "message",
       function (event) {
         if (event.data) {
-          states.loc = event.data; // 接收位置信息
-          if (states.loc) {
-            return resolve(states.loc);
+          console.log("接收位置", event);
+          states2.loc = event.data; // 接收位置信息
+          if (states2.loc) {
+            return resolve(states2.loc);
           }
         }
       },
@@ -263,7 +270,7 @@ const Tmap = () => {
     );
     // 设置6s超时，防止定位组件长时间获取位置信息未响应
     setTimeout(function () {
-      if (!states.loc) return reject(false);
+      if (!states2.loc) return reject(false);
     }, 6000); // 6s为推荐值，不建议太短
   });
 };
@@ -272,27 +279,27 @@ const loadMap = (loc: any) => {
   const TMap = (window as any).TMap; // TMap地图实例
   const LatLng = TMap.LatLng; // 用于创建经纬度坐标实例
   const center = new LatLng(loc.lat, loc.lng); //设置中心点坐标
-
+  console.log("center", center);
   //初始化地图
-  states.map = new TMap.Map("container", {
+  states2.map = new TMap.Map("container", {
     zoom: 16, //设置地图缩放级别
     center: center, //地图中心
   });
 
   //绑定右键菜单点击事件
-  states.map.on("contextmenu", function (evt: any) {
+  states2.map.on("contextmenu", function (evt: any) {
     states.menuVisible = true;
     states.menuStyle.position = "fixed";
     states.menuStyle.top = evt.point.y + 65 + "px";
     states.menuStyle.left = evt.point.x + "px";
-    states.loc = {
+    states2.loc = {
       lat: evt.latLng.getLat().toFixed(6),
       lng: evt.latLng.getLng().toFixed(6),
     };
   });
   //监听地图平移结束
-  states.map.on("panend", function (evt: any) {
-    const center = states.map.getCenter();
+  states2.map.on("panend", function (evt: any) {
+    const center = states2.map.getCenter();
     plans.center = {
       lat: center.lat,
       lng: center.lng,
@@ -304,7 +311,7 @@ const loadMap = (loc: any) => {
 
   //创建并初始化MultiMarker，表示地图上的多个标注点，可自定义标注的图标。
   new TMap.MultiMarker({
-    map: states.map, //指定地图容器
+    map: states2.map, //指定地图容器
     geometries: [], //点标记数据数组
   });
 };
@@ -324,7 +331,7 @@ const onSearch = debounce((value: any) => {
     keyword: value,
     page_size: 20, //地图接口最多支持20条
     // boundary: `region(全国,0)`,
-    boundary: `nearby(${states.loc.lat},${states.loc.lng},1000,1)`, //附近1000m内
+    boundary: `nearby(${states2.loc.lat},${states2.loc.lng},1000,1)`, //附近1000m内
   };
   if (fetchId !== lastFetchId) return;
   //调用腾讯接口
@@ -342,14 +349,14 @@ const onSelect = (item: any) => {
   setOpacity();
   //切换地图位置
   states.currentAddress = item.title;
-  states.loc = item.location;
+  states2.loc = item.location;
   reLoadMap();
 };
 
 const reLoadMap = () => {
-  // states.map.setCenter(states.loc);
-  states.map.setOffset({ x: -225, y: -150 });
-  states.map.easeTo({ center: states.loc, zoom: 18 });
+  // states2.map.setCenter(states2.loc);
+  states2.map.setOffset({ x: -225, y: -150 });
+  states2.map.easeTo({ center: states2.loc, zoom: 18 });
 };
 
 const register = () => {
@@ -367,8 +374,8 @@ const onMouseClick = () => {
 };
 
 const onMouseDbClick = () => {
-  plans.center = states.map.center;
-  plans.zoom = states.map.zoom;
+  plans.center = states2.map.center;
+  plans.zoom = states2.map.zoom;
 };
 
 const handleMenuClick = (item: any) => {
@@ -376,13 +383,13 @@ const handleMenuClick = (item: any) => {
     states.is_close = false;
     states.is_collapse = true;
     states.currentPlan = undefined;
-    states.map.zoom = "20";
+    states2.map.zoom = "20";
     refDesign.value.loadData(undefined, true);
   }
   states.menuVisible = false;
   states.opacity = 0.1;
   setOpacity();
-  plans.center = states.loc;
+  plans.center = states2.loc;
   reLoadMap();
 };
 
@@ -402,7 +409,7 @@ onMounted(() => {
 // 发现把这个生命周期钩子写在onMounted生命周期钩子内，没有报错，而且还有效果
 onBeforeUnmount(() => {
   // 切换路由的时候可能创建了多个实例，可以使用destroy销毁地图
-  states.map.destroy();
+  states2.map.destroy();
   // 注销鼠标滚轮事件
   unregister();
 });

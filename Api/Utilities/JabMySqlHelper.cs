@@ -177,7 +177,7 @@ namespace Api.Utilities
                 adapter.Fill(dt);
                 cmd.Parameters.Clear();
             }
-            catch
+            catch(Exception ex)
             {
                 throw;
             }

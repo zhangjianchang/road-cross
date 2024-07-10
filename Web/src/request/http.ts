@@ -9,10 +9,12 @@ export const mapKey = "TPDBZ-WQI34-FQIU6-F45YP-5PAJO-WMFEU";
 export const basic_config = { img_url: "" };
 // 环境的切换
 if (process.env.NODE_ENV == "development") {
-  axios.defaults.baseURL = "https://localhost:44373/api";
+  // axios.defaults.baseURL = "https://localhost:44373/api";
+  axios.defaults.baseURL = "http://by-traffic.com/api/api";
   basic_config.img_url = "../../src/assets/image";
 } else if (process.env.NODE_ENV == "production") {
-  axios.defaults.baseURL = "https://diorest.top/api/api";
+  axios.defaults.baseURL = "http://by-traffic.com/api/api";
+  // axios.defaults.baseURL = "https://diorest.top/api/api";
   basic_config.img_url = "../../assets/image";
 }
 

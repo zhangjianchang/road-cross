@@ -19,10 +19,20 @@ a,
 a:visited {
   color: #2c3e50;
 }
+
+/* MAIN */
+.main-body {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
 .container {
   width: 100%;
   /* margin: 0 auto; */
   /* max-width: 960px; */
+  flex: 1; /* 使内容区域占满剩余空间 */
 }
 
 /* Home */
@@ -252,4 +262,12 @@ a {
 .ant-col-24.ant-form-item-label,
 .ant-col-xl-24.ant-form-item-label {
   padding: 0 !important;
+}
+
+/* footer */
+.footer {
+  padding: 30px;
+  text-align: center;
+  /* position: sticky; */
+  bottom: 0;
 }

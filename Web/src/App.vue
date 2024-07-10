@@ -1,17 +1,23 @@
 <template>
-  <div class="header">
-    <Menu />
-  </div>
-  <div class="container">
-    <router-view></router-view>
+  <div class="main-body">
+    <div class="header">
+      <Header />
+    </div>
+    <div class="container">
+      <router-view></router-view>
+    </div>
+    <div class="footer">
+      <Footer />
+    </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import Menu from "./views/Menu/menu.vue";
+import Header from "./views/Menu/header.vue";
+import Footer from "./views/Menu/footer.vue";
 export default defineComponent({
-  components: { Menu },
+  components: { Header, Footer },
   setup() {
     return {};
   },
