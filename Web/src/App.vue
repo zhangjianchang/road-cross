@@ -6,9 +6,9 @@
     <div class="container">
       <router-view></router-view>
     </div>
-    <div class="footer">
+    <!-- <div class="footer">
       <Footer />
-    </div>
+    </div> -->
   </div>
 </template>
 

@@ -1,18 +1,20 @@
 <template>
   <div class="content">
-    <h3>官方QQ群</h3>
+    <!-- <h3>官方QQ群</h3>
     <div class="label">官方交流QQ群：1111111</div>
     <h3>微信</h3>
-    <div class="label">二维码</div>
+    <div class="label">二维码</div> -->
     <h3>邮箱</h3>
-    <div class="label">对应用有任何意见或者建议欢迎发送至邮箱：xxx@xxx.com</div>
+    <div class="label">
+      对应用有任何意见或者建议欢迎发送至邮箱：zhouyuping@ai-cambrian.com
+    </div>
     <h3>意见与建议</h3>
     <div class="label">
       <a-textarea
         :rows="6"
         show-count
         allow-clear
-        placeholder="请填写您在系统使用中遇到的问题或对系统的建议"
+        placeholder="也可在此填写您在系统使用中遇到的问题或对系统的建议"
         :maxlength="500"
         style="width: 400px"
         v-model:value="param.suggestion"
@@ -76,6 +78,10 @@ const param = reactive({
   suggestion: "",
 });
 const onSubmit = () => {
+  if (!param.suggestion) {
+    openNotification("warning", "请填写内容后提交", "温馨提示");
+    return;
+  }
   suggestion(param).then(() => {
     openNotification(
       "success",
