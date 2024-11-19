@@ -6,7 +6,7 @@
     <div class="label">二维码</div> -->
     <h3>邮箱</h3>
     <div class="label">
-      对应用有任何意见或者建议欢迎发送至邮箱：zhouyuping@ai-cambrian.com
+      对应用有任何意见或者建议欢迎发送至邮箱：wangxinxin@by-traffic.com
     </div>
     <h3>意见与建议</h3>
     <div class="label">
